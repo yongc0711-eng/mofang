@@ -32,14 +32,6 @@ interface PracticeScope {
   showPicker: boolean;
 }
 
-interface PracticeScope {
-  sets: SetId[];
-  group: string;
-  filter: StatusFilter;
-  picked: string[];
-  showPicker: boolean;
-}
-
 type Phase = 'ready' | 'running' | 'done';
 interface Question {
   c: AlgCase;
@@ -167,6 +159,7 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
   const [count, setCount] = useState(0);
   const startRef = useRef(0);
   const lastId = useRef<string | null>(null);
+  const skipClick = useRef(false);
 
   const next = useCallback(() => {
     const c = pickCase(pool, userRef.current, lastId.current);
@@ -239,9 +232,19 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
         role="button"
         tabIndex={0}
         aria-label={hint}
-        // 用 pointerdown 而不是 click：按下就停表，且一次触摸只触发一次
+        // 停表要按下就响应（pointerdown）；开始和下一题用 click，滑动屏幕不会误触
         onPointerDown={(e) => {
-          if (e.button !== 0 || !e.isPrimary) return;
+          skipClick.current = false;
+          if (phase !== 'running' || e.button !== 0 || !e.isPrimary) return;
+          if ((e.target as Element).closest('a,button')) return;
+          skipClick.current = true; // 同一次触摸随后的 click 不再前进
+          advance();
+        }}
+        onClick={(e) => {
+          if (skipClick.current) {
+            skipClick.current = false;
+            return;
+          }
           if ((e.target as Element).closest('a,button')) return;
           advance();
         }}
