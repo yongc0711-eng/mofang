@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseCard } from '../components/CaseCard';
 import { getSet } from '../data';
+import { getUi, setUi, useScrollMemory } from '../lib/uiState';
 import { STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
 import { type LearnStatus } from '../types';
 
@@ -18,8 +19,17 @@ export function SetPage() {
   const { setId } = useParams();
   const set = getSet(setId ?? '');
   const user = useUserData();
-  const [filter, setFilter] = useState<StatusFilter>('all');
-  const [group, setGroup] = useState('全部');
+  const [filter, setFilterRaw] = useState<StatusFilter>(() => getUi(`filter:${setId}`, 'all'));
+  const [group, setGroupRaw] = useState(() => getUi(`group:${setId}`, '全部'));
+  const setFilter = (v: StatusFilter) => {
+    setFilterRaw(v);
+    setUi(`filter:${setId}`, v);
+  };
+  const setGroup = (v: string) => {
+    setGroupRaw(v);
+    setUi(`group:${setId}`, v);
+  };
+  useScrollMemory(`set:${setId}`);
 
   if (!set) return <NotFound />;
 

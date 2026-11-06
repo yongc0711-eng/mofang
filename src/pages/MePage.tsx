@@ -2,6 +2,12 @@ import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
 
+/** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
+function localDate(d = new Date()) {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
 export function MePage() {
   const user = useUserData();
   const file = useRef<HTMLInputElement>(null);
@@ -14,7 +20,7 @@ export function MePage() {
     const url = URL.createObjectURL(new Blob([exportUserData()], { type: 'application/json' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `mofang-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `mofang-backup-${localDate()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };

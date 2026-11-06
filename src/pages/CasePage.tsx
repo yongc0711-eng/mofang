@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
@@ -25,6 +26,7 @@ const STATUSES: LearnStatus[] = ['none', 'learning', 'mastered'];
 
 export function CasePage() {
   const { caseId } = useParams();
+  useScrollTop(caseId);
   const navigate = useNavigate();
   const c = getCase(caseId ?? '');
   const user = useUserData();

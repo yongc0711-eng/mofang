@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { SETS, getSet } from '../data';
+import { getUi, setUi } from '../lib/uiState';
 import { pickCase, scrambleFor } from '../lib/practice';
 import {
   STATUS_LABEL,
@@ -23,6 +24,22 @@ const FILTERS: { id: StatusFilter; label: string }[] = [
   { id: 'mastered', label: STATUS_LABEL.mastered },
 ];
 
+interface PracticeScope {
+  sets: SetId[];
+  group: string;
+  filter: StatusFilter;
+  picked: string[];
+  showPicker: boolean;
+}
+
+interface PracticeScope {
+  sets: SetId[];
+  group: string;
+  filter: StatusFilter;
+  picked: string[];
+  showPicker: boolean;
+}
+
 type Phase = 'ready' | 'running' | 'done';
 interface Question {
   c: AlgCase;
@@ -32,11 +49,16 @@ interface Question {
 
 export function PracticePage() {
   const user = useUserData();
-  const [sets, setSets] = useState<SetId[]>([]);
-  const [group, setGroup] = useState('全部');
-  const [filter, setFilter] = useState<StatusFilter>('all');
-  const [picked, setPicked] = useState<string[]>([]);
-  const [showPicker, setShowPicker] = useState(false);
+  // 范围和筛选放在内存里，从“查看详情”返回时还在
+  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false });
+  const [sets, setSets] = useState<SetId[]>(saved.sets);
+  const [group, setGroup] = useState(saved.group);
+  const [filter, setFilter] = useState<StatusFilter>(saved.filter);
+  const [picked, setPicked] = useState<string[]>(saved.picked);
+  const [showPicker, setShowPicker] = useState(saved.showPicker);
+  useEffect(() => {
+    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker });
+  }, [sets, group, filter, picked, showPicker]);
   const [practicing, setPracticing] = useState(false);
 
   const activeSets = SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
@@ -188,6 +210,8 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Space' || e.key === ' ') {
+        // 焦点在按钮或链接上时，空格留给它们自己
+        if ((e.target as Element | null)?.closest?.('a,button')) return;
         e.preventDefault();
         if (!e.repeat) advance();
       }
@@ -215,10 +239,15 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
         role="button"
         tabIndex={0}
         aria-label={hint}
-        onClick={advance}
+        // 用 pointerdown 而不是 click：按下就停表，且一次触摸只触发一次
+        onPointerDown={(e) => {
+          if (e.button !== 0 || !e.isPrimary) return;
+          if ((e.target as Element).closest('a,button')) return;
+          advance();
+        }}
         onKeyDown={(e) => {
-          // 空格由全局监听处理，这里只处理回车
-          if (e.key === 'Enter') advance();
+          // 空格由全局监听处理，这里只处理回车；按住不放不连续触发
+          if (e.key === 'Enter' && !e.repeat && e.target === e.currentTarget) advance();
         }}
       >
         <div className="practice-case">
@@ -246,7 +275,7 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
                 最近 {stats.count} 次：平均 {formatTime(stats.avg)} 秒 · 最快 {formatTime(stats.best)} 秒
               </p>
             )}
-            <Link className="link-btn" to={`/case/${c.id}`} onClick={(e) => e.stopPropagation()}>
+            <Link className="link-btn" to={`/case/${c.id}`}>
               查看详情
             </Link>
           </div>
