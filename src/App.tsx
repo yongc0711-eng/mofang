@@ -52,9 +52,12 @@ function Nav() {
   const { pathname } = useLocation();
   // 公式组和详情页都属于“公式”这个 tab
   const inFormulas = pathname === '/' || pathname.startsWith('/set/') || pathname.startsWith('/case/');
+  // 其他路径都会显示首页，所以找不到时滑块停在“公式”
+  const active = Math.max(0, NAV.findIndex((n) => pathname.startsWith(n.to)) + 1);
   return (
     <nav className="nav" aria-label="主导航">
       <span className="nav-brand">魔方公式</span>
+      <span className="nav-thumb" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
       <NavLink to="/" className={`nav-item ${inFormulas ? 'active' : ''}`}>
         {ICONS.formulas}
         <span>公式</span>
