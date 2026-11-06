@@ -40,6 +40,8 @@ export interface UserCaseData {
   customAlgs?: string[];
   /** 用户选定的主公式，可以是内置公式或自定义公式 */
   primaryAlg?: string;
+  /** 练习用时（毫秒），最近的在最后，最多保留 10 条。旧备份没有这个字段 */
+  times?: number[];
 }
 
 export interface UserData {

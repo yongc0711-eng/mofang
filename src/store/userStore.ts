@@ -63,6 +63,22 @@ export const removeCustomAlg = (id: string, alg: string) =>
     primaryAlg: c.primaryAlg === alg ? undefined : c.primaryAlg,
   }));
 
+const MAX_TIMES = 10;
+
+export const addTime = (id: string, ms: number) =>
+  patchCase(id, (c) => ({ ...c, times: [...(c.times ?? []), ms].slice(-MAX_TIMES) }));
+
+export const clearTimes = (id: string) => patchCase(id, ({ times: _t, ...rest }) => rest);
+
+/** 最近一次用时和最近几次的平均，没有记录时为 null */
+export function timeStats(id: string, user: UserData): { last: number; avg: number; best: number; count: number } | null {
+  const t = user.cases[id]?.times?.filter((x) => Number.isFinite(x));
+  if (!t?.length) return null;
+  return { last: t[t.length - 1], avg: t.reduce((a, b) => a + b, 0) / t.length, best: Math.min(...t), count: t.length };
+}
+
+export const formatTime = (ms: number) => (ms / 1000).toFixed(2);
+
 export const exportUserData = () => JSON.stringify(data, null, 2);
 
 /** 导入会覆盖本机数据。格式不对时抛错，不会动现有数据 */

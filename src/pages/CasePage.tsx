@@ -8,7 +8,10 @@ import { algSolvesCase } from '../lib/cases';
 import {
   STATUS_LABEL,
   addCustomAlg,
+  clearTimes,
+  formatTime,
   primaryAlgOf,
+  timeStats,
   removeCustomAlg,
   setPrimaryAlg,
   setStatus,
@@ -45,6 +48,7 @@ export function CasePage() {
   const playing = selected ?? primary;
   const status = statusOf(c, user);
   const favorite = !!user.cases[c.id]?.favorite;
+  const stats = timeStats(c.id, user);
 
   const save = (force: boolean) => {
     const alg = draft.trim();
@@ -134,6 +138,16 @@ export function CasePage() {
             <p className="recognition">
               <strong>识别：</strong>
               {c.recognition}
+            </p>
+          )}
+
+          {stats && (
+            <p className="recognition">
+              <strong>练习用时：</strong>
+              最近 {formatTime(stats.last)} 秒 · 平均 {formatTime(stats.avg)} 秒 · 最快 {formatTime(stats.best)} 秒（{stats.count} 次）
+              <button className="link-btn" onClick={() => clearTimes(c.id)}>
+                清除
+              </button>
             </p>
           )}
 
