@@ -31,6 +31,7 @@ export function CasePage() {
   const c = getCase(caseId ?? '');
   const user = useUserData();
   const [selected, setSelected] = useState<string | null>(null);
+  const [replayKey, setReplayKey] = useState(0);
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
@@ -74,7 +75,14 @@ export function CasePage() {
 
   const row = (alg: string, isCustom: boolean) => (
     <li key={alg} className={`alg-row ${alg === playing ? 'alg-row-on' : ''}`}>
-      <button className="alg-play" onClick={() => setSelected(alg)} aria-label={`播放 ${alg}`}>
+      <button
+        className="alg-play"
+        onClick={() => {
+          setSelected(alg);
+          setReplayKey((k) => k + 1);
+        }}
+        aria-label={`播放 ${alg}`}
+      >
         <code className="alg">{alg}</code>
         <span className="muted small">
           {moveCount(alg)} 步{isCustom && ' · 我的公式'}
@@ -126,9 +134,10 @@ export function CasePage() {
       </header>
 
       <div className="case-layout">
-        <CubePlayer alg={playing} />
+        <CubePlayer alg={playing} replayKey={replayKey} />
         <div className="case-side">
           <div className="segmented" role="group" aria-label="学习状态">
+            <span className="seg-thumb" aria-hidden="true" style={{ transform: `translateX(${STATUSES.indexOf(status) * 100}%)` }} />
             {STATUSES.map((s) => (
               <button key={s} className={status === s ? 'seg-on' : ''} aria-pressed={status === s} onClick={() => setStatus(c.id, s)}>
                 {STATUS_LABEL[s]}

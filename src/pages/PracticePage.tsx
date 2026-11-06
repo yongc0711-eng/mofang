@@ -92,7 +92,8 @@ export function PracticePage() {
       <p className="muted small">不选就是全部公式组</p>
 
       <div className={picked.length ? 'scope-off' : ''}>
-        {groups.length > 1 && (
+        {/* 分组只有在单个公式组里才有意义，多个组混在一起时标签太多 */}
+        {sets.length === 1 && groups.length > 1 && (
           <>
             <h2>分组</h2>
             <div className="chips wrap" role="group" aria-label="按分组筛选">
