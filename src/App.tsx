@@ -67,7 +67,7 @@ function Nav() {
     <nav className="nav" aria-label="主导航">
       <span className="nav-brand">魔方公式</span>
       <span className="nav-thumb" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
-      <NavLink to={formulaTo} replace={!inFormulas} className={`nav-item ${inFormulas ? 'active' : ''}`}>
+      <NavLink to={formulaTo} replace={!inFormulas || formulaTo === pathname} className={`nav-item ${inFormulas ? 'active' : ''}`}>
         {ICONS.formulas}
         <span>公式</span>
       </NavLink>

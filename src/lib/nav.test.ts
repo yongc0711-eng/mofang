@@ -49,7 +49,7 @@ describe('接线（源码文本）与内存状态', () => {
 
   it('App 只调用 formulaTabTarget：公式 tab 的 to 来自它，路由表没动', () => {
     expect(appSource).toMatch(/formulaTabTarget\(pathname, getUi<string \| null>\('lastCaseId', null\)\)/);
-    expect(appSource).toMatch(/<NavLink to=\{formulaTo\} replace=\{!inFormulas\} className=/); // T53-fix：不在公式区时 replace
+    expect(appSource).toMatch(/<NavLink to=\{formulaTo\} replace=\{!inFormulas \|\| formulaTo === pathname\} className=/); // T53-fix：不在公式区时 replace；首页当前 tab 也 replace
     expect(appSource).not.toMatch(/<NavLink to="\/" /);
     for (const r of ['path="/"', 'path="/set/:setId"', 'path="/case/:caseId"', 'path="/search"', 'path="/practice"', 'path="/me"', 'path="*"']) {
       expect(appSource, r).toContain(r);
