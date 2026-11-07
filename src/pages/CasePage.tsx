@@ -80,10 +80,19 @@ export function CasePage() {
       setMessage({ kind: 'warn', text: '这条公式解决不了这个情形，可能输错了。确定要保存吗？' });
       return;
     }
-    addCustomAlg(c.id, alg);
+    // 解决不了情形的公式只保存，不成为主公式
+    addCustomAlg(c.id, alg, solves);
     setSelected(alg);
     setDraft('');
     setMessage(null);
+  };
+
+  const customSolves = (alg: string) => {
+    try {
+      return algSolvesCase(c, alg);
+    } catch {
+      return false;
+    }
   };
 
   const row = (alg: string, isCustom: boolean) => (
@@ -104,6 +113,8 @@ export function CasePage() {
       <div className="alg-actions">
         {alg === primary ? (
           <span className="tag">主公式</span>
+        ) : isCustom && !customSolves(alg) ? (
+          <span className="muted small">解决不了此情形</span>
         ) : (
           <button className="link-btn" onClick={() => setPrimaryAlg(c.id, alg)}>
             设为主公式

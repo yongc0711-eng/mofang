@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { algSolvesCase } from '../lib/cases';
 import { type AlgCase, type LearnStatus, type UserCaseData, type UserData } from '../types';
 
 /**
@@ -49,11 +50,12 @@ export const toggleFavorite = (id: string) => patchCase(id, (c) => ({ ...c, favo
 
 export const setPrimaryAlg = (id: string, alg: string) => patchCase(id, (c) => ({ ...c, primaryAlg: alg }));
 
-export const addCustomAlg = (id: string, alg: string) =>
+/** setPrimary 为 false 时只保存，不改变当前主公式（强制保存解决不了情形的公式时用） */
+export const addCustomAlg = (id: string, alg: string, setPrimary = true) =>
   patchCase(id, (c) => ({
     ...c,
     customAlgs: [...(c.customAlgs ?? []).filter((a) => a !== alg), alg],
-    primaryAlg: alg,
+    ...(setPrimary ? { primaryAlg: alg } : {}),
   }));
 
 export const removeCustomAlg = (id: string, alg: string) =>
@@ -90,11 +92,32 @@ export function importUserData(json: string) {
   commit(parsed);
 }
 
-/** 这个情形当前该显示的主公式：用户选定的优先，其次是内置第一条 */
+const solvesCache = new Map<string, boolean>();
+/** 自定义公式能否解决这个情形；结果缓存，列表页每次渲染都会问 */
+function customSolves(c: AlgCase, alg: string): boolean {
+  const key = `${c.id}|${alg}`;
+  let r = solvesCache.get(key);
+  if (r === undefined) {
+    try {
+      r = algSolvesCase(c, alg);
+    } catch {
+      r = false;
+    }
+    solvesCache.set(key, r);
+  }
+  return r;
+}
+
+/**
+ * 这个情形当前该显示的主公式：用户选定的优先，其次是内置第一条。
+ * 选定的公式如果解决不了该情形（强制保存的、或导入的备份里带来的），回退到 algs[0]。
+ */
 export function primaryAlgOf(c: AlgCase, user: UserData): string {
   const u = user.cases[c.id];
-  const candidates = [...c.algs, ...(u?.customAlgs ?? [])];
-  return u?.primaryAlg && candidates.includes(u.primaryAlg) ? u.primaryAlg : c.algs[0];
+  const p = u?.primaryAlg;
+  if (!p) return c.algs[0];
+  if (c.algs.includes(p)) return p;
+  return (u?.customAlgs ?? []).includes(p) && customSolves(c, p) ? p : c.algs[0];
 }
 
 export const statusOf = (c: AlgCase, user: UserData): LearnStatus => user.cases[c.id]?.status ?? 'none';
