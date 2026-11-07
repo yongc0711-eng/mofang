@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
+import { useDevicePrefs } from '../store/devicePrefs';
 import { statusOf, useUserData } from '../store/userStore';
 import { type SetId } from '../types';
 
@@ -15,6 +16,7 @@ const COVER: Record<SetId, string> = {
 
 export function HomePage() {
   const user = useUserData();
+  const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   return (
     <div className="page">
@@ -37,7 +39,7 @@ export function HomePage() {
               const cover = getCase(COVER[s.id]) ?? s.cases[0];
               return (
                 <Link key={s.id} to={`/set/${s.id}`} className="set-card">
-                  <CaseDiagram c={cover} view={s.view === 'lse' ? 'top' : s.view} />
+                  <CaseDiagram c={cover} view={s.view === 'lse' ? 'top' : s.view} bottom={prefs.bottomColor} />
                   <div className="set-body">
                     <div className="set-title">
                       <strong>{s.name}</strong>

@@ -59,6 +59,13 @@ const U_STICKER = STICKERS.find((s) => s.face === 'U')!.id;
 export const topColor = (bottom: BottomColor): BottomColor => FACE_COLOR[displayFace(U_STICKER, bottom)];
 
 /**
+ * 前色：原本属于 F 面的贴纸在所选底色下显示成什么颜色，同样由 displayFace 推。
+ * 白、黄、红、橙底都是绿，绿底是黄，蓝底是白。
+ */
+const F_STICKER = STICKERS.find((s) => s.face === 'F')!.id;
+export const frontColor = (bottom: BottomColor): BottomColor => FACE_COLOR[displayFace(F_STICKER, bottom)];
+
+/**
  * 只对这台设备生效的显示设置，比如旧手机选普通面省性能。
  * 和进度分开存，不进备份，所以导入备份不会改变它。
  */
