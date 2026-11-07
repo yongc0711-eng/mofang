@@ -187,7 +187,8 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .practice { max-width: 640px; margin: 0 auto; padding: 8px 16px; display: flex; flex-direction: column; min-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom) - 16px); }
 .practice-bar { display: flex; justify-content: space-between; align-items: center; }
 .practice-pad {
-  touch-action: manipulation;
+  touch-action: none;
+  -webkit-touch-callout: none;
   -webkit-user-select: none;
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
   min-height: 60vh; padding: 16px; text-align: center; cursor: pointer; user-select: none;
@@ -387,6 +388,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 练习 */
 .practice-pad { transition: background-color 0.25s ease, border-color 0.25s ease; }
+.practice-pad[data-pressing='true'] { background: var(--accent-soft); border-color: var(--accent); }
 [data-phase='running'] .practice-pad { background: var(--accent-soft); }
 [data-phase='running'] .practice-time { color: var(--accent); }
 [data-phase='done'] .practice-time { color: var(--ok); }
