@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
+import { viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
 import { useDevicePrefs } from '../store/devicePrefs';
-import { statusOf, useUserData } from '../store/userStore';
+import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
 import { type SetId } from '../types';
 
 /** 每组用一个有代表性的情形做缩略图 */
@@ -39,7 +40,7 @@ export function HomePage() {
               const cover = getCase(COVER[s.id]) ?? s.cases[0];
               return (
                 <Link key={s.id} to={`/set/${s.id}`} className="set-card">
-                  <CaseDiagram c={cover} view={s.view === 'lse' ? 'top' : s.view} bottom={prefs.bottomColor} />
+                  <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} bottom={prefs.bottomColor} />
                   <div className="set-body">
                     <div className="set-title">
                       <strong>{s.name}</strong>
