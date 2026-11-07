@@ -140,7 +140,7 @@
 
 ## 实现记录
 
-分支 `claude/t48-player-peek`（从 main c036d1d），未合并、未 push。只改了 `CasePage.tsx`、`styles.css`，新增 `src/pages/playerPeek.test.ts`；`CubePlayer.tsx`、`Timeline`、`CubeScene`、数据、T42/T45/T46/T47 都没动。
+分支 `claude/t48-player-peek`（从 main c036d1d），已合并 `6d89d49` 并 push；合并后 3270/393/build 通过。只改了 `CasePage.tsx`、`styles.css`，新增 `src/pages/playerPeek.test.ts`；`CubePlayer.tsx`、`Timeline`、`CubeScene`、数据、T42/T45/T46/T47 都没动。
 
 - **比方案卡更省的一点：** 不需要改 `CubePlayer` 的标记。速度按钮和“只看相关的块”都用 CSS 在手机宽度下改成浮在画面左右上角（`position: absolute`，在 `.player-stage` 之外，不抢 3D 手势）；`.player`、`.case-player` 在手机块里加 `position: relative`。
 - **画面高度：** `clamp(180px, 100dvh − 上方 270 − 控件 172 − 提示条 40 − 露出 100 − 底栏 − 底栏间距, 340px)`，`vh` 回退在前。常量是实测值（上方：返回 + 标题 + 学习状态；控件：步骤按 2 行算）。
