@@ -153,30 +153,48 @@ describe('ollTopMask / diagramMask / playerMask：2D 和 3D 的掩码分开', ()
     }
   });
 
-  it('diagramMask：其他组开关生效——没开是 null，开了是该组的显示掩码', () => {
-    for (const c of NON_OLL) {
-      expect(diagramMask(c, prefs(false)), `${c.set} off`).toBeNull();
-      expect(diagramMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
-    }
+  const OTHER = [lse, f2l, cmll];
+
+  it('diagramMask：非 OLL 组开关生效——没开是 null；开了 PLL 是顶层 21 张，其余组是该组的显示掩码', () => {
+    for (const c of NON_OLL) expect(diagramMask(c, prefs(false)), `${c.set} off`).toBeNull();
+    for (const c of OTHER) expect(diagramMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
+    expect(countIds(diagramMask(pll, prefs(true))!)).toBe(21);
   });
 
-  it('playerMask：所有组开关生效——没开是 null（完整魔方），开了是该组的显示掩码', () => {
-    for (const c of [oll, ...NON_OLL]) {
-      expect(playerMask(c, prefs(false)), `${c.set} off`).toBeNull();
-      expect(playerMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
-    }
+  it('playerMask：所有组没开是 null（完整魔方）；开了 OLL 9 张、PLL 21 张、其余组是该组的显示掩码', () => {
+    for (const c of [oll, ...NON_OLL]) expect(playerMask(c, prefs(false)), `${c.set} off`).toBeNull();
+    for (const c of OTHER) expect(playerMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
+    expect(countIds(playerMask(oll, prefs(true))!)).toBe(9);
+    expect(countIds(playerMask(pll, prefs(true))!)).toBe(21);
   });
 
-  it('OLL 的 3D：默认 null（完整魔方）；开了“只看相关的块”是顶层 21 格，就是 SET_RULES.oll.display', () => {
+  it('OLL 的 3D：默认 null（完整魔方）；开了只有顶面 9 张，和 2D 是同一批贴纸', () => {
     expect(playerMask(oll, prefs(false))).toBeNull();
     const on = playerMask(oll, prefs(true))!;
-    expect(countIds(on)).toBe(21);
-    expect(on).toBe(SET_RULES.oll.display);
+    expect(countIds(on)).toBe(9);
+    expect(on).toBe(ollTopMask);
+    for (const s of STICKERS) expect(on(s.id)).toBe(diagramMask(oll, prefs(true))!(s.id));
+    // SET_RULES.oll.display 仍是 21 格，没有被收窄
+    expect(countIds(SET_RULES.oll.display)).toBe(21);
   });
 
-  it('OLL 的 2D 和 3D 是两个不同的掩码（T27 把它们合并是错的）', () => {
+  it('PLL：关 = 完整 54 张（2D 默认和 3D 都是），开 = 顶层 21 张（顶面 9 + 四周顶行 12），2D 和 3D 同步', () => {
+    expect(diagramMask(pll, prefs(false))).toBeNull();
+    expect(playerMask(pll, prefs(false))).toBeNull();
+    expect(displayColors(pll).filter((x) => x !== null)).toHaveLength(54);
+    const on = playerMask(pll, prefs(true))!;
+    expect(countIds(on)).toBe(21);
+    expect(STICKERS.filter((s) => on(s.id)).filter((s) => s.face === 'U')).toHaveLength(9);
+    expect(STICKERS.filter((s) => on(s.id)).filter((s) => s.face !== 'U' && s.face !== 'D')).toHaveLength(12);
+    for (const s of STICKERS) expect(on(s.id)).toBe(diagramMask(pll, prefs(true))!(s.id));
+    // 开启时 PLL 的 2D 图解只有 21 格有颜色；SET_RULES.pll.display 不变，仍是全部 54 张
+    expect(diagramColors(pll, on).filter((x) => x !== null)).toHaveLength(21);
+    expect(countIds(SET_RULES.pll.display)).toBe(54);
+  });
+
+  it('OLL 的 2D 和 3D 默认不同（2D 固定 9 张，3D 完整），开了之后是同一个 9 张', () => {
     expect(diagramMask(oll, prefs(false))).not.toBe(playerMask(oll, prefs(false)));
-    expect(diagramMask(oll, prefs(true))).not.toBe(playerMask(oll, prefs(true)));
+    expect(diagramMask(oll, prefs(true))).toBe(playerMask(oll, prefs(true)));
   });
 
   it('caseMask 和 DevicePrefs.ollView 已删除', async () => {

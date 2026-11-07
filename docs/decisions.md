@@ -60,3 +60,10 @@
 - **决定：** OLL 的 2D 图解（公式页、卡片、练习页、首页封面）默认只显示顶层的 9 张颜色（原本属于 U 面的 9 块贴纸，`ollTopMask`），固定如此，不受“只看相关的块”影响。OLL 的 3D 和其他组一样：默认完整魔方，开了“只看相关的块”才只显示 `displayMask`（OLL 是顶层 21 格）。T27 把识别视图同时套到 2D 和 3D 并加了设置项，理解错了，T32 撤销。
 - **理由：** 用户的原意是 2D 图解看顶层颜色、3D 看整个魔方；之前把两者合成一个设置，3D 也被灰掉了。
 - **影响：** `CaseDiagram` 没有显式传 `mask` 时，OLL 默认用 `ollTopMask`，不再是 `displayColors` 的 21 格。`CaseDiagram.test.tsx` 里 4 条 OLL 的几何测试（TopView/IsoView 的 oll-1、oll-27）原来靠这个默认值取 21 格，现在改成显式传 `mask={displayMask(c)}`：断言一字不动，仍然逐格比对同样的 21 格，只是不再依赖默认值。默认行为由新增测试单独覆盖。`SET_RULES.oll.display` 和 T20 的 21 格测试不变。T27 的 `ollView` 设置和相关测试按新行为改写，不是为了过测试而删除。
+
+## D10 “只看相关的块”：OLL 3D 只看顶面 9 张，PLL 看顶层 21 张（T41，2026-11-07）
+
+- **决定：** 打开“只看相关的块”时，OLL 的 3D 只显示顶面 9 张（`ollTopMask`，和 OLL 的 2D 一致），不再是顶层 21 张；PLL 显示顶层 21 张（顶面 9 + 四周顶行 12），不再和关闭时一样是全部 54 张。关闭时不变：OLL 3D 和 PLL 都是完整魔方，OLL 的 2D 固定 9 张。2D 和 3D 共用同一个 `focusMask`。其他组仍是 `displayMask`。
+- **理由：** 原来 PLL 的 `display` 恒为 true，开关对 PLL 没有作用；OLL 的 3D 开了以后和 2D 不一致。
+- **做法：** 不改 `SET_RULES`（`pll.display` 仍是全部 54 张，它同时用于情形去重，收窄会让不同 PLL 被判成同一个）；新增 `topLayerMask` 导出和 `devicePrefs.focusMask`，只在“只看相关的块”这条路上收窄。
+- **影响：** D9 里“OLL 的 3D 开了是 `displayMask`（21 格）”这句被取代；`devicePrefs.test.ts` 中断言 `playerMask`/`diagramMask` 开启时等于 `displayMask` 的 4 条测试按新行为改写（OLL 9 张，PLL 21 张，其他组仍等于 `displayMask`），不放宽。
