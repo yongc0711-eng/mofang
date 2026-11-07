@@ -325,6 +325,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .swatch-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .swatch-dot { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); flex: none; }
 .focus-chip { display: block; margin: 8px auto 0; }
+.peek-cue { display: none; }
 
 /* 公式 */
 .alg-row { border-radius: 10px; }
@@ -455,6 +456,38 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
   /* 内容要能滚到胶囊上方，不被挡住 */
   main { padding-bottom: calc(var(--nav-h) + var(--nav-gap) + 20px); }
   .practice { min-height: calc(100dvh - var(--nav-h) - var(--nav-gap) - 28px); }
+
+  /* 详情页首屏（T48）：播放器按预算收紧，保证下面的内容露出一截，3D 仍够大、能拖。
+     预算 = 视口 − 上方已占（返回 + 标题 + 学习状态） − 播放器控件（步骤按 2 行算） − 提示条 − 露出 − 底栏占位。
+     各项是实测值（390×844 上：上方 270、控件约 172，步骤按 2 行算）；窗口高度变化时跟着 dvh 走，不在滚动中变。 */
+  .case-player { position: relative; }
+  .player { position: relative; }
+  .player-stage {
+    --player-above: 270px; --player-chrome: 172px; --peek-cue: 40px; --peek: 100px;
+    height: clamp(180px, calc(100vh - var(--player-above) - var(--player-chrome) - var(--peek-cue) - var(--peek) - var(--nav-h) - var(--nav-gap)), 340px);
+    height: clamp(180px, calc(100dvh - var(--player-above) - var(--player-chrome) - var(--peek-cue) - var(--peek) - var(--nav-h) - var(--nav-gap)), 340px);
+  }
+  /* 速度和“只看相关的块”浮在画面两角（在拖拽区之外的兄弟节点上，不抢 3D 手势），控件区少两行 */
+  .focus-chip { position: absolute; z-index: 2; top: 8px; left: 8px; margin: 0; }
+  .speed { position: absolute; z-index: 2; top: 8px; right: 8px; margin: 0; gap: 2px; }
+  .speed button { min-width: 36px; padding: 2px 4px; }
+  .peek-cue {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    width: 100%; min-height: 32px; margin-top: 8px; padding: 4px 12px;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent); border-radius: 999px;
+    font-size: 0.9rem; font-weight: 600;
+  }
+  /* 矮屏（例如 320×640）：底栏占了一截，控件再收紧一点，让提示条也在底栏上方 */
+  @media (max-height: 700px) {
+    .player-stage { height: 164px; }
+    .player { padding-bottom: 0; }
+    .move-track { padding: 2px 10px 4px; gap: 2px; font-size: 0.85rem; }
+    .player-scrubber { height: 24px; }
+    .player-controls { padding: 0 8px; }
+    .ctl { width: 40px; height: 40px; }
+    .ctl-main { width: 48px; height: 48px; }
+    .peek-cue { margin-top: 4px; }
+  }
 }
 @media (max-width: 799px) and (prefers-color-scheme: dark) {
   .nav { box-shadow: 0 10px 28px rgb(0 0 0 / 0.5), 0 2px 6px rgb(0 0 0 / 0.3); }

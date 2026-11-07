@@ -60,6 +60,7 @@ export function CasePage() {
   };
   const keyboardId = useId();
   const keyboardRef = useRef<HTMLDivElement | null>(null);
+  const sideRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!keyboardOpen) return;
@@ -207,8 +208,18 @@ export function CasePage() {
           >
             只看相关的块
           </button>
+          {/* 手机上播放器占首屏，这个提示条告诉用户下面还有内容；宽屏两栏同屏，不显示（T48） */}
+          <button
+            className="peek-cue"
+            onClick={() => {
+              const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+              sideRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
+            }}
+          >
+            <span aria-hidden="true">↓</span> {c.recognition ? '识别与公式' : '公式'}
+          </button>
         </div>
-        <div className="case-side">
+        <div className="case-side" ref={sideRef}>
           {c.recognition && (
             <p className="recognition">
               <strong>识别：</strong>
