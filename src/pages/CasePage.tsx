@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
 import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AlgKeyboard } from '../components/AlgKeyboard';
+import { editAlgDraft } from '../lib/algKeyboard';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
@@ -47,6 +49,8 @@ export function CasePage() {
     [prefs.focusRelevant, caseSet, caseGroup],
   );
   const [draft, setDraft] = useState('');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const keyboardId = useId();
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
   const primary = c ? primaryAlgOf(c, user) : '';
@@ -219,6 +223,7 @@ export function CasePage() {
           >
             <input
               value={draft}
+              onFocus={() => setKeyboardOpen(true)}
               onChange={(e) => {
                 setDraft(e.target.value);
                 setMessage(null);
@@ -233,6 +238,25 @@ export function CasePage() {
               保存
             </button>
           </form>
+          <button
+            className="btn alg-keyboard-toggle"
+            type="button"
+            aria-expanded={keyboardOpen}
+            aria-controls={keyboardId}
+            onClick={() => setKeyboardOpen((open) => !open)}
+          >
+            {keyboardOpen ? '收起公式键盘' : '公式键盘'}
+          </button>
+          {keyboardOpen && (
+            <AlgKeyboard
+              id={keyboardId}
+              empty={draft.length === 0}
+              onEdit={(edit) => {
+                setDraft((current) => editAlgDraft(current, edit));
+                setMessage(null);
+              }}
+            />
+          )}
           {message && (
             <p className={`form-msg form-${message.kind}`}>
               {message.text}
