@@ -7,7 +7,7 @@
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
 - **图解：** OLL 现在显示整个顶层（含四个侧面顶行），2D 和 3D 同源，见 T20。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 642 项全过，`npm run check:data` 393 项全过。
+- **基线：** `npm test` 1226 项全过，`npm run check:data` 393 项全过。
 - **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；F2L、CMLL、LSE 还没有 recognition。
 
 任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T20 已用过。
