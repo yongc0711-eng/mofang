@@ -176,6 +176,17 @@ export function CasePage() {
             {favorite ? '★ 已收藏' : '☆ 收藏'}
           </button>
         </div>
+        <div className="case-status">
+          <h2 className="case-status-title">学习状态</h2>
+          <div className="segmented status-seg" role="group" aria-label="学习状态">
+            <span className="seg-thumb" aria-hidden="true" style={{ transform: `translateX(${STATUSES.indexOf(status) * 100}%)` }} />
+            {STATUSES.map((s) => (
+              <button key={s} className={status === s ? 'seg-on' : ''} aria-pressed={status === s} onClick={() => setStatus(c.id, s)}>
+                {STATUS_LABEL[s]}
+              </button>
+            ))}
+          </div>
+        </div>
       </header>
 
       <div className="case-layout">
@@ -190,15 +201,6 @@ export function CasePage() {
           </button>
         </div>
         <div className="case-side">
-          <div className="segmented" role="group" aria-label="学习状态">
-            <span className="seg-thumb" aria-hidden="true" style={{ transform: `translateX(${STATUSES.indexOf(status) * 100}%)` }} />
-            {STATUSES.map((s) => (
-              <button key={s} className={status === s ? 'seg-on' : ''} aria-pressed={status === s} onClick={() => setStatus(c.id, s)}>
-                {STATUS_LABEL[s]}
-              </button>
-            ))}
-          </div>
-
           {c.recognition && (
             <p className="recognition">
               <strong>识别：</strong>
