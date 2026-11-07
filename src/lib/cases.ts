@@ -196,6 +196,20 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
   return false;
 }
 
+/**
+ * 图解该用哪个情形来画：以所选公式 alg 的逆作为起手。
+ * 3D 播放器从 alg 的逆开始播，图解必须和它一致；但同一情形的不同公式，起手可能差一个 U（或 y），
+ * 所以不能固定用 algs[0]。alg 解决不了该情形（自定义的错公式）、格式有误或判断时抛错，就回退到 c 本身，
+ * 不显示一个错的起手。其余字段（名称、识别、分组）原样保留。
+ */
+export function viewCaseFor<T extends Pick<AlgCase, 'set' | 'group' | 'algs'>>(c: T, alg: string): T {
+  try {
+    return algSolvesCase(c, alg) ? { ...c, algs: [alg] } : c;
+  } catch {
+    return c;
+  }
+}
+
 /** 检查所有公式的转动限制及定义公式的不变量，空数组表示合规 */
 export function lintCase(c: AlgCase): string[] {
   const rule = SET_RULES[c.set];

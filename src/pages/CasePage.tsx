@@ -6,7 +6,7 @@ import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
-import { algSolvesCase, displayMask, lintCaseAlg } from '../lib/cases';
+import { algSolvesCase, displayMask, lintCaseAlg, viewCaseFor } from '../lib/cases';
 import {
   STATUS_LABEL,
   addCustomAlg,
@@ -32,7 +32,6 @@ export function CasePage() {
   const c = getCase(caseId ?? '');
   const user = useUserData();
   const [selected, setSelected] = useState<string | null>(null);
-  const [replayKey, setReplayKey] = useState(0);
   const prefs = useDevicePrefs();
   const caseSet = c?.set;
   const caseGroup = c?.group;
@@ -43,7 +42,13 @@ export function CasePage() {
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
-  if (!c) {
+  const primary = c ? primaryAlgOf(c, user) : '';
+  const playing = selected ?? primary;
+  // 图解的起手要和 3D 播放器一致：播放器从 playing 的逆开始，所以图解也用 playing 推导。
+  // 解决不了该情形（自定义的错公式）或判断出错时回退到 c，不显示错起手（见 viewCaseFor）
+  const viewCase = useMemo(() => (c ? viewCaseFor(c, playing) : c), [c, playing]);
+
+  if (!c || !viewCase) {
     return (
       <div className="page">
         <p className="empty">
@@ -54,9 +59,7 @@ export function CasePage() {
   }
 
   const set = getSet(c.set)!;
-  const primary = primaryAlgOf(c, user);
   const custom = user.cases[c.id]?.customAlgs ?? [];
-  const playing = selected ?? primary;
   const status = statusOf(c, user);
   const favorite = !!user.cases[c.id]?.favorite;
   const stats = timeStats(c.id, user);
@@ -99,11 +102,8 @@ export function CasePage() {
     <li key={alg} className={`alg-row ${alg === playing ? 'alg-row-on' : ''}`}>
       <button
         className="alg-play"
-        onClick={() => {
-          setSelected(alg);
-          setReplayKey((k) => k + 1);
-        }}
-        aria-label={`播放 ${alg}`}
+        onClick={() => setSelected(alg)}
+        aria-label={`查看这条公式的起手 ${alg}`}
       >
         <code className="alg">{alg}</code>
         <span className="muted small">
@@ -141,7 +141,7 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={c} view={set.view} />
+        <CaseDiagram c={viewCase} view={set.view} />
         <div>
           <h1 className="page-title">{c.name}</h1>
           <p className="muted">
@@ -159,7 +159,7 @@ export function CasePage() {
 
       <div className="case-layout">
         <div className="case-player">
-          <CubePlayer alg={playing} replayKey={replayKey} mask={mask} finish={prefs.finish} />
+          <CubePlayer alg={playing} autoPlay={false} mask={mask} finish={prefs.finish} />
           <button
             className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
             aria-pressed={prefs.focusRelevant}

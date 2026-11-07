@@ -3,7 +3,7 @@ import { getSet } from '../data';
 import { OLL_CASES } from '../data/oll';
 import { stickerAt } from './cube';
 import { type AlgCase } from '../types';
-import { algSolvesCase, caseFingerprint, displayColors, lintCase, lintCaseAlg } from './cases';
+import { algSolvesCase, caseFingerprint, caseState, displayColors, lintCase, lintCaseAlg, viewCaseFor } from './cases';
 
 const lse = (group: string, alg: string): AlgCase => ({ id: 'lse-x', set: 'lse', name: 'x', group, algs: [alg] });
 
@@ -84,4 +84,63 @@ describe('OLL 显示整个顶层（T20）', () => {
       }
     });
   }
+});
+
+describe('图解按所选公式对齐（viewCaseFor）', () => {
+  // 同一情形的不同公式，起手可能差一个 U：这里用 "U " + 定义公式 构造一条“前面多一个 U”的对照，
+  // pre-U 取 3 就能抵消，所以 algSolvesCase 为 true，但它的逆作为起手和定义公式的不一样。
+  const c = getSet('pll')!.cases[0];
+  const shifted = 'U ' + c.algs[0];
+
+  it('对照公式能解决该情形，但起手和定义公式不同', () => {
+    expect(algSolvesCase(c, shifted)).toBe(true);
+    expect(caseState({ ...c, algs: [shifted] })).not.toEqual(caseState(c));
+  });
+
+  it('选中这条公式时，图解用它的起手；颜色也随之不同', () => {
+    const v = viewCaseFor(c, shifted);
+    expect(v.algs).toEqual([shifted]);
+    expect(caseState(v)).toEqual(caseState({ ...c, algs: [shifted] }));
+    expect(displayColors(v)).not.toEqual(displayColors(c));
+  });
+
+  it('其余字段原样保留，不改原对象', () => {
+    const v = viewCaseFor(c, shifted);
+    expect(v).toMatchObject({ id: c.id, name: c.name, group: c.group, set: c.set, recognition: c.recognition });
+    expect(c.algs[0]).not.toBe(shifted);
+  });
+
+  it('选的是定义公式本身：起手和 c 一致', () => {
+    const v = viewCaseFor(c, c.algs[0]);
+    expect(caseState(v)).toEqual(caseState(c));
+  });
+
+  it('解决不了该情形的公式：回退到 c 本身，不显示错起手', () => {
+    const other = getSet('pll')!.cases[1];
+    expect(algSolvesCase(c, other.algs[0])).toBe(false);
+    expect(viewCaseFor(c, other.algs[0])).toBe(c);
+  });
+
+  it('格式有误的公式：不抛错，回退到 c', () => {
+    expect(viewCaseFor(c, 'X Q')).toBe(c);
+    expect(viewCaseFor(c, '')).toBe(c);
+  });
+
+  it('违反转动限制的公式（LSE 只能 M/U）：回退到 c', () => {
+    const lse = getSet('lse')!.cases.find((x) => x.group === '4c')!;
+    expect(viewCaseFor(lse, "R U R'")).toBe(lse);
+  });
+
+  it('F2L 不允许前置 U：多一个 U 的公式不算解，回退到 c', () => {
+    const f2l = getSet('f2l')!.cases[0];
+    expect(algSolvesCase(f2l, "U' " + f2l.algs[0])).toBe(false);
+    expect(viewCaseFor(f2l, "U' " + f2l.algs[0])).toBe(f2l);
+  });
+
+  it('LSE 允许前置 U：起手随公式变化', () => {
+    const lse = getSet('lse')!.cases.find((x) => x.group === '4c')!;
+    const alt = 'U2 ' + lse.algs[0];
+    expect(algSolvesCase(lse, alt)).toBe(true);
+    expect(viewCaseFor(lse, alt).algs).toEqual([alt]);
+  });
 });

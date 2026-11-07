@@ -16,8 +16,12 @@ function loadSpeed(): number {
 
 interface Props {
   alg: string;
-  /** 每次变化都从头播放一遍，用于重复点击同一条公式 */
-  replayKey?: number;
+  /**
+   * alg 变化时是否自动从头播放，默认 true。
+   * 传 false 时只回到起手并停住，播放交给播放器自己的按钮。
+   * 首次进入（挂载）从不自动播放，和这个参数无关。
+   */
+  autoPlay?: boolean;
   /** 哪些贴纸显示颜色，不传显示全部 */
   mask?: ((id: number) => boolean) | null;
   /** 表面，默认 UV 亮面 */
@@ -28,7 +32,7 @@ interface Props {
  * 自己画的 3D 播放器：Three.js 只负责渲染（动态加载），播放逻辑全在 Timeline 里。
  * 配色和 2D 图解共用 CSS 变量。
  */
-export function CubePlayer({ alg, replayKey = 0, mask = null, finish = 'uv' }: Props) {
+export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv' }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const scrubber = useRef<HTMLInputElement>(null);
   const scene = useRef<CubeScene | null>(null);
@@ -159,15 +163,15 @@ export function CubePlayer({ alg, replayKey = 0, mask = null, finish = 'uv' }: P
     scene.current?.setFinish(finish);
   }, [finish]);
 
-  // 切换公式或重复点击时，从头播放
-  const played = useRef({ timeline, replayKey });
+// 切换公式时回到起手；autoPlay 为 true 才接着播放
+  const shown = useRef(timeline);
   useEffect(() => {
-    // 和上次相同就不播：首次进入不自动播放，开发模式下 effect 重跑也不会误触发
-    if (played.current.timeline === timeline && played.current.replayKey === replayKey) return;
-    played.current = { timeline, replayKey };
+    // 和上次相同就什么都不做：首次进入不自动播放，开发模式下 effect 重跑也不会误触发
+    if (shown.current === timeline) return;
+    shown.current = timeline;
     seek(0);
-    runTo(tlRef.current.duration);
-  }, [timeline, replayKey, seek, runTo]);
+    if (autoPlay) runTo(tlRef.current.duration);
+  }, [timeline, autoPlay, seek, runTo]);
 
   const changeSpeed = (v: number) => {
     setSpeed(v);
