@@ -86,18 +86,6 @@ export function MePage() {
       </div>
       <p className="muted small setting-note">只对这台设备生效。公式页的图解和 3D 魔方按这个颜色做底面换配色，默认白色。</p>
 
-      <h2>OLL 识别视图</h2>
-      <div className="segmented" role="group" aria-label="OLL 识别视图">
-        <span className="seg-thumb seg-thumb-2" aria-hidden="true" style={{ transform: `translateX(${prefs.ollView === 'top' ? 0 : 100}%)` }} />
-        <button className={prefs.ollView === 'top' ? 'seg-on' : ''} aria-pressed={prefs.ollView === 'top'} onClick={() => setDevicePrefs({ ollView: 'top' })}>
-          顶面 9 格
-        </button>
-        <button className={prefs.ollView === 'full' ? 'seg-on' : ''} aria-pressed={prefs.ollView === 'full'} onClick={() => setDevicePrefs({ ollView: 'full' })}>
-          顶层 21 格
-        </button>
-      </div>
-      <p className="muted small setting-note">只对这台设备生效，只影响 OLL 公式详情页的图解和 3D。</p>
-
       <h2>备份和迁移</h2>
       <p className="muted">进度和自定义公式只保存在这台设备的浏览器里。换设备时先导出，再到另一台设备导入。导入会覆盖那台设备上现有的数据。</p>
       <div className="button-row">
