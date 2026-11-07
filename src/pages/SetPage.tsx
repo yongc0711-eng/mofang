@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseCard } from '../components/CaseCard';
 import { getSet } from '../data';
-import { getUi, setUi, useScrollMemory } from '../lib/uiState';
+import { getUi, setUi } from '../lib/uiState';
 import { STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
 import { type LearnStatus } from '../types';
 
@@ -29,7 +29,6 @@ export function SetPage() {
     setGroupRaw(v);
     setUi(`group:${setId}`, v);
   };
-  useScrollMemory(`set:${setId}`);
 
   if (!set) return <NotFound />;
 

@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
-import { setUi, useScrollTop } from '../lib/uiState';
+import { setUi } from '../lib/uiState';
 import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlgKeyboard } from '../components/AlgKeyboard';
@@ -31,7 +31,6 @@ const STATUSES: LearnStatus[] = ['none', 'learning', 'mastered'];
 
 export function CasePage() {
   const { caseId } = useParams();
-  useScrollTop(caseId);
   const navigate = useNavigate();
   const c = getCase(caseId ?? '');
   const user = useUserData();

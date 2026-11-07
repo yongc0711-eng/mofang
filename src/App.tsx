@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { formulaTabTarget, isFormulaPath } from './lib/nav';
+import { useScrollRestoration } from './lib/scrollRestoration';
 import { getUi } from './lib/uiState';
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
@@ -62,18 +63,24 @@ function Nav() {
     <nav className="nav" aria-label="主导航">
       <span className="nav-brand">魔方公式</span>
       <span className="nav-thumb" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
-      <NavLink to={formulaTo} className={`nav-item ${inFormulas ? 'active' : ''}`}>
+      <NavLink to={formulaTo} replace className={`nav-item ${inFormulas ? 'active' : ''}`}>
         {ICONS.formulas}
         <span>公式</span>
       </NavLink>
       {NAV.map((n) => (
-        <NavLink key={n.to} to={n.to} className="nav-item">
+        <NavLink key={n.to} to={n.to} replace className="nav-item">
           {n.icon}
           <span>{n.label}</span>
         </NavLink>
       ))}
     </nav>
   );
+}
+
+/** 全局滚动恢复（T53）：返回/切 tab 恢复位置，新打开页面回顶部 */
+function ScrollRestoration() {
+  useScrollRestoration();
+  return null;
 }
 
 function AnimatedRoutes() {
@@ -98,6 +105,7 @@ export function App() {
   return (
     <HashRouter>
       <Nav />
+      <ScrollRestoration />
       <main>
         <AnimatedRoutes />
       </main>
