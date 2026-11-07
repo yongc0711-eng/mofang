@@ -41,8 +41,9 @@ describe('接线（源码文本）', () => {
     expect(appSource.match(/to: '\/(search|practice|me)'/g)).toHaveLength(3);
   });
 
-  it('T51 的“公式”tab 目标没动', () => {
-    expect(appSource).toMatch(/formulaTabTarget\(pathname, getUi<string \| null>\('lastCaseId', null\)\)/);
+  it('T51/T54 的“公式”tab 目标：读 lastFormulaPath 和 lastCaseId', () => {
+    expect(appSource).toMatch(/if \(isFormulaPath\(pathname\)\) setUi\('lastFormulaPath', pathname\);/);
+    expect(appSource).toMatch(/formulaTabTarget\(\s*pathname,\s*getUi<string \| null>\('lastFormulaPath', null\),\s*getUi<string \| null>\('lastCaseId', null\),\s*\)/);
     expect(appSource).toMatch(/<NavLink to=\{formulaTo\} replace=\{!inFormulas \|\| formulaTo === pathname\} className=/);
   });
 

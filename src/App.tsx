@@ -1,8 +1,8 @@
-import { type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { formulaTabTarget, isFormulaPath } from './lib/nav';
 import { useScrollRestoration } from './lib/scrollRestoration';
-import { getUi } from './lib/uiState';
+import { getUi, setUi } from './lib/uiState';
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
 import { MePage } from './pages/MePage';
@@ -59,8 +59,16 @@ function Nav() {
   // 首页/组页出去用 push，保留，这样系统返回能回到首页/组页
   const inCase = pathname.startsWith('/case/');
   const inTab = pathname === '/search' || pathname === '/practice' || pathname === '/me';
-  // 其他 tab 点“公式”回到上次的详情页（只存在内存里，刷新后回首页）
-  const formulaTo = formulaTabTarget(pathname, getUi<string | null>('lastCaseId', null));
+  // 离开公式区前记住具体页面：组页没选公式时也要回到组页，而不是旧详情页
+  useEffect(() => {
+    if (isFormulaPath(pathname)) setUi('lastFormulaPath', pathname);
+  }, [pathname]);
+  // 其他 tab 点“公式”回到上次停留的公式页（只存在内存里，刷新后回首页）
+  const formulaTo = formulaTabTarget(
+    pathname,
+    getUi<string | null>('lastFormulaPath', null),
+    getUi<string | null>('lastCaseId', null),
+  );
   // 其他路径都会显示首页，所以找不到时滑块停在“公式”
   const active = Math.max(0, NAV.findIndex((n) => pathname.startsWith(n.to)) + 1);
   return (
