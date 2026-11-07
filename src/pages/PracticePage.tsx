@@ -430,9 +430,10 @@ function Session({
           </div>
         </div>
         <p className="practice-scramble">
-          <span className="muted small">打乱</span>
+          <span className="muted small">摆出情形（setup）</span>
           <code className="alg">{scramble || '（已还原）'}</code>
-          <span className="muted small">白顶绿前起手；做完转黄顶绿前（前后不变，上下、左右对调），再对照图解/公式</span>
+          <span className="muted small">白色中心朝上、绿色中心朝前起手；做完把魔方绕前后轴原地转 180°：黄顶朝上、白底朝下，绿色仍在前（不是前倾 90°）。</span>
+          <span className="muted small">定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。</span>
         </p>
         <div className="practice-time" aria-live="off">
           {formatTime(elapsed)}
