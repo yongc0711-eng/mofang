@@ -59,7 +59,7 @@
 
 ### T14 其他公式组的识别要点（技术债）
 
-- **问题：** OLL 57 条都是程序算出的描述，部分情形完全相同，如 OLL 5 和 OLL 8。F2L、CMLL、LSE 还没有 recognition。
+- **问题：** OLL 57 条都是模板化的状态描述，部分情形完全相同，如 OLL 5 和 OLL 8。F2L、CMLL、LSE 还没有 recognition。
 - **允许改：** `src/data/oll.ts`、`src/data/f2l.ts`、`src/data/cmll.ts`、`src/data/lse.ts`
 - **验收：** `npm run check:data`；人工核对。不确定就留空
 - **非目标：** 不重排公式，不改 `id`
