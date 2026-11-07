@@ -52,6 +52,13 @@ const FACE_MAP: Record<BottomColor, Record<Face, Face>> = Object.fromEntries(
 export const displayFace = (id: number, color: BottomColor): Face => FACE_MAP[color][STICKERS[id].face];
 
 /**
+ * 顶色：原本属于 U 面的贴纸（标准配色下是黄色，OLL 里“黄”指的就是它）在所选底色下显示成什么颜色。
+ * 由 displayFace 推出来，不另写一张表：白→黄、黄→白、红→橙、橙→红、绿→蓝、蓝→绿，即底色的对色。
+ */
+const U_STICKER = STICKERS.find((s) => s.face === 'U')!.id;
+export const topColor = (bottom: BottomColor): BottomColor => FACE_COLOR[displayFace(U_STICKER, bottom)];
+
+/**
  * 只对这台设备生效的显示设置，比如旧手机选普通面省性能。
  * 和进度分开存，不进备份，所以导入备份不会改变它。
  */
