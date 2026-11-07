@@ -44,3 +44,29 @@ describe('T42 formula keyboard editing', () => {
     expect(editAlgDraft(empty, { type: 'append', token: 'B2' })).toBe('B2');
   });
 });
+
+import { ALG_MOVE_KEYS } from './algKeyboard';
+for (const token of ALG_MOVE_KEYS) {
+  for (const suffix of ["'", '2'] as const) {
+    it(`${token} plus separate ${suffix} key produces exactly one recognized move`, () => {
+      const base = editAlgDraft('U ', { type: 'append', token });
+      const edited = editAlgDraft(base, { type: 'suffix', suffix });
+      expect(edited).toBe(`U ${token}${suffix}`);
+      expect(parseAlg(edited)).toEqual(parseAlg(`U ${token}${suffix}`));
+      expect(parseAlg(edited)).toHaveLength(2);
+      expect(editAlgDraft(edited, { type: 'suffix', suffix })).toBe(base);
+    });
+  }
+}
+it('separate suffixes replace each other and edit a manually typed wide move', () => {
+  expect(editAlgDraft("R U'", { type: 'suffix', suffix: '2' })).toBe('R U2');
+  expect(editAlgDraft('R U2', { type: 'suffix', suffix: "'" })).toBe("R U'");
+  expect(editAlgDraft('Rw  ', { type: 'suffix', suffix: '2' })).toBe('Rw2');
+  expect(editAlgDraft("RUR'U'", { type: 'suffix', suffix: '2' })).toBe("RUR'U2");
+});
+it('a suffix without a terminal move does not create a stray token or change grouped repeats', () => {
+  for (const draft of ['', '  ', '(R U)3', '(R U)']) {
+    expect(editAlgDraft(draft, { type: 'suffix', suffix: "'" })).toBe(draft);
+    expect(editAlgDraft(draft, { type: 'suffix', suffix: '2' })).toBe(draft);
+  }
+});
