@@ -17,13 +17,6 @@
 
 并行限制：T8 与 T13 可以同时开；T9/T10/T11 都改 cases.ts、CasePage.tsx、userStore.ts、practice.ts 这一批文件，等 T8 合并后串行。
 
-### T8 备选和自定义公式没查 allowedBases
-
-- **问题：** `lintCase` 只校验 `algs[0]`，LSE 的备选公式和用户自定义公式没有检查 `allowedBases`。
-- **允许改：** `src/lib/cases.ts`、`src/lib/cases.test.ts`、`src/pages/CasePage.tsx`
-- **验收：** `npm test`、`npm run check:data`，新增测试覆盖带 `R` 的 LSE 备选公式和自定义公式
-- **非目标：** 不改其他公式组的规则，不改已录入公式
-
 ### T9 F2L 前置 U 的规则和注释矛盾
 
 - **问题：** `algSolvesCase` 对 F2L 也允许前置 U，而 `src/lib/practice.ts:5` 的注释说 F2L 的起始状态对 U 敏感。要先判断哪一边才对。
