@@ -1,94 +1,86 @@
-# 分工和任务清单
+# 任务
 
-## 分工原则
+## 当前状态（2026-11-07）
 
-- **Opus**：架构、魔方引擎、校验规则、部署，以及校验器报出的疑难问题。
-- **Sonnet**：照样板录入数据、做功能页面、打磨界面。
+- **公式数据：** 254 条已录完：F2L 41、OLL 57、PLL 21、CMLL 42、LSE 93。来源见 `docs/decisions.md` 和各数据文件开头。
+- **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
+- **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
+- **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
+- **基线：** `npm test` 449 项全过，`npm run check:data` 367 项全过。
+- **质量未达标：** 识别要点只算有内容，不算完成质量，见 T13、T14。
 
-开始任何任务前先读 `CLAUDE.md`，并参考样板 `src/data/pll.ts`。
+任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T7 已用过。
 
-## 已完成（Opus）
+## 未完成
 
-- 工程配置、PWA、GitHub Pages 工作流
-- 魔方引擎、公式解析、各公式组的校验规则和测试
-- 2D 图解、3D 播放器
-- 首页、公式列表、详情页、搜索、我的（备份导入导出）
-- 进度、收藏、自定义公式（保存时校验能否解决该情形）
-- PLL 全部 21 种
+下面的任务本轮只登记，都还没修。
 
-## 已完成（公式数据）
+### T8 备选和自定义公式没查 allowedBases
 
-- T1–T4：OLL 57、F2L 41、CMLL 42、LSE 93 全部录入。
-- 公式顺序：OLL、PLL、F2L、CMLL 按 SpeedCubeDB 社区投票（2026-11-07），LSE 的 EO 和部分 4c 用 Trevor Scheopner 的 LSE 页，其余 LSE 是穷举得到的最短公式。详见各数据文件开头。
+- **问题：** `lintCase` 只校验 `algs[0]`，LSE 的备选公式和用户自定义公式没有检查 `allowedBases`。
+- **允许改：** `src/lib/cases.ts`、`src/lib/cases.test.ts`、`src/pages/CasePage.tsx`
+- **验收：** `npm test`，新增测试覆盖带 `R` 的 LSE 备选公式和自定义公式
+- **非目标：** 不改其他公式组的规则，不改已录入公式
 
-下面 T1–T4 的说明仅作记录，不用再做。
+### T9 F2L 前置 U 的规则和注释矛盾
 
-## 待办
+- **问题：** `algSolvesCase` 对 F2L 也允许前置 U，而 `src/lib/practice.ts:5` 的注释说 F2L 的起始状态对 U 敏感。要先判断哪一边才对。
+- **允许改：** `src/lib/cases.ts`、`src/lib/practice.ts`、对应测试文件、`docs/decisions.md`
+- **验收：** `npm test`。如果要改判定语义，先在 `docs/decisions.md` 记录原因
+- **非目标：** 不为了通过测试放宽规则，不改 F2L 数据
 
-| 编号 | 任务 | 模型 | 依赖 |
-| --- | --- | --- | --- |
-| T1 | 录入 OLL 57 种 | Sonnet | 无 |
-| T2 | 录入 F2L 41 种 | Sonnet | 无 |
-| T3 | 录入 CMLL 42 种 | Sonnet | 无 |
-| T4 | 录入 LSE | Sonnet | 无 |
-| T5 | 练习模式 | Sonnet | 有数据即可，T1 后效果更好 |
-| T6 | 补充识别要点和别名，打磨界面 | Sonnet | T1–T4 |
-| T7 | 部署到 GitHub Pages | Opus | 需要你的 GitHub 仓库 |
+### T10 强制保存的公式会影响练习打乱
 
-T1–T4 分别只改自己的数据文件，可以并行。`src/data/index.ts` 的 `complete` 标记各改一行。
+- **问题：** `CasePage` 里“仍然保存”的公式也会被设成 `primaryAlg`。练习打乱按主公式生成，所以可能和图解对不上。
+- **允许改：** `src/pages/CasePage.tsx`、`src/store/userStore.ts`、`src/lib/practice.ts`、`src/lib/practice.test.ts`
+- **验收：** `npm test`，新增测试覆盖解决不了情形的主公式
+- **非目标：** 不禁止用户保存这类公式，不改备份格式
 
-## T1 OLL
+### T11 导入备份校验太松
 
-- 文件：`src/data/oll.ts`。保留 `oll-27`，把数组补到 57 条。
-- `id` 为 `oll-编号`，`name` 为 `OLL 编号`，编号用公认的 1–57。
-- `group` 按形状分组：十字、点、方块、C、W、L、P、T、I、闪电、鱼、骑士、Awkward 等。
-- 每条 1–2 个常用公式，手速好的优先。常见别名写进 `aliases`，如 Sune、Antisune。
-- 完成标准：`npm run check:data` 全过，`index.ts` 里 OLL 的 `complete` 改为 `true`；对照至少两份公认资料核对编号。
+- **问题：** `importUserData` 只查 `version` 和 `typeof cases`。`times` 不是数组时，`timeStats` 会抛错。
+- **允许改：** `src/store/userStore.ts`，新增 `src/store/userStore.test.ts`
+- **验收：** `npm test`，新增测试覆盖 `times` 非数组的备份，合法的旧备份仍能导入
+- **非目标：** 不改备份版本号，不改 `devicePrefs`
 
-## T2 F2L
+### T12 图解没有测试
 
-- 文件：`src/data/f2l.ts`。保留 `f2l-1` 或按正式编号替换。
-- 目标槽位统一为 FR，编号采用公认的 1–41，`id` 为 `f2l-编号`。
-- `group` 按角棱位置分组：基础插入、角棱都在顶层、角在顶层棱在中层、棱在顶层角在底层、角棱都在槽内等。
-- 公式末尾可以有 U 调整；公式里带 `y`、`d` 也可以，校验器会校正朝向。
-- 完成标准同 T1。
+- **问题：** `CaseDiagram` 没有测试，2D 和 3D 朝向一致只靠约定。
+- **允许改：** 只新增测试文件；如需导出纯函数，可小改 `src/components/CaseDiagram.tsx`
+- **验收：** `npm test`，测试覆盖顶视图和等轴视图的贴纸位置，以及和引擎坐标的一致性
+- **非目标：** 不改图解外观，不引入组件测试框架
 
-## T3 CMLL
+### T13 PLL 识别要点重写
 
-- 文件：`src/data/cmll.ts`。替换示例条目。
-- 分组使用公认的 O、H、Pi、U、T、L、Sune、Antisune，共 42 种，`id` 形如 `cmll-sune-1`。
-- 公式不能破坏左右两个 1x2x3 块，并且不能带整体转动，否则校验不过。可以用 `r`、`M`。
-- 完成标准同 T1。
+- **问题：** 这些 recognition 区分不了情形：7 条都是“只有一面车灯”（T、Ra、Rb、Ga、Gb、Gc、Gd），3 条都是“没有车灯，另有1面是完整色条”（F、Ja、Jb），4 条都是“没有车灯、没有色条”（V、Y、Na、Nb）。
+- **允许改：** `src/data/pll.ts`
+- **验收：** `npm run check:data`；对照图解和公认资料人工核对。重写或留空，不确定就留空
+- **非目标：** 不改 `id`、`algs`、`name`
 
-## T4 LSE
+### T14 其他公式组的识别要点（技术债）
 
-- 文件：`src/data/lse.ts`。替换示例条目。
-- LSE 没有固定数量，按步骤组织，`group` 只能是 `EO`、`UL/UR`、`4c`，每步的判定不同：
-  - `EO`：执行后六条棱朝向全对，排列不管。指纹只看好棱和坏棱的分布，同分布只录一条。
-  - `UL/UR`：起始时朝向全对、UL 和 UR 未归位，执行后朝向全对且 UL、UR 归位。
-  - `4c`：起始时朝向全对、UL 和 UR 已归位，执行后完全还原。
-- 公式只能用 M 和 U，校验器会检查。
-- 这些情形可以从 M/U 转动推算，来源不好找时，可以用引擎写临时脚本做广度搜索，取最短公式。名称用描述性写法（如“前后各一坏棱”），不要编造术语。
-- `index.ts` 中 LSE 的 `expectedCount` 保持 `null`；完成后 `complete` 改为 `true`。
+- **问题：** OLL 57 条都是程序算出的描述，部分情形完全相同，如 OLL 5 和 OLL 8。F2L、CMLL、LSE 还没有 recognition。
+- **允许改：** `src/data/oll.ts`、`src/data/f2l.ts`、`src/data/cmll.ts`、`src/data/lse.ts`
+- **验收：** `npm run check:data`；人工核对。不确定就留空
+- **非目标：** 不重排公式，不改 `id`
 
-## T5 练习模式
+### T15 LSE 情形名称
 
-替换 `src/pages/PracticePage.tsx` 的占位内容。
+- **问题：** UL/UR 和 4c 的多数情形只有位置或循环结构加序号，看名字认不出来。
+- **允许改：** `src/data/lse.ts`
+- **验收：** `npm run check:data`
+- **非目标：** 不编造术语，不改 `id`，不改公式
 
-- 选范围：按公式组、分组、学习状态或收藏组合筛选，也可以只练选中的情形。
-- 流程：随机出一个情形，显示图解和打乱 → 空格键或点屏幕开始计时 → 再按一次停止 → 显示公式和用时 → 下一题。
-- 打乱：取 `invertMoves(parseAlg(主公式))`，加随机 AUF。不要引入 cubing.js 的打乱生成，它要加载 worker。
-- 记录每个情形最近的用时，存在 `userStore`，加字段时保持向后兼容，导出/导入要带上。
-- 优先出“学习中”和用时最慢的情形。
-- 把用时写进情形详情页。
-- 手机上全屏可点、计时数字大。
+### T16 真手机验收（需要用户手动）
 
-## T6 识别要点和界面打磨
+- **问题：** 这些只用鼠标或脚本模拟过：手指拖动魔方、连点两下回正、练习页滑动不误触；断网使用、发热卡顿和 iPhone 底部安全区没有实测。
+- **允许改：** 验收本身不改文件；发现问题再单独建任务
+- **验收：** 用户在真手机上逐项确认，结果记入本任务
+- **非目标：** 不在这个任务里顺手调外观
 
-- 给 `recognition` 补内容。写之前对照图解确认，不确定就留空，不要编。PLL 目前只写了一部分。
-- 公式列表滚动位置：从详情页返回后保留。
-- 公式字体、手机上的一屏信息量按实际使用调整。
+### T17 电脑宽屏布局检查
 
-## T7 部署
-
-工作流已写好（`.github/workflows/deploy.yml`）。需要 git 初始化、建 GitHub 仓库、在仓库设置里把 Pages 来源设为 GitHub Actions，然后推送到 `main`。
+- **问题：** 新首页、胶囊导航以外的顶部导航和详情页双栏布局，都没在宽屏下看过。测试面板只有约 380 像素宽。
+- **允许改：** `src/styles.css`
+- **验收：** 在 1280 像素以上的窗口逐页检查；`npm run build`
+- **非目标：** 不改手机布局
