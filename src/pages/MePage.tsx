@@ -1,4 +1,3 @@
-import { setRubberBand, useRubberBand } from '../store/rubberBandPref';
 import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
 import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs, type BottomColor } from '../store/devicePrefs';
@@ -24,7 +23,6 @@ function localDate(d = new Date()) {
 export function MePage() {
   const user = useUserData();
   const prefs = useDevicePrefs();
-  const rubber = useRubberBand();
   const file = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
 
@@ -87,18 +85,6 @@ export function MePage() {
         ))}
       </div>
       <p className="muted small setting-note">只对这台设备生效。公式页的图解和 3D 魔方按这个颜色做底面换配色，默认白色。</p>
-
-      <h2>页面弹性</h2>
-      <div className="segmented" role="group" aria-label="页面弹性">
-        <span className="seg-thumb seg-thumb-2" aria-hidden="true" style={{ transform: `translateX(${rubber ? 0 : 100}%)` }} />
-        <button className={rubber ? 'seg-on' : ''} aria-pressed={rubber} onClick={() => setRubberBand(true)}>
-          开
-        </button>
-        <button className={!rubber ? 'seg-on' : ''} aria-pressed={!rubber} onClick={() => setRubberBand(false)}>
-          关
-        </button>
-      </div>
-      <p className="muted small setting-note">只对这台设备生效。页面滑到顶部或底部时有弹性回弹；觉得滑动不顺可以关掉。</p>
 
       <h2>备份和迁移</h2>
       <p className="muted">进度和自定义公式只保存在这台设备的浏览器里。换设备时先导出，再到另一台设备导入。导入会覆盖那台设备上现有的数据。</p>

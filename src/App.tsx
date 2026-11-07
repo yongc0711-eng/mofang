@@ -1,4 +1,3 @@
-import { RubberBand } from './components/RubberBand';
 import { type ReactNode } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { CasePage } from './pages/CasePage';
@@ -96,9 +95,7 @@ export function App() {
     <HashRouter>
       <Nav />
       <main>
-        <RubberBand>
-          <AnimatedRoutes />
-        </RubberBand>
+        <AnimatedRoutes />
       </main>
     </HashRouter>
   );
