@@ -83,15 +83,39 @@ export const formatTime = (ms: number) => (ms / 1000).toFixed(2);
 
 export const exportUserData = () => JSON.stringify(data, null, 2);
 
-/** 导入会覆盖本机数据。格式不对时抛错，不会动现有数据 */
-export function importUserData(json: string) {
-  const parsed = JSON.parse(json) as UserData;
-  if (parsed?.version !== 1 || typeof parsed.cases !== 'object' || parsed.cases === null) {
-    throw new Error('不是有效的备份文件');
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null &&
+  (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+
+/** 只复制已知且类型正确的字段；单字段错误不影响同条情形的其他数据。 */
+function sanitizeCase(value: Record<string, unknown>): UserCaseData {
+  const result: UserCaseData = {};
+  if (value.status === 'none' || value.status === 'learning' || value.status === 'mastered') result.status = value.status;
+  if (typeof value.favorite === 'boolean') result.favorite = value.favorite;
+  if (typeof value.primaryAlg === 'string') result.primaryAlg = value.primaryAlg;
+  if (Array.isArray(value.customAlgs)) result.customAlgs = value.customAlgs.filter((a): a is string => typeof a === 'string');
+  if (Array.isArray(value.times)) {
+    result.times = value.times.filter((t): t is number => typeof t === 'number' && Number.isFinite(t) && t > 0);
   }
-  commit(parsed);
+  return result;
 }
 
+/** 顶层不合法时不动现有数据；合法备份逐情形、逐字段清洗后覆盖本机数据。 */
+export function importUserData(json: string) {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    throw new Error('不是有效的备份文件');
+  }
+  if (!isPlainObject(parsed) || parsed.version !== 1 || !isPlainObject(parsed.cases)) {
+    throw new Error('不是有效的备份文件');
+  }
+  const cases = Object.fromEntries(
+    Object.entries(parsed.cases).flatMap(([id, value]) => isPlainObject(value) ? [[id, sanitizeCase(value)]] : []),
+  );
+  commit({ version: 1, cases });
+}
 const solvesCache = new Map<string, boolean>();
 /** 自定义公式能否解决这个情形；结果缓存，列表页每次渲染都会问 */
 function customSolves(c: AlgCase, alg: string): boolean {
