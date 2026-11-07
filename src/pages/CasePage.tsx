@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { caseMask, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
+import { caseMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
+import { recognitionFor } from '../lib/recognition';
 import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
@@ -188,7 +189,8 @@ export function CasePage() {
           {c.recognition && (
             <p className="recognition">
               <strong>识别：</strong>
-              {c.recognition}
+              {/* OLL 的“黄”指顶面颜色，选了别的底色要跟着换；其他组原样 */}
+              {recognitionFor(c, topColor(prefs.bottomColor))}
             </p>
           )}
 
