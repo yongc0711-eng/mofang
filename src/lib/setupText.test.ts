@@ -73,15 +73,17 @@ describe('setupText：练习页 setup 的朝向说明', () => {
 describe('练习页、卡片、首页都接上了底色', () => {
   const diagramWithBottom = /<CaseDiagram\b[^>]*\bbottom=\{prefs\.bottomColor\}/;
 
-  it('CaseCard、HomePage、PracticePage 的 CaseDiagram 都传 bottom={prefs.bottomColor}，并取了设备设置', () => {
-    for (const [name, src] of [['CaseCard', cardSource], ['HomePage', homeSource], ['PracticePage', practiceSource]] as const) {
+  it('CaseCard/HomePage 使用设备底色，PracticePage 使用本题底色', () => {
+    for (const [name, src] of [['CaseCard', cardSource], ['HomePage', homeSource]] as const) {
       expect(src, name).toMatch(diagramWithBottom);
       expect(src, name).toContain('useDevicePrefs()');
     }
+    expect(practiceSource).toMatch(/<CaseDiagram\b[^>]*\bbottom=\{bottom\}/);
+    expect(practiceSource).toContain('useDevicePrefs()');
   });
 
   it('练习页的说明走 setupText；写死的白色文案没了；打乱和 WCA 说明原样保留', () => {
-    expect(practiceSource).toContain('setupText(prefs.bottomColor)');
+    expect(practiceSource).toContain('setupText(bottom)');
     expect(practiceSource).not.toContain('白色中心朝上');
     expect(practiceSource).toContain('摆出情形（setup）');
     expect(practiceSource).toContain("{scramble || '（已还原）'}");

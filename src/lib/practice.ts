@@ -83,3 +83,14 @@ export function pickCase(
   }
   return choices[choices.length - 1];
 }
+
+/** Pick a per-question color, avoiding an immediate repeat when alternatives exist. */
+export function pickBottom<T extends string>(colors: readonly T[], last: T | null, rand: () => number = Math.random): T {
+  if (colors.length === 0) throw new Error('至少选择一种练习底色');
+  if (colors.length === 1) return colors[0];
+  const choices = colors.filter((color) => color !== last);
+  if (choices.length === 0) return colors[0];
+  const rawIndex = Math.floor(rand() * choices.length);
+  const index = Number.isNaN(rawIndex) ? 0 : Math.max(0, Math.min(choices.length - 1, rawIndex));
+  return choices[index];
+}
