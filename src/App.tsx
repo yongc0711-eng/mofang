@@ -55,6 +55,10 @@ function Nav() {
   const { pathname } = useLocation();
   // 公式组和详情页都属于“公式”这个 tab
   const inFormulas = isFormulaPath(pathname);
+  // 返回栈（T53）：详情和三个 tab 页是“临时落脚点”，从它们出去用 replace，不留在历史里；
+  // 首页/组页出去用 push，保留，这样系统返回能回到首页/组页
+  const inCase = pathname.startsWith('/case/');
+  const inTab = pathname === '/search' || pathname === '/practice' || pathname === '/me';
   // 其他 tab 点“公式”回到上次的详情页（只存在内存里，刷新后回首页）
   const formulaTo = formulaTabTarget(pathname, getUi<string | null>('lastCaseId', null));
   // 其他路径都会显示首页，所以找不到时滑块停在“公式”
@@ -63,12 +67,12 @@ function Nav() {
     <nav className="nav" aria-label="主导航">
       <span className="nav-brand">魔方公式</span>
       <span className="nav-thumb" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
-      <NavLink to={formulaTo} replace className={`nav-item ${inFormulas ? 'active' : ''}`}>
+      <NavLink to={formulaTo} replace={!inFormulas} className={`nav-item ${inFormulas ? 'active' : ''}`}>
         {ICONS.formulas}
         <span>公式</span>
       </NavLink>
       {NAV.map((n) => (
-        <NavLink key={n.to} to={n.to} replace className="nav-item">
+        <NavLink key={n.to} to={n.to} replace={inCase || inTab} className="nav-item">
           {n.icon}
           <span>{n.label}</span>
         </NavLink>

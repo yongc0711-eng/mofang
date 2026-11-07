@@ -23,19 +23,27 @@ describe('scrollKey / shouldRestoreScroll', () => {
 });
 
 describe('接线（源码文本）', () => {
-  it('App：有 ScrollRestoration，且四个底部 tab（公式/搜索/练习/我的）都是 replace', () => {
+  it('App：有 ScrollRestoration，放在 Nav 之后、main 之前', () => {
     expect(appSource).toMatch(/function ScrollRestoration\(\) \{\s*useScrollRestoration\(\);\s*return null;\s*\}/);
     expect(appSource).toMatch(/<Nav \/>\s*<ScrollRestoration \/>\s*<main>/);
+  });
+
+  it('返回栈（T53-fix）：Nav 里定义 inCase / inTab；公式 replace={!inFormulas}，其余三个 replace={inCase || inTab}', () => {
+    expect(appSource).toMatch(/const inCase = pathname\.startsWith\('\/case\/'\);/);
+    expect(appSource).toMatch(/const inTab = pathname === '\/search' \|\| pathname === '\/practice' \|\| pathname === '\/me';/);
     const links = appSource.match(/<NavLink\b[^>]*>/g) ?? [];
     // 一个“公式”，加上 NAV 数组渲染出的搜索/练习/我的共用的一个 <NavLink>
     expect(links).toHaveLength(2);
-    for (const l of links) expect(l, l).toMatch(/\breplace\b/);
+    expect(links[0]).toMatch(/to=\{formulaTo\} replace=\{!inFormulas\} className=/);
+    expect(links[1]).toMatch(/key=\{n\.to\} to=\{n\.to\} replace=\{inCase \|\| inTab\} className="nav-item"/);
+    // 没有裸的、无条件的 replace（那会把首页/组页从历史里替换掉）
+    for (const l of links) expect(l, l).not.toMatch(/\breplace(?!=)/);
     expect(appSource.match(/to: '\/(search|practice|me)'/g)).toHaveLength(3);
   });
 
   it('T51 的“公式”tab 目标没动', () => {
     expect(appSource).toMatch(/formulaTabTarget\(pathname, getUi<string \| null>\('lastCaseId', null\)\)/);
-    expect(appSource).toMatch(/<NavLink to=\{formulaTo\} replace className=/);
+    expect(appSource).toMatch(/<NavLink to=\{formulaTo\} replace=\{!inFormulas\} className=/);
   });
 
   it('CasePage 不再含 useScrollTop；T51 的 lastCaseId effect 保留', () => {
