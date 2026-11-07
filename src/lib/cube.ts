@@ -86,6 +86,14 @@ const MOVE_DEFS: Record<string, MoveDef> = {
   z: { axis: 2, dir: 1, layers: ALL },
 };
 
+/** 动画用：一次转动绕哪根轴、转哪些层、转多少弧度。amount 3 按反向转一次，不转三次 */
+export function moveGeometry(move: Move): { axis: Axis; layers: number[]; angle: number } {
+  const { axis, dir, layers } = MOVE_DEFS[move.base];
+  const quarters = move.amount === 3 ? -1 : move.amount;
+  // 从轴正方向看顺时针，按右手定则是负角度
+  return { axis, layers, angle: quarters * (dir === 1 ? -1 : 1) * (Math.PI / 2) };
+}
+
 /** dest[位置 i] = 转一次后 i 处贴纸到达的位置 */
 function buildPerm({ axis, dir, layers }: MoveDef): number[] {
   return STICKERS.map((s) => {

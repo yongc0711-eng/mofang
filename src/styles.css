@@ -13,12 +13,12 @@
   --danger: #c0392b;
 
   /* 魔方配色：黄顶绿前 */
-  --cube-u: #f5c518;
-  --cube-d: #fafafa;
-  --cube-f: #2f9e5b;
-  --cube-b: #3b7ddd;
-  --cube-r: #e8772c;
-  --cube-l: #d13a34;
+  --cube-u: #ffc800;
+  --cube-d: #fbfbfb;
+  --cube-f: #00a844;
+  --cube-b: #0a3fe0;
+  --cube-r: #ff6a00;
+  --cube-l: #e0101f;
   --cube-mask: #a9abb0;
 
   --nav-h: 56px;
@@ -388,6 +388,9 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 [data-phase='done'] .practice-time { color: var(--ok); }
 .practice-time { transition: color 0.2s ease; }
 .practice-result { animation: card-in 0.28s var(--ease); }
+
+/* 3D 对比测试页 */
+.lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 
 /* 导航滑块只在手机胶囊里用 */
 .nav-thumb { display: none; }

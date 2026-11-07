@@ -250,6 +250,12 @@ export function caseFingerprint(c: AlgCase): string {
   return best!;
 }
 
+/** 这个情形哪些贴纸要显示颜色，3D 播放器和图解共用 */
+export function displayMask(c: Pick<AlgCase, 'set' | 'group'>): Mask {
+  const step = c.set === 'lse' ? lseStepOf({ ...c, algs: [] }) : null;
+  return step ? LSE_DISPLAY[step] : SET_RULES[c.set].display;
+}
+
 /** 图解使用：每个位置应显示的颜色（用原始面表示），null 为灰色 */
 export function displayColors(c: CaseRef): (Face | null)[] {
   const step = c.set === 'lse' ? lseStepOf(c) : null;
