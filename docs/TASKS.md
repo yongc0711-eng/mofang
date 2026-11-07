@@ -6,7 +6,7 @@
 - **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 475 项全过，`npm run check:data` 367 项全过。
+- **基线：** `npm test` 502 项全过，`npm run check:data` 367 项全过。
 - **质量未达标：** 识别要点只算有内容，不算完成质量，见 T13、T14。
 
 任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T7 已用过。
@@ -15,14 +15,7 @@
 
 下面的任务本轮只登记，都还没修。
 
-并行限制：T8、T9、T10、T12、T13 已合并，只剩 T11 要改 `userStore.ts`，目前没有别的任务动这个文件。T18 和 T19 都要写 `docs/tasks/T13.md`，不要同时开。
-
-### T11 导入备份校验太松
-
-- **问题：** `importUserData` 只查 `version` 和 `typeof cases`。`times` 不是数组时，`timeStats` 会抛错。
-- **允许改：** `src/store/userStore.ts`，新增 `src/store/userStore.test.ts`
-- **验收：** `npm test`，新增测试覆盖 `times` 非数组的备份，合法的旧备份仍能导入
-- **非目标：** 不改备份版本号，不改 `devicePrefs`
+并行限制：T18 和 T19 都要写 `docs/tasks/T13.md`，不要同时开。
 
 ### T14 其他公式组的识别要点（技术债）
 
