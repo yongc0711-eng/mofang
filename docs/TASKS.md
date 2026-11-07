@@ -24,26 +24,12 @@
 - **验收：** `npm test`。如果要改判定语义，先在 `docs/decisions.md` 记录原因
 - **非目标：** 不为了通过测试放宽规则，不改 F2L 数据
 
-### T10 强制保存的公式会影响练习打乱
-
-- **问题：** `CasePage` 里“仍然保存”的公式也会被设成 `primaryAlg`。练习打乱按主公式生成，所以可能和图解对不上。
-- **允许改：** `src/pages/CasePage.tsx`、`src/store/userStore.ts`、`src/lib/practice.ts`、`src/lib/practice.test.ts`
-- **验收：** `npm test`，新增测试覆盖解决不了情形的主公式
-- **非目标：** 不禁止用户保存这类公式，不改备份格式
-
 ### T11 导入备份校验太松
 
 - **问题：** `importUserData` 只查 `version` 和 `typeof cases`。`times` 不是数组时，`timeStats` 会抛错。
 - **允许改：** `src/store/userStore.ts`，新增 `src/store/userStore.test.ts`
 - **验收：** `npm test`，新增测试覆盖 `times` 非数组的备份，合法的旧备份仍能导入
 - **非目标：** 不改备份版本号，不改 `devicePrefs`
-
-### T12 图解没有测试
-
-- **问题：** `CaseDiagram` 没有测试，2D 和 3D 朝向一致只靠约定。
-- **允许改：** 只新增测试文件；如需导出纯函数，可小改 `src/components/CaseDiagram.tsx`
-- **验收：** `npm test`，测试覆盖顶视图和等轴视图的贴纸位置，以及和引擎坐标的一致性
-- **非目标：** 不改图解外观，不引入组件测试框架
 
 ### T14 其他公式组的识别要点（技术债）
 
