@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useState, useSyncExternalStore } from 'react
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { formulaTabTarget, isFormulaPath, shouldPopToFormula, tabLinkState } from './lib/nav';
 import { useScrollRestoration } from './lib/scrollRestoration';
+import { shouldShowUpdateNotice } from './lib/updateNotice';
 import { getUi, setUi } from './lib/uiState';
 import { forceReload, RELOAD_WARNING_MESSAGE, versionChecker, watchVersionChecks } from './lib/version';
 import { CasePage } from './pages/CasePage';
@@ -128,11 +129,14 @@ function AnimatedRoutes() {
 
 /** In normal document flow: never overlays the pad, formula keyboard or player controls. */
 function UpdateNotice() {
+  const { pathname } = useLocation();
   const remote = useSyncExternalStore(versionChecker.subscribe, versionChecker.getAvailable, () => null);
   const [reloading, setReloading] = useState(false);
   const [error, setError] = useState('');
+  // 版本检查全局运行，和当前在哪个页面无关；hooks 都在条件返回之前
   useEffect(() => watchVersionChecks(window, document), []);
-  if (!remote) return null;
+  // 详情页和练习页不显示（会改变它们的首屏预算），离开后再显示
+  if (!remote || !shouldShowUpdateNotice(pathname)) return null;
   return (
     <section className="update-notice" role="status" aria-live="polite">
       <button className="link-btn" disabled={reloading} onClick={() => {
