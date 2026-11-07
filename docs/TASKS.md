@@ -23,7 +23,7 @@
 - **验收：** 用户在真手机上逐项确认，结果记入本任务
 - **非目标：** 不在这个任务里顺手调外观
 
-## 已完成（T15、T21–T30、T32、T33、T56；T56-fix 待合并）
+## 已完成（T15、T21–T30、T32、T33、T56；T56-fix 已合并）
 
 每条链接到它的任务记录。
 
@@ -41,7 +41,7 @@
 - [T32](tasks/T32.md) 修正 OLL 的 2D/3D 分工：2D 固定顶层 9 张，3D 和其他组一样（默认完整，“只看相关的块”可选）
 - [T33](tasks/T33.md) 外面的图解（卡片、首页封面、练习页）跟主公式对齐；练习的 setup 同步按主公式算
 - [T56](tasks/T56.md) 版本检查与强制刷新（Codex 实现，Claude 审查，合并提交 f082505，实现提交 8c78823 + 3393495）：每次构建生成 `dist/version.json`（不进 SW precache），页面可见/获得焦点时检查（30 分钟节流），有新版只提示不自动重载；「我的」里可手动检查和强制刷新，强制刷新只清本应用 scope 的 SW 和缓存，清理失败也照样带 `?v=` 导航并留下一次性提醒。合并时 `npm test` 3381 / `check:data` 393 / `build` 通过。
-- [T56-fix](tasks/T56.md) 更新提示条不再出现在详情页和练习页（文档流里的提示条会改变 T48 的首屏预算）：新增 `shouldShowUpdateNotice`，版本检查仍全局运行。**已复核，待合并**（分支 `claude/t56-notice-layout`，提交 `40c12f8`，`npm test` 3389 / `check:data` 393 / `build` 通过）。
+- [T56-fix](tasks/T56.md) 更新提示条不再出现在详情页和练习页（文档流里的提示条会改变 T48 的首屏预算）：新增 `shouldShowUpdateNotice`，版本检查仍全局运行。**已复核，已合并**（fast-forward，main `86215df`；分支 `claude/t56-notice-layout`，提交 `40c12f8`，`npm test` 3389 / `check:data` 393 / `build` 通过）。
 
 ## 待确认（不建任务）
 
