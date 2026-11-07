@@ -1,9 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
-import { SETS, getSet } from '../data';
+import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase, scrambleFor } from '../lib/practice';
+import {
+  DOC_ID,
+  clearSession,
+  elapsedOf,
+  loadSession,
+  resumeTimer,
+  saveSession,
+  startTimer,
+  stopTimer,
+  type PracticeSession,
+  type Timer,
+} from '../lib/practiceSession';
+import { createWakeLock, type ScreenWakeLock } from '../lib/wakeLock';
 import {
   STATUS_LABEL,
   addTime,
@@ -32,7 +45,7 @@ interface PracticeScope {
   showPicker: boolean;
 }
 
-type Phase = 'ready' | 'running' | 'done';
+const IDLE: Timer = { phase: 'ready', elapsedMs: 0, runningSince: null };
 interface Question {
   c: AlgCase;
   alg: string;
@@ -51,7 +64,12 @@ export function PracticePage() {
   useEffect(() => {
     setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker });
   }, [sets, group, filter, picked, showPicker]);
-  const [practicing, setPracticing] = useState(false);
+  // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
+  // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
+  const [restored, setRestored] = useState<PracticeSession | null>(() =>
+    loadSession(Date.now(), (id) => !!getCase(id), DOC_ID),
+  );
+  const [practicing, setPracticing] = useState(restored !== null);
 
   const activeSets = SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
   const groups = [...new Set(activeSets.flatMap((s) => s.cases.map((c) => c.group)))];
@@ -75,7 +93,19 @@ export function PracticePage() {
   };
   const togglePick = (id: string) => setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
-  if (practicing) return <Session pool={pool} onExit={() => setPracticing(false)} />;
+  if (practicing) {
+    const sessionPool = restored ? restored.poolIds.map((id) => getCase(id)!) : pool;
+    return (
+      <Session
+        pool={sessionPool}
+        restore={restored}
+        onExit={() => {
+          setRestored(null);
+          setPracticing(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="page">
@@ -148,19 +178,36 @@ export function PracticePage() {
   );
 }
 
-function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () => void }) {
+function Session({
+  pool: initialPool,
+  restore,
+  onExit,
+}: {
+  pool: AlgCase[];
+  restore: PracticeSession | null;
+  onExit: () => void;
+}) {
   // 练习中记录用时会让用户数据变化，范围要在开始时固定，否则会中途换题
   const [pool] = useState(initialPool);
   const user = useUserData();
   const userRef = useRef(user);
   userRef.current = user;
-  const [question, setQuestion] = useState<Question | null>(null);
-  const [phase, setPhase] = useState<Phase>('ready');
-  const [elapsed, setElapsed] = useState(0);
-  const [count, setCount] = useState(0);
-  const startRef = useRef(0);
-  const lastId = useRef<string | null>(null);
+  const [question, setQuestion] = useState<Question | null>(() => {
+    const c = restore && getCase(restore.question.id);
+    return restore && c ? { c, alg: restore.question.alg, scramble: restore.question.scramble } : null;
+  });
+  // 同一文档恢复的 running 会话继续走（用时包含离开的时间）；重载或冷启动恢复的是 paused，点屏幕才继续
+  const [timer, setTimer] = useState<Timer>(
+    restore ? { phase: restore.phase, elapsedMs: restore.elapsedMs, runningSince: restore.runningSince } : IDLE,
+  );
+  const [now, setNow] = useState(() => Date.now());
+  const [count, setCount] = useState(restore?.count ?? 0);
+  // 同一文档里恢复 running 是无感的，不提示；其他情况（暂停、已停表）才提示“已恢复”
+  const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
+  const phase = timer.phase;
+  const lastId = useRef<string | null>(restore?.question.id ?? null);
   const skipClick = useRef(false);
+  const endedRef = useRef(false);
 
   const next = useCallback(() => {
     const c = pickCase(pool, userRef.current, lastId.current);
@@ -168,38 +215,108 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
     setQuestion({ c, alg, scramble: scrambleFor(c) });
-    setPhase('ready');
-    setElapsed(0);
+    setTimer(IDLE);
   }, [pool]);
 
-  useEffect(next, [next]);
+  useEffect(() => {
+    if (!restore) next();
+  }, [next, restore]);
 
+  // 计时用 Date.now()：后台时 rAF 会暂停，所以离开前一律先冻结（见下面的 leave）
   useEffect(() => {
     if (phase !== 'running') return;
     let raf = 0;
     const tick = () => {
-      setElapsed(performance.now() - startRef.current);
+      setNow(Date.now());
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [phase]);
+  const elapsed = elapsedOf(timer, now);
+
+  // 持久化：状态变化时存一份；切后台、pagehide、卸载时各存一次。
+  // 这些时机都只保存当前快照，不改计时状态：计时不会因为离开页面而停。
+  // 计时中的 4 秒心跳在 practiceSession 里（模块级），离开练习页之后也继续。
+  const live = useRef({ question, timer, count });
+  live.current = { question, timer, count };
+  const poolIds = useMemo(() => pool.map((c) => c.id), [pool]);
+  const persist = useCallback(
+    (t: Timer) => {
+      const { question: q, count: n } = live.current;
+      if (endedRef.current || !q) return;
+      saveSession({
+        poolIds,
+        question: { id: q.c.id, alg: q.alg, scramble: q.scramble },
+        count: n,
+        ...t,
+        savedAt: Date.now(),
+        docId: DOC_ID,
+      });
+    },
+    [poolIds],
+  );
+  useEffect(() => {
+    persist(timer);
+  }, [question, timer, count, persist]);
+  useEffect(() => {
+    const leave = () => persist(live.current.timer);
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') leave();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', leave);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', leave);
+      // 卸载（点“查看详情”、切 tab、系统返回）也存一次当前快照
+      if (!endedRef.current) persist(live.current.timer);
+    };
+  }, [persist]);
+
+  // 屏幕常亮：只在正在计时且页面可见时申请；暂停、停止、隐藏、退出都释放。不支持就静默降级
+  const wakeLock = useRef<ScreenWakeLock | null>(null);
+  if (!wakeLock.current) wakeLock.current = createWakeLock();
+  useEffect(() => {
+    const lock = wakeLock.current!;
+    const sync = () => {
+      if (phase === 'running' && document.visibilityState === 'visible') void lock.acquire();
+      else void lock.release();
+    };
+    sync();
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      document.removeEventListener('visibilitychange', sync);
+      void lock.release();
+    };
+  }, [phase]);
+
+  /** 结束或放弃：清掉保存的会话，之后不再保存 */
+  const finish = () => {
+    endedRef.current = true;
+    clearSession();
+    onExit();
+  };
 
   const advance = useCallback(() => {
     if (!question) return;
-    if (phase === 'ready') {
-      startRef.current = performance.now();
-      setPhase('running');
-    } else if (phase === 'running') {
-      const ms = performance.now() - startRef.current;
-      setElapsed(ms);
-      addTime(question.c.id, Math.round(ms));
+    const t = Date.now();
+    setBanner(false);
+    if (timer.phase === 'ready') {
+      setNow(t);
+      setTimer(startTimer(timer, t));
+    } else if (timer.phase === 'paused') {
+      setNow(t);
+      setTimer(resumeTimer(timer, t));
+    } else if (timer.phase === 'running') {
+      const done = stopTimer(timer, t);
+      setTimer(done);
+      addTime(question.c.id, Math.round(done.elapsedMs));
       setCount((n) => n + 1);
-      setPhase('done');
     } else {
       next();
     }
-  }, [phase, question, next]);
+  }, [timer, question, next]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -218,16 +335,31 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
   const { c, alg, scramble } = question;
   const set = getSet(c.set)!;
   const stats = timeStats(c.id, user);
-  const hint = phase === 'ready' ? '点屏幕或按空格开始计时' : phase === 'running' ? '点屏幕或按空格停止' : '点屏幕或按空格下一题';
+  const hint =
+    phase === 'ready'
+      ? '点屏幕或按空格开始计时'
+      : phase === 'running'
+        ? '点屏幕或按空格停止'
+        : phase === 'paused'
+          ? '已暂停，点屏幕或按空格继续'
+          : '点屏幕或按空格下一题';
 
   return (
     <div className="practice" data-phase={phase}>
       <div className="practice-bar">
-        <button className="back" onClick={onExit}>
+        <button className="back" onClick={finish}>
           ‹ 结束
         </button>
         <span className="muted small">本次 {count} 题</span>
       </div>
+      {banner && (
+        <div className="practice-bar" role="status">
+          <span className="muted small">已恢复上次练习</span>
+          <button className="link-btn danger" onClick={finish}>
+            放弃
+          </button>
+        </div>
+      )}
       <div
         className="practice-pad"
         role="button"
