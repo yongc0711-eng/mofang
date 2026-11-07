@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
+import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
-import { pickCase, scrambleFor } from '../lib/practice';
+import { pickCase } from '../lib/practice';
 import {
   DOC_ID,
   clearSession,
@@ -196,8 +197,14 @@ function Session({
   const userRef = useRef(user);
   userRef.current = user;
   const [question, setQuestion] = useState<Question | null>(() => {
-    const c = restore && getCase(restore.question.id);
-    return restore && c ? { c, alg: restore.question.alg, scramble: restore.question.scramble } : null;
+    const base = restore && getCase(restore.question.id);
+    if (!restore || !base) return null;
+    // 从 id + alg 重建图解用的 view；旧会话的 scramble 是按 algs[0] 生成的，
+    // alg 不是 algs[0] 时要按 view 重算，否则和图解对不上（T33）
+    const { alg } = restore.question;
+    if (alg === base.algs[0]) return { c: base, alg, scramble: restore.question.scramble };
+    const { view, scramble } = practiceViewFor(base, alg);
+    return { c: view, alg, scramble: view === base ? restore.question.scramble : scramble };
   });
   // 同一文档恢复的 running 会话继续走（用时包含离开的时间）；重载或冷启动恢复的是 paused，点屏幕才继续
   const [timer, setTimer] = useState<Timer>(
@@ -242,7 +249,8 @@ function Session({
     if (!c) return;
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
-    setQuestion({ c, alg, scramble: scrambleFor(c) });
+    const { view, scramble } = practiceViewFor(c, alg);
+    setQuestion({ c: view, alg, scramble });
     setTimer(IDLE);
   }, [pool]);
 
