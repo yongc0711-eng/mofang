@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
+import { CURRENT_BUILD_ID, forceReload, versionChecker } from '../lib/version';
 import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
 import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
@@ -15,6 +16,26 @@ export function MePage() {
   const prefs = useDevicePrefs();
   const file = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState('');
+  const [confirmReload, setConfirmReload] = useState(false);
+  const [reloading, setReloading] = useState(false);
+
+  const checkUpdates = async () => {
+    setCheckingUpdate(true);
+    setUpdateMessage('');
+    try {
+      const result = await versionChecker.check(true);
+      setUpdateMessage(result?.status === 'new' ? '有新版本，请点击上方通知刷新。' : result?.status === 'latest' ? '已是最新版本。' : '检查失败，请检查网络后重试。');
+    } finally { setCheckingUpdate(false); }
+  };
+  const refresh = async () => {
+    setReloading(true);
+    try { await forceReload(); } catch {
+      setReloading(false);
+      setUpdateMessage('刷新失败，请重试或在系统浏览器中打开。');
+    }
+  };
 
   const count = (s: 'learning' | 'mastered') => ALL_CASES.filter((c) => statusOf(c, user) === s).length;
   const favorites = ALL_CASES.filter((c) => user.cases[c.id]?.favorite).length;
@@ -75,6 +96,23 @@ export function MePage() {
         ))}
       </div>
       <p className="muted small setting-note">只对这台设备生效。公式页的图解和 3D 魔方按这个颜色做底面换配色，默认白色。</p>
+
+      <h2>应用更新</h2>
+      <div className="button-row">
+        <button className="btn" disabled={checkingUpdate || reloading} onClick={() => void checkUpdates()}>{checkingUpdate ? '检查中…' : '检查更新'}</button>
+        <button className="btn" disabled={reloading} onClick={() => setConfirmReload(true)}>强制刷新</button>
+      </div>
+      <p className="muted small update-build">当前版本：<code>{CURRENT_BUILD_ID}</code></p>
+      {updateMessage && <p className="small setting-note" role="status">{updateMessage}</p>}
+      {confirmReload && (
+        <div className="update-confirm" role="group" aria-label="确认强制刷新">
+          <p className="small">将清理当前域名的离线缓存并重新加载；请先完成当前操作。进度和自定义公式会保留。</p>
+          <div className="button-row">
+            <button className="btn" disabled={reloading} onClick={() => void refresh()}>{reloading ? '正在刷新…' : '确认刷新'}</button>
+            <button className="btn" disabled={reloading} onClick={() => setConfirmReload(false)}>取消</button>
+          </div>
+        </div>
+      )}
 
       <h2>备份和迁移</h2>
       <p className="muted">进度和自定义公式只保存在这台设备的浏览器里。换设备时先导出，再到另一台设备导入。导入会覆盖那台设备上现有的数据。</p>

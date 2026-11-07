@@ -1,8 +1,9 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState, useSyncExternalStore } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { formulaTabTarget, isFormulaPath, shouldPopToFormula, tabLinkState } from './lib/nav';
 import { useScrollRestoration } from './lib/scrollRestoration';
 import { getUi, setUi } from './lib/uiState';
+import { forceReload, versionChecker, watchVersionChecks } from './lib/version';
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
 import { MePage } from './pages/MePage';
@@ -125,12 +126,36 @@ function AnimatedRoutes() {
   );
 }
 
+/** In normal document flow: never overlays the pad, formula keyboard or player controls. */
+function UpdateNotice() {
+  const remote = useSyncExternalStore(versionChecker.subscribe, versionChecker.getAvailable, () => null);
+  const [reloading, setReloading] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => watchVersionChecks(window, document), []);
+  if (!remote) return null;
+  return (
+    <section className="update-notice" role="status" aria-live="polite">
+      <button className="link-btn" disabled={reloading} onClick={() => {
+        setReloading(true);
+        setError('');
+        void forceReload().catch(() => {
+          setReloading(false);
+          setError('刷新失败，请重试或在系统浏览器中打开。');
+        });
+      }}>{reloading ? '正在刷新…' : '有新版本，点此刷新'}</button>
+      <span className="small muted">请在完成当前操作后刷新。</span>
+      {error && <p className="small" role="alert">{error}</p>}
+    </section>
+  );
+}
+
 export function App() {
   return (
     <HashRouter>
       <Nav />
       <ScrollRestoration />
       <main>
+        <UpdateNotice />
         <AnimatedRoutes />
       </main>
     </HashRouter>
