@@ -9,7 +9,7 @@ const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
 /** 取某个选择器所有规则的声明，包括写在媒体查询里的 */
 const rules = (sel: string) => {
-  const escaped = sel.replace(/[.>:]/g, '\\$&');
+  const escaped = sel.replace(/[.>:+]/g, '\\$&');
   return [...css.matchAll(new RegExp(`^\\s*${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]).join(';');
 };
 
@@ -31,7 +31,15 @@ describe('UI-home 首页样式', () => {
   });
 
   it('320 宽不撑开：列宽不超过容器', () => {
-    expect(rules('.set-list')).toContain('minmax(min(290px, 100%), 1fr)');
+    expect(rules('.set-list')).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(rules('.set-body')).toContain('min-width: 0');
+  });
+
+  it('面板不套卡片：面板是唯一的容器，行之间只有一条内缩细线', () => {
+    expect(rules('.set-list')).toContain('background: var(--surface)');
+    expect(rules('.set-list')).not.toMatch(/\bborder:|box-shadow/);
+    expect(rules('.set-card + .set-card::before')).toContain('border-top: 1px solid var(--border)');
+    expect(rules('.set-card:focus-visible')).toContain('outline-offset: -2px');
   });
 
   it('首页没有硬编码颜色、模糊、渐变，动画不超过 250ms', () => {
