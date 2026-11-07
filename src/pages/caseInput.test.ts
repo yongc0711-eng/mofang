@@ -49,12 +49,12 @@ it('T44 closing does not schedule a scroll or delay unmounting', () => {
   expect(casePageSource).toMatch(/\{keyboardOpen && \(/);
 });
 it('T44 entry animates only opacity and transform; reduced motion disables it', () => {
-  expect(stylesSource).toMatch(/\.alg-keyboard\s*\{\s*animation:\s*alg-keyboard-enter 200ms ease-out;/);
+  expect(stylesSource).toMatch(/\.alg-keyboard\s*\{\s*animation:\s*alg-keyboard-enter 220ms cubic-bezier\(0\.2, 0\.8, 0\.2, 1\);/);
   const frames = stylesSource.match(/@keyframes alg-keyboard-enter\s*\{([\s\S]*?)\n\}/)?.[1];
   expect(frames).toMatch(/opacity:\s*0/);
-  expect(frames).toMatch(/translateY\(14px\)/);
+  expect(frames).toMatch(/translateY\(24px\) scale\(0\.97\)/);
   expect(frames).toMatch(/opacity:\s*1/);
-  expect(frames).toMatch(/translateY\(0\)/);
+  expect(frames).toMatch(/translateY\(0\) scale\(1\)/);
   expect(frames).not.toMatch(/\b(?:height|width|margin|padding|pointer-events|visibility|display)\s*:/);
   expect(stylesSource).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.alg-keyboard\s*\{\s*animation: none;/);
   expect(stylesSource).not.toMatch(/scroll-behavior\s*:/);
@@ -111,6 +111,6 @@ it('T46 reduced motion remains instant on the second opening without a forced sc
   controller.set(true); controller.set(false); controller.set(true);
   expect(scrollEffect(controller.snapshot().open, true).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'auto' });
   expect(casePageSource).not.toMatch(/\b(?:scrollBy|scrollTo)\s*\(/);
-  expect(stylesSource).toMatch(/animation:\s*alg-keyboard-enter 200ms ease-out/);
-  expect(stylesSource).toMatch(/translateY\(14px\)/);
+  expect(stylesSource).toMatch(/animation:\s*alg-keyboard-enter 220ms cubic-bezier\(0\.2, 0\.8, 0\.2, 1\)/);
+  expect(stylesSource).toMatch(/translateY\(24px\) scale\(0\.97\)/);
 });
