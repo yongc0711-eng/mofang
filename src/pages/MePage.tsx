@@ -1,9 +1,20 @@
 import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
-import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
+import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs, type BottomColor } from '../store/devicePrefs';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
 
 /** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
+const COLOR_LABEL: Record<BottomColor, string> = { white: '白', yellow: '黄', red: '红', orange: '橙', green: '绿', blue: '蓝' };
+/** 色块用公式页同一组 CSS 变量，浅色和深色模式都跟着走 */
+const COLOR_VAR: Record<BottomColor, string> = {
+  white: 'var(--cube-d)',
+  yellow: 'var(--cube-u)',
+  red: 'var(--cube-l)',
+  orange: 'var(--cube-r)',
+  green: 'var(--cube-f)',
+  blue: 'var(--cube-b)',
+};
+
 function localDate(d = new Date()) {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
@@ -57,6 +68,23 @@ export function MePage() {
         </button>
       </div>
       <p className="muted small setting-note">只对这台设备生效。手机卡顿或发热时可以选普通面。</p>
+
+      <h2>底面颜色</h2>
+      <div className="swatches" role="group" aria-label="底面颜色">
+        {BOTTOM_COLORS.map((color) => (
+          <button
+            key={color}
+            className={`swatch ${prefs.bottomColor === color ? 'swatch-on' : ''}`}
+            aria-pressed={prefs.bottomColor === color}
+            aria-label={`底面${COLOR_LABEL[color]}色`}
+            onClick={() => setDevicePrefs({ bottomColor: color })}
+          >
+            <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />
+            {COLOR_LABEL[color]}
+          </button>
+        ))}
+      </div>
+      <p className="muted small setting-note">只对这台设备生效。公式页的图解和 3D 魔方按这个颜色做底面换配色，默认白色。</p>
 
       <h2>OLL 识别视图</h2>
       <div className="segmented" role="group" aria-label="OLL 识别视图">

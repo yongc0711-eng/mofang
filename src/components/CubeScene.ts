@@ -19,6 +19,7 @@ import {
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { STICKERS, moveGeometry, type Face, type Move, type State, type Vec } from '../lib/cube';
+import { displayFace, getDevicePrefs } from '../store/devicePrefs';
 
 const FACE_VAR: Record<Face, string> = {
   U: '--cube-u',
@@ -190,11 +191,13 @@ export class CubeScene {
   /** 画一帧。eased 是缓动后的进度 0–1 */
   render(state: State, move: Move | null, eased: number) {
     this.last = { state, move, eased };
+    // 底面颜色决定配色，和 2D 图解共用 displayFace；每帧读一次，设置一改下一帧就变
+    const bottom = getDevicePrefs().bottomColor;
     for (let loc = 0; loc < 54; loc++) {
       const id = state[loc];
       const visible = !this.mask || this.mask(id);
       const { cubie, slot } = this.faceSlots[loc];
-      cubie.materials[slot] = visible ? this.faceMats.get(STICKERS[id].face)! : this.maskMat;
+      cubie.materials[slot] = visible ? this.faceMats.get(displayFace(id, bottom))! : this.maskMat;
     }
     const geo = move ? moveGeometry(move) : null;
     const q = new Quaternion();

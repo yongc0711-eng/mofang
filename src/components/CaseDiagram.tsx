@@ -1,6 +1,7 @@
 import { memo } from 'react';
-import { caseState, displayColors, type Mask } from '../lib/cases';
+import { caseState, displayColors, displayMask, type Mask } from '../lib/cases';
 import { STICKERS, stickerAt, type Face, type Vec } from '../lib/cube';
+import { displayFace, type BottomColor } from '../store/devicePrefs';
 import { type AlgCase } from '../types';
 
 /** 观察方向是黄色朝上、绿色朝前（白顶绿前的魔方做 z2），和 3D 播放器一致 */
@@ -111,17 +112,27 @@ interface Props {
   view: 'top' | 'iso' | 'lse';
   /** 哪些贴纸显示颜色，其余画成灰色（和 3D 播放器的 mask 同一个）。不传或 null 用该组默认的显示规则 */
   mask?: Mask | null;
+  /** 底面颜色，换一套配色画；不传是白色（标准配色） */
+  bottom?: BottomColor;
 }
 
-/** 每个位置该显示的颜色。有 mask 就按 mask，否则按该组默认的显示规则 */
-export function diagramColors(c: Pick<AlgCase, 'set' | 'algs' | 'group'>, mask?: Mask | null): (Face | null)[] {
-  if (!mask) return displayColors(c);
-  return caseState(c).map((id) => (mask(id) ? STICKERS[id].face : null));
+/**
+ * 每个位置该显示的颜色。有 mask 就按 mask，否则按该组默认的显示规则；
+ * 颜色经 displayFace 换成所选底色的配色，和 3D 播放器用的是同一个映射。
+ */
+export function diagramColors(
+  c: Pick<AlgCase, 'set' | 'algs' | 'group'>,
+  mask?: Mask | null,
+  bottom: BottomColor = 'white',
+): (Face | null)[] {
+  if (!mask && bottom === 'white') return displayColors(c);
+  const m = mask ?? displayMask(c);
+  return caseState(c).map((id) => (m(id) ? displayFace(id, bottom) : null));
 }
 
 /** 情形图解。纯由公式推导，不需要任何图片素材 */
-export const CaseDiagram = memo(function CaseDiagram({ c, view, mask }: Props) {
-  const colors = diagramColors(c, mask);
+export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom }: Props) {
+  const colors = diagramColors(c, mask, bottom);
   const View = view === 'top' ? TopView : view === 'iso' ? IsoView : LseView;
   return (
     <div className="diagram">
