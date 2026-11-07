@@ -498,7 +498,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .alg-keyboard button { min-height: 40px; min-width: 32px; padding: 6px 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
 .alg-keyboard button:active:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
 .alg-keyboard button:disabled { opacity: 0.5; cursor: default; }
-.alg-keyboard-actions { display: grid; grid-template-columns: repeat(4, minmax(32px, 1fr)); gap: 8px; margin-top: 8px; }
-.alg-keyboard-actions button { padding-inline: 12px; }
+.alg-keyboard-actions { display: grid; grid-template-columns: repeat(5, minmax(32px, 1fr)); gap: 8px; margin-top: 8px; }
+.alg-keyboard-actions button { padding-inline: 4px; }
 
 .alg-keyboard > p { margin-bottom: 8px; }

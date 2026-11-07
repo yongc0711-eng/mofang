@@ -70,3 +70,20 @@ it('a suffix without a terminal move does not create a stray token or change gro
     expect(editAlgDraft(draft, { type: 'suffix', suffix: '2' })).toBe(draft);
   }
 });
+
+for (const token of ALG_MOVE_KEYS) {
+  it(`${token} with the independent 3 key keeps notation and parses as inverse`, () => {
+    const draft = editAlgDraft('', { type: 'append', token });
+    const triple = editAlgDraft(draft, { type: 'suffix', suffix: '3' });
+    expect(triple).toBe(`${token}3`);
+    expect(parseAlg(triple)).toEqual(parseAlg(`${token}'`));
+    expect(editAlgDraft(triple, { type: 'suffix', suffix: '3' })).toBe(token);
+    expect(editAlgDraft(triple, { type: 'suffix', suffix: '2' })).toBe(`${token}2`);
+    expect(editAlgDraft(`${token}2`, { type: 'suffix', suffix: '3' })).toBe(triple);
+    expect(editAlgDraft(triple, { type: 'suffix', suffix: "'" })).toBe(`${token}'`);
+  });
+}
+it('3 does not create a standalone token or change a grouped repeat', () => {
+  expect(editAlgDraft('', { type: 'suffix', suffix: '3' })).toBe('');
+  expect(editAlgDraft('(R U)3', { type: 'suffix', suffix: '3' })).toBe('(R U)3');
+});
