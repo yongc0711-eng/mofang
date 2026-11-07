@@ -135,9 +135,62 @@ const defaultStorage = (): StorageLike | null => {
   }
 };
 
+/** 心跳间隔：计时中每隔这么久把 savedAt 刷新一次 */
+export const HEARTBEAT_MS = 4000;
+
+/**
+ * 心跳的一拍：存储里的会话还是 running，就只把 savedAt 改成 now 写回（runningSince、elapsedMs 不动），返回 true；
+ * 读不到、JSON 坏了、phase 不是 running、写入失败都返回 false，调用方据此停掉心跳。
+ * 传了 docId 时，只刷新这个文档写的会话，别的文档写的不碰，免得替一个已经死掉的文档续命。
+ */
+export function touchRunning(storage: StorageLike | null, now: number, docId?: string): boolean {
+  if (!storage) return false;
+  try {
+    const raw = storage.getItem(SESSION_KEY);
+    if (!raw) return false;
+    const o = JSON.parse(raw) as Record<string, unknown> | null;
+    if (!o || typeof o !== 'object' || o.phase !== 'running') return false;
+    if (docId !== undefined && o.docId !== docId) return false;
+    storage.setItem(SESSION_KEY, JSON.stringify({ ...o, savedAt: now }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 模块级心跳：不属于任何组件，切到别的页面（练习页卸载）后继续跑，
+ * 这样进程被杀或刷新之后，冷启动按最后一次 savedAt 冻结，丢掉的时间最多一个周期。
+ * 后台标签页会被浏览器节流，所以不保证严格 4 秒，冷启动最多丢一个节流周期。
+ * 没有 window（node 测试）不启动。
+ */
+let heartbeat: { id: number; storage: StorageLike } | null = null;
+
+function startHeartbeat(storage: StorageLike | null): void {
+  if (typeof window === 'undefined' || !storage) return;
+  if (heartbeat) {
+    heartbeat.storage = storage;
+    return;
+  }
+  const h = { id: 0, storage };
+  h.id = window.setInterval(() => {
+    if (!touchRunning(h.storage, Date.now(), DOC_ID)) stopHeartbeat();
+  }, HEARTBEAT_MS);
+  heartbeat = h;
+}
+
+function stopHeartbeat(): void {
+  if (!heartbeat) return;
+  window.clearInterval(heartbeat.id);
+  heartbeat = null;
+}
+
+/** 写入会话。写入 running 时确保心跳在跑，写入其他阶段时停掉心跳 */
 export function saveSession(s: PracticeSession, storage: StorageLike | null = defaultStorage()): void {
   try {
     storage?.setItem(SESSION_KEY, serializeSession(s));
+    if (s.phase === 'running') startHeartbeat(storage);
+    else stopHeartbeat();
   } catch {
     // 隐私模式等情况下写入失败：本次会话内仍可用
   }
@@ -162,6 +215,7 @@ export function loadSession(
 }
 
 export function clearSession(storage: StorageLike | null = defaultStorage()): void {
+  stopHeartbeat();
   try {
     storage?.removeItem(SESSION_KEY);
   } catch {

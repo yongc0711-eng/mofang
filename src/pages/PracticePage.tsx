@@ -235,8 +235,9 @@ function Session({
   }, [phase]);
   const elapsed = elapsedOf(timer, now);
 
-  // 持久化：状态变化时存一份；计时中每 4 秒刷新一次 savedAt；切后台、pagehide、卸载时各存一次。
+  // 持久化：状态变化时存一份；切后台、pagehide、卸载时各存一次。
   // 这些时机都只保存当前快照，不改计时状态：计时不会因为离开页面而停。
+  // 计时中的 4 秒心跳在 practiceSession 里（模块级），离开练习页之后也继续。
   const live = useRef({ question, timer, count });
   live.current = { question, timer, count };
   const poolIds = useMemo(() => pool.map((c) => c.id), [pool]);
@@ -258,12 +259,6 @@ function Session({
   useEffect(() => {
     persist(timer);
   }, [question, timer, count, persist]);
-  useEffect(() => {
-    if (phase !== 'running') return;
-    // 只更新 savedAt，runningSince 不变；进程被杀后冷启动按最后一次保存的时刻冻结
-    const id = window.setInterval(() => persist(live.current.timer), 4000);
-    return () => window.clearInterval(id);
-  }, [phase, persist]);
   useEffect(() => {
     const leave = () => persist(live.current.timer);
     const onVisibility = () => {

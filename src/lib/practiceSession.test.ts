@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   DOC_ID,
+  HEARTBEAT_MS,
   SESSION_KEY,
   SESSION_TTL_MS,
   clearSession,
@@ -13,6 +14,7 @@ import {
   serializeSession,
   startTimer,
   stopTimer,
+  touchRunning,
   type PracticeSession,
   type Timer,
 } from './practiceSession';
@@ -306,19 +308,107 @@ describe('保存与读取', () => {
     }
   });
 
-  it('每 4 秒刷新 savedAt：runningSince 不变，用时按原起点继续算', () => {
+  it('savedAt 更新后：runningSince 不变，同一文档用时按原起点继续算，冷启动冻结在 savedAt', () => {
+    // 这条只是手动改 savedAt，验证读取侧；心跳本身的更新逻辑见下面 touchRunning 的测试
     const st = fakeStorage();
     const base = session({ phase: 'running', elapsedMs: 0, runningSince: T0, savedAt: T0 });
     saveSession(base, st);
-    saveSession({ ...base, savedAt: T0 + 4000 }, st); // 周期保存只更新 savedAt
     saveSession({ ...base, savedAt: T0 + 8000 }, st);
     const s = loadSession(T0 + 20_000, valid, DOC_A, st)!;
     expect(s.runningSince).toBe(T0);
     expect(elapsedOf(s, T0 + 20_000)).toBe(20_000);
-    // 同一份数据换个文档读：冻结在最后一次保存的时刻，最多少算一个保存周期
     const cold = loadSession(T0 + 20_000, valid, DOC_B, st)!;
     expect(cold.phase).toBe('paused');
     expect(cold.elapsedMs).toBe(8000);
+  });
+
+  describe('心跳的一拍 touchRunning', () => {
+    const running = session({ phase: 'running', elapsedMs: 500, runningSince: T0 - 1000, savedAt: T0 });
+    const stored = (st: ReturnType<typeof fakeStorage>) => JSON.parse(st.m.get(SESSION_KEY)!) as PracticeSession;
+
+    it('running：只把 savedAt 改成 now，runningSince、elapsedMs 和其他字段不动，返回 true', () => {
+      const st = fakeStorage();
+      saveSession(running, st);
+      expect(touchRunning(st, T0 + 4000, DOC_A)).toBe(true);
+      expect(stored(st)).toEqual({ ...running, savedAt: T0 + 4000 });
+    });
+
+    it('连续几拍：savedAt 跟着走，其余不变；之后冷启动停在最后一拍', () => {
+      const st = fakeStorage();
+      saveSession(running, st);
+      for (const k of [1, 2, 3]) expect(touchRunning(st, T0 + k * 4000, DOC_A)).toBe(true);
+      expect(stored(st).runningSince).toBe(T0 - 1000);
+      // 离开练习页后一直在拍，一小时后被杀：冷启动冻结在最后一拍（T0 + 12s），而不是第一次保存的 T0
+      const cold = loadSession(T0 + 3600_000, valid, DOC_B, st)!;
+      expect(cold.phase).toBe('paused');
+      expect(cold.elapsedMs).toBe(500 + 1000 + 12_000);
+    });
+
+    it('paused：不动，返回 false', () => {
+      const st = fakeStorage();
+      saveSession(session({ phase: 'paused', elapsedMs: 900 }), st);
+      const before = st.m.get(SESSION_KEY);
+      expect(touchRunning(st, T0 + 4000, DOC_A)).toBe(false);
+      expect(st.m.get(SESSION_KEY)).toBe(before);
+    });
+
+    it('done、ready：不动，返回 false', () => {
+      for (const phase of ['done', 'ready'] as const) {
+        const st = fakeStorage();
+        saveSession(session({ phase }), st);
+        const before = st.m.get(SESSION_KEY);
+        expect(touchRunning(st, T0 + 4000, DOC_A)).toBe(false);
+        expect(st.m.get(SESSION_KEY)).toBe(before);
+      }
+    });
+
+    it('坏 JSON、读不到、不是对象：返回 false，不改存储', () => {
+      for (const raw of ['{oops', 'null', '"x"', '42']) {
+        const st = fakeStorage({ [SESSION_KEY]: raw });
+        expect(touchRunning(st, T0, DOC_A)).toBe(false);
+        expect(st.m.get(SESSION_KEY)).toBe(raw);
+      }
+      expect(touchRunning(fakeStorage(), T0, DOC_A)).toBe(false);
+    });
+
+    it('storage 为 null 或抛异常：返回 false，不抛', () => {
+      expect(touchRunning(null, T0, DOC_A)).toBe(false);
+      const broken = {
+        getItem: () => {
+          throw new Error('denied');
+        },
+        setItem: () => {
+          throw new Error('quota');
+        },
+        removeItem: () => {},
+      };
+      expect(touchRunning(broken, T0, DOC_A)).toBe(false);
+      // 读得到但写不进去
+      const st = fakeStorage();
+      saveSession(running, st);
+      const readOnly = { ...st, setItem: () => { throw new Error('quota'); } };
+      expect(touchRunning(readOnly, T0 + 4000, DOC_A)).toBe(false);
+    });
+
+    it('别的文档写的 running 不碰（不替死掉的文档续命）；不传 docId 则不检查', () => {
+      const st = fakeStorage();
+      saveSession(running, st); // docId = DOC_A
+      const before = st.m.get(SESSION_KEY);
+      expect(touchRunning(st, T0 + 4000, DOC_B)).toBe(false);
+      expect(st.m.get(SESSION_KEY)).toBe(before);
+      expect(touchRunning(st, T0 + 4000)).toBe(true);
+    });
+
+    it('心跳间隔是 4 秒', () => {
+      expect(HEARTBEAT_MS).toBe(4000);
+    });
+  });
+
+  it('node 测试里写入 running 不会启动真的 interval（没有 window）', () => {
+    expect(typeof window).toBe('undefined');
+    const st = fakeStorage();
+    saveSession(session({ phase: 'running', runningSince: T0 }), st);
+    expect(() => clearSession(st)).not.toThrow();
   });
 
   it('storage 不可用（null / 抛异常）时不抛', () => {
