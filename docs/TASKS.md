@@ -30,3 +30,9 @@
 - **验收：** 用户在真手机上逐项确认，结果记入本任务
 - **非目标：** 不在这个任务里顺手调外观
 
+### T21 练习会话持久化、计时暂停、屏幕常亮
+
+- **问题：** 练习中点「查看详情」再返回、切 tab、系统返回，会话（题目、题数、计时）都会丢；计时中切后台再回来，用时把后台时间也算进去；练习时屏幕会熄灭。
+- **允许改：** `src/pages/PracticePage.tsx`、`src/lib/practiceSession.ts`、`src/lib/wakeLock.ts` 及各自的测试、`docs/tasks/T21.md`
+- **验收：** `npm test`、`npm run check:data`、`npm run build`；真机验收项见 `docs/tasks/T21.md`
+- **非目标：** 不改练习算法、权重、`userStore` 数据结构，不动 `src/data`、`cases.ts`、`practice.ts`
