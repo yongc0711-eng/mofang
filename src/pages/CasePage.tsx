@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
-import { useScrollTop } from '../lib/uiState';
+import { setUi, useScrollTop } from '../lib/uiState';
 import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlgKeyboard } from '../components/AlgKeyboard';
@@ -77,6 +77,11 @@ export function CasePage() {
     });
     return () => cancelAnimationFrame(frame);
   }, [keyboardOpen]);
+  // 记住上次看的详情页，底部“公式”tab 从别的 tab 回来时用（T51）；只存内存
+  const validId = c?.id;
+  useEffect(() => {
+    if (validId) setUi('lastCaseId', validId);
+  }, [validId]);
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
   const primary = c ? primaryAlgOf(c, user) : '';
