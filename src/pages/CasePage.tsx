@@ -145,7 +145,7 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={viewCase} view={set.view} mask={mask} />
+        <CaseDiagram c={viewCase} view={set.view} mask={mask} bottom={prefs.bottomColor} />
         <div>
           <h1 className="page-title">{c.name}</h1>
           <p className="muted">

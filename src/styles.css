@@ -302,6 +302,19 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 .seg-thumb-2 { width: calc((100% - 6px) / 2); }
 .setting-note { margin-top: 6px; }
+
+/* 底面颜色：六个色块按钮，窄屏自动换行，不横向滚动 */
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.swatch {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 40px; padding: 4px 14px 4px 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; font-size: 0.9rem; color: var(--muted);
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.12s ease;
+}
+.swatch:active { transform: scale(0.96); }
+.swatch-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.swatch-dot { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border); flex: none; }
 .focus-chip { display: block; margin: 8px auto 0; }
 
 /* 公式 */
