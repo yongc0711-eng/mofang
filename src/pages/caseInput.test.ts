@@ -49,14 +49,68 @@ it('T44 closing does not schedule a scroll or delay unmounting', () => {
   expect(casePageSource).toMatch(/\{keyboardOpen && \(/);
 });
 it('T44 entry animates only opacity and transform; reduced motion disables it', () => {
-  expect(stylesSource).toMatch(/\.alg-keyboard\s*\{\s*animation:\s*alg-keyboard-enter 170ms ease-out;/);
+  expect(stylesSource).toMatch(/\.alg-keyboard\s*\{\s*animation:\s*alg-keyboard-enter 200ms ease-out;/);
   const frames = stylesSource.match(/@keyframes alg-keyboard-enter\s*\{([\s\S]*?)\n\}/)?.[1];
   expect(frames).toMatch(/opacity:\s*0/);
-  expect(frames).toMatch(/translateY\(7px\)/);
+  expect(frames).toMatch(/translateY\(14px\)/);
   expect(frames).toMatch(/opacity:\s*1/);
   expect(frames).toMatch(/translateY\(0\)/);
   expect(frames).not.toMatch(/\b(?:height|width|margin|padding|pointer-events|visibility|display)\s*:/);
   expect(stylesSource).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.alg-keyboard\s*\{\s*animation: none;/);
   expect(stylesSource).not.toMatch(/scroll-behavior\s*:/);
   expect(stylesSource).toContain('scroll-margin-bottom: calc(76px + env(safe-area-inset-bottom))');
+});
+
+// Run the actual open/close controller. The entry counter is the React key on the mounted wrap.
+function keyboardController() {
+  const body = casePageSource.match(/const setKeyboardOpen = [^\n]+ => \{([\s\S]*?)\n  \};/)?.[1];
+  expect(body).toBeDefined();
+  const ref = { current: false };
+  let entry = 0;
+  let open = false;
+  const update = new Function('value', 'keyboardOpenRef', 'setKeyboardEntry', 'setKeyboardOpenState', body!);
+  return {
+    set(value: boolean | ((current: boolean) => boolean)) {
+      update(value, ref, (next: (current: number) => number) => { entry = next(entry); }, (next: boolean) => { open = next; });
+    },
+    snapshot: () => ({ open, key: entry }),
+  };
+}
+it('T46 open-close-open gives the second mount a new entry key and reruns both scroll requests', () => {
+  const controller = keyboardController();
+  controller.set(true);
+  const first = controller.snapshot();
+  expect(first).toEqual({ open: true, key: 1 });
+  expect(scrollEffect(first.open, false).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'smooth' });
+  controller.set((open) => !open);
+  expect(controller.snapshot()).toEqual({ open: false, key: 1 });
+  expect(scrollEffect(false, false).raf).not.toHaveBeenCalled();
+  controller.set(true);
+  expect(controller.snapshot()).toEqual({ open: true, key: 2 });
+  expect(scrollEffect(true, false).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'smooth' });
+  expect(casePageSource).toMatch(/\{keyboardOpen && \(\s*<div key=\{keyboardEntry\} ref=\{keyboardRef\} className="alg-keyboard-wrap">/);
+});
+it('T46 focusing an already open input does not change its animation key', () => {
+  const controller = keyboardController();
+  controller.set(true);
+  for (let i = 0; i < 5; i++) controller.set(true);
+  expect(controller.snapshot()).toEqual({ open: true, key: 1 });
+  controller.set(false);
+  controller.set(false);
+  expect(controller.snapshot()).toEqual({ open: false, key: 1 });
+});
+it('T46 rapid toggle events use current ownership and each genuine reopen increments once', () => {
+  const controller = keyboardController();
+  for (let i = 0; i < 6; i++) controller.set((open) => !open);
+  expect(controller.snapshot()).toEqual({ open: false, key: 3 });
+  controller.set(true);
+  expect(controller.snapshot()).toEqual({ open: true, key: 4 });
+});
+it('T46 reduced motion remains instant on the second opening without a forced scroll offset', () => {
+  const controller = keyboardController();
+  controller.set(true); controller.set(false); controller.set(true);
+  expect(scrollEffect(controller.snapshot().open, true).scrollIntoView).toHaveBeenCalledWith({ block: 'nearest', behavior: 'auto' });
+  expect(casePageSource).not.toMatch(/\b(?:scrollBy|scrollTo)\s*\(/);
+  expect(stylesSource).toMatch(/animation:\s*alg-keyboard-enter 200ms ease-out/);
+  expect(stylesSource).toMatch(/translateY\(14px\)/);
 });

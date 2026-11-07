@@ -49,7 +49,15 @@ export function CasePage() {
     [prefs.focusRelevant, caseSet, caseGroup],
   );
   const [draft, setDraft] = useState('');
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [keyboardOpen, setKeyboardOpenState] = useState(false);
+  const [keyboardEntry, setKeyboardEntry] = useState(0);
+  const keyboardOpenRef = useRef(false);
+  const setKeyboardOpen = (value: boolean | ((open: boolean) => boolean)) => {
+    const open = typeof value === 'function' ? value(keyboardOpenRef.current) : value;
+    if (open && !keyboardOpenRef.current) setKeyboardEntry((entry) => entry + 1);
+    keyboardOpenRef.current = open;
+    setKeyboardOpenState(open);
+  };
   const keyboardId = useId();
   const keyboardRef = useRef<HTMLDivElement | null>(null);
 
@@ -261,7 +269,7 @@ export function CasePage() {
             {keyboardOpen ? '收起公式键盘' : '公式键盘'}
           </button>
           {keyboardOpen && (
-            <div ref={keyboardRef} className="alg-keyboard-wrap">
+            <div key={keyboardEntry} ref={keyboardRef} className="alg-keyboard-wrap">
               <AlgKeyboard
                 id={keyboardId}
                 empty={draft.length === 0}
