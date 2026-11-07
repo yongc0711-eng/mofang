@@ -462,3 +462,8 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
     transition-duration: 0.01ms !important;
   }
 }
+
+/* 宽屏导航与 .page 的正文边缘对齐；保留 800–1199px 和手机布局。 */
+@media (min-width: 1200px) {
+  .nav { padding-inline: calc((100% - 1040px) / 2 + 16px); }
+}
