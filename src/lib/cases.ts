@@ -18,6 +18,8 @@ export type Mask = (id: number) => boolean;
 const S = STICKERS;
 const isCorner = (id: number) => S[id].p.every((v) => v !== 0);
 const inU = (id: number) => S[id].p[1] === 1;
+/** 整个顶层 21 张（顶面 9 + 四周顶行 12），按块判断；“只看相关的块”给 PLL 用 */
+export const topLayerMask: Mask = inU;
 /** 属于前两层（底层 + 中层）的块 */
 const isF2LPiece = (id: number) => !inU(id);
 /** 桥式左右两个 1x2x3 块，含左右中心，不含 M 层 */

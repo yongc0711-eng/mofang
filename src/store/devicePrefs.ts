@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { displayMask, type Mask } from '../lib/cases';
+import { displayMask, topLayerMask, type Mask } from '../lib/cases';
 import { parseAlg } from '../lib/alg';
 import { STICKERS, applyMoves, solved, type Face, type Move } from '../lib/cube';
 import { type AlgCase } from '../types';
@@ -103,21 +103,34 @@ function load(): DevicePrefs {
 export const ollTopMask: Mask = (id) => STICKERS[id].face === 'U';
 
 /**
- * 2D 图解该用哪个掩码，null 表示用该组默认的显示规则。
- * - OLL：固定 ollTopMask（9 张），不看 focusRelevant
- * - 其他组：开了“只看相关的块”就是该组的显示掩码，否则 null
+ * “只看相关的块”打开时每组该显示的贴纸（2D 和 3D 共用）：
+ * - OLL：顶面 9 张（ollTopMask），和 OLL 的 2D 一致
+ * - PLL：顶层 21 张（顶面 9 + 四周顶行 12）。PLL 的 SET_RULES.display 是全部 54 张，
+ *   它同时用于情形去重，所以不改它，只在这里收窄
+ * - 其他组：该组的 displayMask
  */
-export function diagramMask(c: Pick<AlgCase, 'set' | 'group'>, p: Pick<DevicePrefs, 'focusRelevant'>): Mask | null {
+export function focusMask(c: Pick<AlgCase, 'set' | 'group'>): Mask {
   if (c.set === 'oll') return ollTopMask;
-  return p.focusRelevant ? displayMask(c) : null;
+  if (c.set === 'pll') return topLayerMask;
+  return displayMask(c);
 }
 
 /**
- * 3D 播放器该用哪个掩码，所有组一视同仁：默认 null（完整魔方），开了“只看相关的块”就是该组的显示掩码
- * （OLL 是整个顶层的 21 块）。
+ * 2D 图解该用哪个掩码，null 表示用该组默认的显示规则（OLL 默认 9 张，PLL 完整 54 张）。
+ * - OLL：固定 ollTopMask（9 张），不看 focusRelevant
+ * - 其他组：开了“只看相关的块”就是 focusMask，否则 null
+ */
+export function diagramMask(c: Pick<AlgCase, 'set' | 'group'>, p: Pick<DevicePrefs, 'focusRelevant'>): Mask | null {
+  if (c.set === 'oll') return ollTopMask;
+  return p.focusRelevant ? focusMask(c) : null;
+}
+
+/**
+ * 3D 播放器该用哪个掩码：默认 null（完整魔方），开了“只看相关的块”就是 focusMask
+ * （OLL 顶面 9 张，PLL 顶层 21 张，其他组同 2D）。
  */
 export function playerMask(c: Pick<AlgCase, 'set' | 'group'>, p: Pick<DevicePrefs, 'focusRelevant'>): Mask | null {
-  return p.focusRelevant ? displayMask(c) : null;
+  return p.focusRelevant ? focusMask(c) : null;
 }
 
 let prefs: DevicePrefs = typeof localStorage === 'undefined' ? DEFAULTS : load();
