@@ -249,6 +249,12 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 /* 首页 */
 .home-head { margin-bottom: 18px; }
 .home-head .page-title { margin-bottom: 2px; font-size: 1.7rem; letter-spacing: 0.01em; }
+.home-hint { margin-top: 2px; }
+.home-hint-link {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; max-width: 100%;
+  padding: 4px 12px 4px 0; font-size: 0.85rem; color: var(--accent); overflow-wrap: anywhere;
+}
+.home-hint-link:active { opacity: 0.7; }
 .method-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
 .set-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 10px; }
 .set-card {
