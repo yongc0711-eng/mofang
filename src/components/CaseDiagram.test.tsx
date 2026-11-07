@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import { getCase } from '../data';
-import { displayColors } from '../lib/cases';
+import { displayColors, displayMask } from '../lib/cases';
 import { STICKERS, type Face } from '../lib/cube';
 import { CaseDiagram, IsoView, LseView, TopView } from './CaseDiagram';
 
@@ -55,14 +55,15 @@ describe('CaseDiagram 颜色和引擎坐标', () => {
       const c = fixture(id);
       const colors = displayColors(c);
       checkTop(renderToStaticMarkup(<TopView colors={colors} />), colors);
-      checkTop(svgs(renderToStaticMarkup(<CaseDiagram c={c} view="top" />))[0], colors);
+      // T32：OLL 默认只显示 9 张，所以显式传该组的显示掩码，仍然逐格比对 displayColors（见 docs/decisions.md D9）
+      checkTop(svgs(renderToStaticMarkup(<CaseDiagram c={c} view="top" mask={displayMask(c)} />))[0], colors);
     });
 
     it(`IsoView ${id}：U 在上、F 在左前、R 在右前，逐贴纸匹配 displayColors`, () => {
       const c = fixture(id);
       const colors = displayColors(c);
       for (const markup of [renderToStaticMarkup(<IsoView colors={colors} />),
-        renderToStaticMarkup(<CaseDiagram c={c} view="iso" />)]) {
+        renderToStaticMarkup(<CaseDiagram c={c} view="iso" mask={displayMask(c)} />)]) {
         const polys = elements(markup, 'polygon');
         expect(polys).toHaveLength(27);
         const used = new Set<Attrs>();

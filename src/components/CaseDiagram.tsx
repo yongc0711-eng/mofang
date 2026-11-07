@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { caseState, displayColors, displayMask, type Mask } from '../lib/cases';
 import { STICKERS, stickerAt, type Face, type Vec } from '../lib/cube';
-import { displayFace, type BottomColor } from '../store/devicePrefs';
+import { displayFace, ollTopMask, type BottomColor } from '../store/devicePrefs';
 import { type AlgCase } from '../types';
 
 /** 观察方向是黄色朝上、绿色朝前（白顶绿前的魔方做 z2），和 3D 播放器一致 */
@@ -117,7 +117,8 @@ interface Props {
 }
 
 /**
- * 每个位置该显示的颜色。有 mask 就按 mask，否则按该组默认的显示规则；
+ * 每个位置该显示的颜色。显式传的 mask 优先；没传时 OLL 默认只显示顶层的 9 张（ollTopMask），
+ * 其他组按该组默认的显示规则。所以卡片、首页封面、练习页不用逐个传 mask。
  * 颜色经 displayFace 换成所选底色的配色，和 3D 播放器用的是同一个映射。
  */
 export function diagramColors(
@@ -125,8 +126,9 @@ export function diagramColors(
   mask?: Mask | null,
   bottom: BottomColor = 'white',
 ): (Face | null)[] {
-  if (!mask && bottom === 'white') return displayColors(c);
-  const m = mask ?? displayMask(c);
+  const chosen = mask ?? (c.set === 'oll' ? ollTopMask : null);
+  if (!chosen && bottom === 'white') return displayColors(c);
+  const m = chosen ?? displayMask(c);
   return caseState(c).map((id) => (m(id) ? displayFace(id, bottom) : null));
 }
 

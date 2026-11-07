@@ -72,16 +72,14 @@ export const frontColor = (bottom: BottomColor): BottomColor => FACE_COLOR[displ
 export interface DevicePrefs {
   /** 魔方表面：UV 亮面或普通面 */
   finish: 'uv' | 'matte';
-  /** 3D 魔方只给相关的块上色，其余变灰 */
+  /** 只给相关的块上色，其余变灰：3D 播放器所有组都用；2D 图解里 OLL 之外的组也用 */
   focusRelevant: boolean;
-  /** OLL 详情页的识别视图：top 只显示 U 面的 9 块，full 显示整个顶层的 21 块 */
-  ollView: 'top' | 'full';
   /** 底面颜色，默认白色；公式页的图解和 3D 按它换配色 */
   bottomColor: BottomColor;
 }
 
 const KEY = 'mofang.device.v1';
-const DEFAULTS: DevicePrefs = { finish: 'uv', focusRelevant: false, ollView: 'top', bottomColor: 'white' };
+const DEFAULTS: DevicePrefs = { finish: 'uv', focusRelevant: false, bottomColor: 'white' };
 
 function load(): DevicePrefs {
   try {
@@ -89,8 +87,7 @@ function load(): DevicePrefs {
     return {
       finish: parsed.finish === 'matte' ? 'matte' : 'uv',
       focusRelevant: parsed.focusRelevant === true,
-      // 旧数据没有这一项，默认 top
-      ollView: parsed.ollView === 'full' ? 'full' : 'top',
+      // 旧数据里可能还有 ollView（T27 的设置，T32 已删除）：这里不读，也就不会再写回去
       // 旧数据没有这一项，或值不认识：白色
       bottomColor: BOTTOM_COLORS.includes(parsed.bottomColor as BottomColor) ? (parsed.bottomColor as BottomColor) : 'white',
     };
@@ -99,19 +96,27 @@ function load(): DevicePrefs {
   }
 }
 
-/** 原本属于 U 面的 9 块贴纸，按贴纸编号判断，和它转到哪里无关 */
-const uFaceStickers: Mask = (id) => STICKERS[id].face === 'U';
+/**
+ * OLL 的 2D 图解只显示顶层的 9 张颜色：原本属于 U 面的 9 块贴纸，按贴纸编号判断，和它转到哪里无关。
+ * 固定如此，不受“只看相关的块”影响。
+ */
+export const ollTopMask: Mask = (id) => STICKERS[id].face === 'U';
 
 /**
- * 公式详情页该用哪个掩码，2D 图解和 3D 播放器共用同一个。
- * - OLL：按 ollView。top 只显示 U 面的 9 块，full 是整个顶层的 21 块（就是 SET_RULES.oll.display）；和 focusRelevant 无关
- * - 其他组：开了“只看相关的块”就是该组的显示掩码，否则 null（3D 显示全部，2D 用默认图解）
+ * 2D 图解该用哪个掩码，null 表示用该组默认的显示规则。
+ * - OLL：固定 ollTopMask（9 张），不看 focusRelevant
+ * - 其他组：开了“只看相关的块”就是该组的显示掩码，否则 null
  */
-export function caseMask(
-  c: Pick<AlgCase, 'set' | 'group'>,
-  p: Pick<DevicePrefs, 'ollView' | 'focusRelevant'>,
-): Mask | null {
-  if (c.set === 'oll') return p.ollView === 'top' ? uFaceStickers : displayMask(c);
+export function diagramMask(c: Pick<AlgCase, 'set' | 'group'>, p: Pick<DevicePrefs, 'focusRelevant'>): Mask | null {
+  if (c.set === 'oll') return ollTopMask;
+  return p.focusRelevant ? displayMask(c) : null;
+}
+
+/**
+ * 3D 播放器该用哪个掩码，所有组一视同仁：默认 null（完整魔方），开了“只看相关的块”就是该组的显示掩码
+ * （OLL 是整个顶层的 21 块）。
+ */
+export function playerMask(c: Pick<AlgCase, 'set' | 'group'>, p: Pick<DevicePrefs, 'focusRelevant'>): Mask | null {
   return p.focusRelevant ? displayMask(c) : null;
 }
 

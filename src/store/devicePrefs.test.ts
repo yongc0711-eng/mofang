@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import sceneSource from '../components/CubeScene.ts?raw';
-import { diagramColors } from '../components/CaseDiagram';
+import caseDiagramSource from '../components/CaseDiagram.tsx?raw';
+import cardSource from '../components/CaseCard.tsx?raw';
+import { CaseDiagram, diagramColors } from '../components/CaseDiagram';
 import { getSet } from '../data';
+import casePageSource from '../pages/CasePage.tsx?raw';
+import homeSource from '../pages/HomePage.tsx?raw';
+import mePageSource from '../pages/MePage.tsx?raw';
+import practiceSource from '../pages/PracticePage.tsx?raw';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { caseState, displayColors, displayMask, SET_RULES } from '../lib/cases';
 import { applyMoves, solved, stickerAt, STICKERS } from '../lib/cube';
 import { ALL_CASES } from '../data';
@@ -9,7 +17,10 @@ import {
   BOTTOM_COLORS,
   BOTTOM_ROTATION,
   FACE_COLOR,
+  diagramMask,
   displayFace,
+  ollTopMask,
+  playerMask,
   type BottomColor,
 } from './devicePrefs';
 
@@ -34,181 +45,270 @@ async function freshModule() {
 }
 
 const countIds = (mask: (id: number) => boolean) => STICKERS.filter((s) => mask(s.id)).length;
-/** 两个掩码对全部 54 块的判断是否一样。重新加载模块后函数不是同一个实例，所以比行为不比身份 */
-const sameMask = (a: (id: number) => boolean, b: (id: number) => boolean) => STICKERS.every((s) => a(s.id) === b(s.id));
 
-describe('devicePrefs：ollView', () => {
+describe('devicePrefs：默认值与持久化（ollView 已在 T32 删除，旧数据里的 ollView 被忽略）', () => {
   beforeEach(() => vi.unstubAllGlobals());
   afterEach(() => vi.unstubAllGlobals());
 
-  it('没有 localStorage（node）：默认 top', async () => {
+  it('没有 localStorage（node）：默认值里没有 ollView', async () => {
     vi.stubGlobal('localStorage', undefined);
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, ollView: 'top', bottomColor: 'white' });
+    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, bottomColor: 'white' });
+    expect('ollView' in getDevicePrefs()).toBe(false);
   });
 
-  it('存储为空：默认 top', async () => {
+  it('存储为空：同样没有 ollView', async () => {
     installStorage();
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs().ollView).toBe('top');
+    expect('ollView' in getDevicePrefs()).toBe(false);
   });
 
-  it('读出已保存的 full', async () => {
-    installStorage({ [KEY]: JSON.stringify({ finish: 'uv', focusRelevant: false, ollView: 'full' }) });
-    const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs().ollView).toBe('full');
+  it('旧数据带着 ollView（T27 存的 top / full / 乱写的值）：直接忽略，其他设置保留', async () => {
+    for (const old of ['top', 'full', 'sideways', 42, null, {}, ['full']]) {
+      installStorage({ [KEY]: JSON.stringify({ finish: 'matte', focusRelevant: true, ollView: old, bottomColor: 'red' }) });
+      const { getDevicePrefs } = await freshModule();
+      expect(getDevicePrefs(), String(old)).toEqual({ finish: 'matte', focusRelevant: true, bottomColor: 'red' });
+      expect('ollView' in getDevicePrefs(), String(old)).toBe(false);
+    }
   });
 
-  it('旧数据没有 ollView：默认 top，已有的设置不丢', async () => {
+  it('旧数据带着 ollView：之后再保存别的设置，ollView 不会被写回去', async () => {
+    const m = installStorage({ [KEY]: JSON.stringify({ finish: 'uv', focusRelevant: false, ollView: 'full' }) });
+    const { setDevicePrefs } = await freshModule();
+    setDevicePrefs({ focusRelevant: true });
+    expect(JSON.parse(m.get(KEY)!)).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white' });
+  });
+
+  it('旧数据缺某一项：用默认值，已有的设置不丢', async () => {
     installStorage({ [KEY]: JSON.stringify({ finish: 'matte', focusRelevant: true }) });
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'matte', focusRelevant: true, ollView: 'top', bottomColor: 'white' });
-  });
-
-  it('值不认识（乱写、类型不对）：回到 top', async () => {
-    for (const bad of ['sideways', 42, null, {}, ['full']]) {
-      installStorage({ [KEY]: JSON.stringify({ ollView: bad }) });
-      const { getDevicePrefs } = await freshModule();
-      expect(getDevicePrefs().ollView, String(bad)).toBe('top');
-    }
+    expect(getDevicePrefs()).toEqual({ finish: 'matte', focusRelevant: true, bottomColor: 'white' });
   });
 
   it('JSON 损坏：整体回到默认值，不抛', async () => {
     installStorage({ [KEY]: '{oops' });
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, ollView: 'top', bottomColor: 'white' });
+    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, bottomColor: 'white' });
   });
 
   it('设置后立刻生效，并写进 mofang.device.v1；只改一项不影响其他项', async () => {
     const m = installStorage();
     const { getDevicePrefs, setDevicePrefs } = await freshModule();
-    setDevicePrefs({ ollView: 'full' });
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, ollView: 'full', bottomColor: 'white' });
-    expect(JSON.parse(m.get(KEY)!)).toEqual({ finish: 'uv', focusRelevant: false, ollView: 'full', bottomColor: 'white' });
+    setDevicePrefs({ focusRelevant: true });
+    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white' });
+    expect(JSON.parse(m.get(KEY)!)).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white' });
     setDevicePrefs({ finish: 'matte' });
-    expect(getDevicePrefs().ollView).toBe('full');
+    expect(getDevicePrefs().focusRelevant).toBe(true);
   });
 
   it('重新加载后读回刚保存的值', async () => {
     const m = installStorage();
     const first = await freshModule();
-    first.setDevicePrefs({ ollView: 'full' });
+    first.setDevicePrefs({ focusRelevant: true });
     const second = await freshModule();
-    expect(second.getDevicePrefs().ollView).toBe('full');
+    expect(second.getDevicePrefs().focusRelevant).toBe(true);
     expect(m.has(KEY)).toBe(true);
   });
 
-  it('按设备存，不进备份：备份里没有 ollView，导入备份也不改它', async () => {
+  it('按设备存，不进备份：备份里没有这些设置，导入备份也不改它', async () => {
     const m = installStorage();
     vi.resetModules();
     const prefs = await import('./devicePrefs');
     const user = await import('./userStore');
-    prefs.setDevicePrefs({ ollView: 'full' });
+    prefs.setDevicePrefs({ focusRelevant: true });
+    expect(user.exportUserData()).not.toContain('focusRelevant');
     expect(user.exportUserData()).not.toContain('ollView');
     expect(user.exportUserData()).not.toContain('finish');
     user.importUserData(JSON.stringify({ version: 1, cases: {} }));
-    expect(prefs.getDevicePrefs().ollView).toBe('full');
-    expect(JSON.parse(m.get(KEY)!).ollView).toBe('full');
+    expect(prefs.getDevicePrefs().focusRelevant).toBe(true);
+    expect(JSON.parse(m.get(KEY)!).focusRelevant).toBe(true);
   });
 });
 
-describe('caseMask：公式详情页的掩码', () => {
+describe('ollTopMask / diagramMask / playerMask：2D 和 3D 的掩码分开', () => {
   const oll = getSet('oll')!.cases[0];
   const pll = getSet('pll')!.cases[0];
   const lse = getSet('lse')!.cases.find((c) => c.group === 'EO')!;
-  const prefs = (ollView: 'top' | 'full', focusRelevant = false) => ({ ollView, focusRelevant });
+  const f2l = getSet('f2l')!.cases[0];
+  const cmll = getSet('cmll')!.cases[0];
+  const NON_OLL = [pll, lse, f2l, cmll];
+  const prefs = (focusRelevant: boolean) => ({ focusRelevant });
 
-  async function mod() {
-    vi.stubGlobal('localStorage', undefined);
-    return freshModule();
-  }
-
-  it('OLL top：只有原本属于 U 面的 9 块', async () => {
-    const { caseMask } = await mod();
-    const m = caseMask(oll, prefs('top'))!;
-    expect(countIds(m)).toBe(9);
-    expect(STICKERS.filter((s) => m(s.id)).every((s) => s.face === 'U')).toBe(true);
+  it('ollTopMask：恰好 9 块，都是原本属于 U 面的贴纸', () => {
+    expect(countIds(ollTopMask)).toBe(9);
+    expect(STICKERS.filter((s) => ollTopMask(s.id)).every((s) => s.face === 'U')).toBe(true);
   });
 
-  it('OLL full：整个顶层 21 块，就是 SET_RULES.oll.display', async () => {
-    const { caseMask } = await mod();
-    const m = caseMask(oll, prefs('full'))!;
-    expect(countIds(m)).toBe(21);
-    expect(sameMask(m, SET_RULES.oll.display)).toBe(true);
-    expect(sameMask(m, displayMask(oll))).toBe(true);
+  it('ollTopMask 是 OLL 显示掩码（顶层 21 格）的子集', () => {
+    const full = displayMask(oll);
+    expect(STICKERS.filter((s) => ollTopMask(s.id)).every((s) => full(s.id))).toBe(true);
+    expect(countIds(full)).toBe(21);
   });
 
-  it('top 是 full 的子集', async () => {
-    const { caseMask } = await mod();
-    const top = caseMask(oll, prefs('top'))!;
-    const full = caseMask(oll, prefs('full'))!;
-    expect(STICKERS.filter((s) => top(s.id)).every((s) => full(s.id))).toBe(true);
-  });
-
-  it('OLL 不看 focusRelevant：开不开都按 ollView', async () => {
-    const { caseMask } = await mod();
-    expect(countIds(caseMask(oll, prefs('top', true))!)).toBe(9);
-    expect(countIds(caseMask(oll, prefs('top', false))!)).toBe(9);
-    expect(countIds(caseMask(oll, prefs('full', true))!)).toBe(21);
-    expect(countIds(caseMask(oll, prefs('full', false))!)).toBe(21);
-  });
-
-  it('其他组不受 ollView 影响：没开“只看相关的块”是 null，开了是该组的显示掩码', async () => {
-    const { caseMask } = await mod();
-    for (const c of [pll, lse]) {
-      for (const v of ['top', 'full'] as const) {
-        expect(caseMask(c, prefs(v, false)), `${c.set} ${v} off`).toBeNull();
-        expect(sameMask(caseMask(c, prefs(v, true))!, displayMask(c)), `${c.set} ${v} on`).toBe(true);
-      }
+  it('diagramMask：OLL 固定 ollTopMask，“只看相关的块”开不开都一样', () => {
+    for (const on of [false, true]) {
+      const m = diagramMask(oll, prefs(on))!;
+      expect(m, String(on)).toBe(ollTopMask);
+      expect(countIds(m), String(on)).toBe(9);
     }
+  });
+
+  it('diagramMask：其他组开关生效——没开是 null，开了是该组的显示掩码', () => {
+    for (const c of NON_OLL) {
+      expect(diagramMask(c, prefs(false)), `${c.set} off`).toBeNull();
+      expect(diagramMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
+    }
+  });
+
+  it('playerMask：所有组开关生效——没开是 null（完整魔方），开了是该组的显示掩码', () => {
+    for (const c of [oll, ...NON_OLL]) {
+      expect(playerMask(c, prefs(false)), `${c.set} off`).toBeNull();
+      expect(playerMask(c, prefs(true)), `${c.set} on`).toBe(displayMask(c));
+    }
+  });
+
+  it('OLL 的 3D：默认 null（完整魔方）；开了“只看相关的块”是顶层 21 格，就是 SET_RULES.oll.display', () => {
+    expect(playerMask(oll, prefs(false))).toBeNull();
+    const on = playerMask(oll, prefs(true))!;
+    expect(countIds(on)).toBe(21);
+    expect(on).toBe(SET_RULES.oll.display);
+  });
+
+  it('OLL 的 2D 和 3D 是两个不同的掩码（T27 把它们合并是错的）', () => {
+    expect(diagramMask(oll, prefs(false))).not.toBe(playerMask(oll, prefs(false)));
+    expect(diagramMask(oll, prefs(true))).not.toBe(playerMask(oll, prefs(true)));
+  });
+
+  it('caseMask 和 DevicePrefs.ollView 已删除', async () => {
+    vi.stubGlobal('localStorage', undefined);
+    const mod = await freshModule();
+    expect('caseMask' in mod).toBe(false);
+    expect('ollView' in mod.getDevicePrefs()).toBe(false);
+    vi.unstubAllGlobals();
   });
 });
 
 describe('图解按 mask 显示（CaseDiagram 用的 diagramColors）', () => {
   const oll = getSet('oll')!.cases[0];
+  const nonOll = ALL_CASES.filter((c) => c.set !== 'oll');
 
-  it('不传或 null：用该组默认的显示规则，和以前完全一样', () => {
-    expect(diagramColors(oll)).toEqual(displayColors(oll));
-    expect(diagramColors(oll, null)).toEqual(displayColors(oll));
-    expect(diagramColors(oll, undefined)).toEqual(displayColors(oll));
+  it('其他组不传或 null：用该组默认的显示规则，和以前完全一样', () => {
+    for (const c of nonOll) {
+      expect(diagramColors(c), c.id).toEqual(displayColors(c));
+      expect(diagramColors(c, null), c.id).toEqual(displayColors(c));
+      expect(diagramColors(c, undefined), c.id).toEqual(displayColors(c));
+    }
   });
 
-  it('OLL 默认是 21 格（T20 的行为不变）', () => {
-    expect(diagramColors(oll).filter((x) => x !== null)).toHaveLength(21);
+  it('OLL 不传或 null：默认只显示顶层的 9 张（U 面原本的贴纸），都是 U 色，其余是 null', () => {
+    for (const c of ALL_CASES.filter((x) => x.set === 'oll')) {
+      for (const colors of [diagramColors(c), diagramColors(c, null), diagramColors(c, undefined)]) {
+        const shown = colors.filter((x) => x !== null);
+        expect(shown, c.id).toHaveLength(9);
+        expect(shown.every((f) => f === 'U'), c.id).toBe(true);
+      }
+    }
   });
 
-  it('top：只有 U 面的 9 块有颜色，且都是 U 色（黄），其余是 null', async () => {
-    vi.stubGlobal('localStorage', undefined);
-    const { caseMask } = await freshModule();
-    const colors = diagramColors(oll, caseMask(oll, { ollView: 'top', focusRelevant: false }));
-    const shown = colors.filter((x) => x !== null);
-    expect(shown).toHaveLength(9);
-    expect(shown.every((f) => f === 'U')).toBe(true);
+  it('OLL 默认和 displayColors 不再相同（displayColors 本身仍是 21 格，T20 的测试不变）', () => {
+    expect(diagramColors(oll)).not.toEqual(displayColors(oll));
+    expect(displayColors(oll).filter((x) => x !== null)).toHaveLength(21);
   });
 
-  it('full 和默认一致', async () => {
-    vi.stubGlobal('localStorage', undefined);
-    const { caseMask } = await freshModule();
-    expect(diagramColors(oll, caseMask(oll, { ollView: 'full', focusRelevant: false }))).toEqual(displayColors(oll));
+  it('显式传的 mask 优先：OLL 传该组的显示掩码，得到原来的 21 格', () => {
+    expect(diagramColors(oll, displayMask(oll))).toEqual(displayColors(oll));
+    expect(diagramColors(oll, displayMask(oll)).filter((x) => x !== null)).toHaveLength(21);
   });
 
-  it('同一个 mask 在 2D 和 3D 里选中的是同一批贴纸', async () => {
-    vi.stubGlobal('localStorage', undefined);
-    const { caseMask } = await freshModule();
-    const mask = caseMask(oll, { ollView: 'top', focusRelevant: false })!;
+  it('显式传的 mask 优先：其他组传 ollTopMask，就只显示 9 张', () => {
+    const pll = getSet('pll')!.cases[0];
+    expect(diagramColors(pll, ollTopMask).filter((x) => x !== null)).toHaveLength(9);
+  });
+
+  it('同一个 mask 在 2D 和 3D 里选中的是同一批贴纸', () => {
     // 3D 是 state[位置] 的贴纸编号过 mask；2D 是同一个判断
     const st = caseState(oll);
-    const fromScene = st.map((id) => (mask(id) ? STICKERS[id].face : null));
-    expect(diagramColors(oll, mask)).toEqual(fromScene);
+    const fromScene = st.map((id) => (ollTopMask(id) ? STICKERS[id].face : null));
+    expect(diagramColors(oll, ollTopMask)).toEqual(fromScene);
+    expect(diagramColors(oll)).toEqual(fromScene);
   });
 
-  it('OLL 的 top 图解里，顶层以外一格颜色都没有', async () => {
-    vi.stubGlobal('localStorage', undefined);
-    const { caseMask } = await freshModule();
-    const colors = diagramColors(oll, caseMask(oll, { ollView: 'top', focusRelevant: false }));
+  it('OLL 默认的 2D 图解里，顶层以外一格颜色都没有', () => {
+    const colors = diagramColors(oll);
     STICKERS.forEach((s) => {
       if (s.p[1] !== 1) expect(colors[s.id], `sticker ${s.id}`).toBeNull();
     });
+  });
+});
+
+describe('渲染出来的 OLL 图解：默认 9 张，显式 mask 优先，其他组不变', () => {
+  const oll = getSet('oll')!.cases[0];
+  const pll = getSet('pll')!.cases[0];
+  const html = (props: Record<string, unknown>) =>
+    renderToStaticMarkup(createElement(CaseDiagram, props as unknown as Parameters<typeof CaseDiagram>[0]));
+  const colored = (markup: string, tag: 'rect' | 'polygon') =>
+    [...markup.matchAll(new RegExp(`<${tag}\\b[^>]*fill="([^"]*)"`, 'g'))].map((m) => m[1]).filter((v) => !v.includes('mask'));
+
+  it('top 视图：OLL 默认 21 个格子里只有 9 个有颜色，且都是 U 色', () => {
+    const shown = colored(html({ c: oll, view: 'top' }), 'rect');
+    expect(shown).toHaveLength(9);
+    expect(new Set(shown)).toEqual(new Set(['var(--cube-u)']));
+  });
+
+  it('iso 视图：OLL 默认只有 U 色的块有颜色', () => {
+    const shown = colored(html({ c: oll, view: 'iso' }), 'polygon');
+    expect(shown.length).toBeGreaterThan(0);
+    expect(new Set(shown)).toEqual(new Set(['var(--cube-u)']));
+  });
+
+  it('显式传 mask={displayMask(c)}：top 视图 21 格都有颜色', () => {
+    expect(colored(html({ c: oll, view: 'top', mask: displayMask(oll) }), 'rect')).toHaveLength(21);
+  });
+
+  it('其他组：默认渲染和显式传 displayMask 完全一样', () => {
+    for (const view of ['top', 'iso'] as const) {
+      expect(html({ c: pll, view })).toBe(html({ c: pll, view, mask: displayMask(pll) }));
+    }
+  });
+
+  it('卡片、首页、练习页不传 mask，靠 CaseDiagram 的默认：OLL 在这些地方自动变成 9 张', () => {
+    for (const [name, src] of [['CaseCard', cardSource], ['HomePage', homeSource], ['PracticePage', practiceSource]] as const) {
+      expect(src, name).toMatch(/<CaseDiagram\b/);
+      expect(src, name).not.toMatch(/<CaseDiagram\b[^>]*\bmask=/);
+    }
+    expect(caseDiagramSource).toContain("c.set === 'oll' ? ollTopMask : null");
+  });
+});
+
+describe('CasePage 和「我的」页的接线（T32）', () => {
+  it('2D 用 diagramMask、3D 用 playerMask，两个掩码分开算', () => {
+    expect(casePageSource).toContain('diagramMask(');
+    expect(casePageSource).toContain('playerMask(');
+    expect(casePageSource).toMatch(/<CaseDiagram\b[^>]*\bmask=\{maskFor2D\}/);
+    expect(casePageSource).toMatch(/<CubePlayer\b[^>]*\bmask=\{maskFor3D\}/);
+    expect(casePageSource).toMatch(/const maskFor2D = useMemo\([\s\S]*?diagramMask\(/);
+    expect(casePageSource).toMatch(/const maskFor3D = useMemo\([\s\S]*?playerMask\(/);
+  });
+
+  it('“只看相关的块”按钮对 OLL 也显示：不再有 c.set !== \'oll\' 的条件', () => {
+    // 按钮文字（标签之间的那一处），注释里的提及不算
+    expect(casePageSource.match(/>\s*只看相关的块\s*</g)?.length).toBe(1);
+    expect(casePageSource).not.toMatch(/c\.set\s*!==\s*'oll'/);
+    expect(casePageSource).toMatch(/focus-chip/);
+  });
+
+  it('没有残留：CasePage 不再引用 caseMask、ollView', () => {
+    expect(casePageSource).not.toContain('caseMask');
+    expect(casePageSource).not.toContain('ollView');
+  });
+
+  it('「我的」页删除了“OLL 识别视图”设置和它的说明', () => {
+    expect(mePageSource).not.toContain('OLL 识别视图');
+    expect(mePageSource).not.toContain('ollView');
+    expect(mePageSource).not.toContain('顶面 9 格');
+    // 其他设置还在
+    expect(mePageSource).toContain('魔方表面');
+    expect(mePageSource).toContain('底面颜色');
   });
 });
 
@@ -295,9 +395,16 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
   const oll = getSet('oll')!.cases[0];
   const pll = getSet('pll')!.cases[0];
 
-  it('白色且不传 mask：和以前的 displayColors 完全一样（所有情形）', () => {
-    for (const c of ALL_CASES) expect(diagramColors(c, null, 'white'), c.id).toEqual(displayColors(c));
-    expect(diagramColors(oll)).toEqual(displayColors(oll));
+  it('白色且不传 mask：除 OLL 外和以前的 displayColors 完全一样（所有情形）；OLL 默认是顶层 9 张', () => {
+    for (const c of ALL_CASES) {
+      if (c.set === 'oll') {
+        expect(diagramColors(c, null, 'white'), c.id).toEqual(diagramColors(c, ollTopMask, 'white'));
+      } else {
+        expect(diagramColors(c, null, 'white'), c.id).toEqual(displayColors(c));
+      }
+    }
+    // 显式传该组的显示掩码，OLL 也和 displayColors 完全一样
+    for (const c of ALL_CASES) expect(diagramColors(c, displayMask(c), 'white'), c.id).toEqual(displayColors(c));
   });
 
   it('其他底色：位置不变、只是颜色换了——显示哪些格子和白色时完全一样', () => {
@@ -325,24 +432,20 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
   });
 
   it('黄底：末层仍然在顶面，原本的 U 面（黄）贴纸显示成白色，F2L 一侧换成黄', () => {
-    const colors = diagramColors(oll, null, 'yellow');
+    const colors = diagramColors(oll, displayMask(oll), 'yellow'); // 显式传 21 格的掩码，才看得到 F2L 一侧
     const shown = colors.filter((x) => x !== null);
-    expect(shown).toHaveLength(21); // OLL 默认仍是 21 格
+    expect(shown).toHaveLength(21);
     // 末层的顶面贴纸原本是 U（黄），现在用对色（白，即 D 的颜色）画
     expect(colors.filter((x) => x === 'D').length).toBeGreaterThanOrEqual(1);
     expect(colors.filter((x) => x === 'U').length).toBe(0);
   });
 
-  it('OLL top 视图配合底色：只剩 9 块，且都是同一种颜色（对色）', async () => {
-    vi.stubGlobal('localStorage', undefined);
-    const { caseMask } = await freshModule();
-    const top = caseMask(oll, { ollView: 'top', focusRelevant: false });
-    const colors = diagramColors(oll, top, 'blue').filter((x) => x !== null);
+  it('OLL 默认的 9 张配合底色：只剩 9 块，且都是同一种颜色（对色）', () => {
+    const colors = diagramColors(oll, null, 'blue').filter((x) => x !== null);
     expect(colors).toHaveLength(9);
     // 蓝底：U 面贴纸用绿色画（绿 = 蓝的对色）
     expect(new Set(colors).size).toBe(1);
     expect(FACE_COLOR[colors[0]!]).toBe('green');
-    vi.unstubAllGlobals();
   });
 
   it('底色是设备设置：默认白色；设置后立刻生效、写进 mofang.device.v1；重新加载读回', async () => {
@@ -359,9 +462,10 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
 
   it('旧数据没有 bottomColor、值不认识：白色；已有设置不丢', async () => {
     for (const bad of [undefined, 'purple', 3, null, ['red']]) {
+      // 输入里故意留着 T27 的 ollView：它应该被忽略
       installStorage({ [KEY]: JSON.stringify({ finish: 'matte', ollView: 'full', bottomColor: bad }) });
       const { getDevicePrefs } = await freshModule();
-      expect(getDevicePrefs(), String(bad)).toEqual({ finish: 'matte', focusRelevant: false, ollView: 'full', bottomColor: 'white' });
+      expect(getDevicePrefs(), String(bad)).toEqual({ finish: 'matte', focusRelevant: false, bottomColor: 'white' });
     }
     vi.unstubAllGlobals();
   });

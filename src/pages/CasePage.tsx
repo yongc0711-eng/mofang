@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { caseMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
+import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
 import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -36,13 +36,15 @@ export function CasePage() {
   const prefs = useDevicePrefs();
   const caseSet = c?.set;
   const caseGroup = c?.group;
-  // 2D 图解和 3D 播放器共用同一个 mask；OLL 按“我的”里的识别视图，其他组按“只看相关的块”
-  const mask = useMemo(
-    () =>
-      caseSet && caseGroup !== undefined
-        ? caseMask({ set: caseSet, group: caseGroup }, { ollView: prefs.ollView, focusRelevant: prefs.focusRelevant })
-        : null,
-    [prefs.ollView, prefs.focusRelevant, caseSet, caseGroup],
+  // 2D 和 3D 的掩码分开算：2D 里 OLL 固定只显示顶层的 9 张，其他组看“只看相关的块”；
+  // 3D 所有组一样，默认完整魔方，开了“只看相关的块”才只显示相关的块
+  const maskFor2D = useMemo(
+    () => (caseSet && caseGroup !== undefined ? diagramMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
+    [prefs.focusRelevant, caseSet, caseGroup],
+  );
+  const maskFor3D = useMemo(
+    () => (caseSet && caseGroup !== undefined ? playerMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
+    [prefs.focusRelevant, caseSet, caseGroup],
   );
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
@@ -146,7 +148,7 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={viewCase} view={set.view} mask={mask} bottom={prefs.bottomColor} />
+        <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} bottom={prefs.bottomColor} />
         <div>
           <h1 className="page-title">{c.name}</h1>
           <p className="muted">
@@ -164,17 +166,14 @@ export function CasePage() {
 
       <div className="case-layout">
         <div className="case-player">
-          <CubePlayer alg={playing} autoPlay={false} mask={mask} finish={prefs.finish} />
-          {/* OLL 的显示范围由“我的”里的识别视图决定，这个开关对它没有作用，就不显示 */}
-          {c.set !== 'oll' && (
-            <button
-              className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
-              aria-pressed={prefs.focusRelevant}
-              onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
-            >
-              只看相关的块
-            </button>
-          )}
+          <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} />
+          <button
+            className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
+            aria-pressed={prefs.focusRelevant}
+            onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
+          >
+            只看相关的块
+          </button>
         </div>
         <div className="case-side">
           <div className="segmented" role="group" aria-label="学习状态">
