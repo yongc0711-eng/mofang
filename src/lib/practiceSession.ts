@@ -1,12 +1,19 @@
 /**
  * 练习会话的计时状态机和持久化。
  *
- * 计时用 Date.now()（epoch ms）而不是 performance.now()：页面被切到后台时 rAF 会暂停，
- * 回来再补差值会让用时跳变，所以离开页面前一律先冻结。
+ * 计时用 Date.now()（epoch ms），用时 = 已累计 + (now - runningSince)，所以切路由、切后台
+ * 期间计时照常走，回来时用时包含离开的时间。只有重载或进程被杀（文档变了）才停下来：
+ * 会话里存了 docId，读取时 docId 和当前文档相同才保持 running，否则按 savedAt 冻结成 paused。
  * 会话存在 localStorage，靠 savedAt 判断过期；这里不依赖 React，方便单测。
  */
 export const SESSION_KEY = 'mofang.practice.v1';
-/** 会话最长保留 2 小时 */
+
+/**
+ * 当前文档（这次页面加载）的标识，模块加载时生成。
+ * 不能用 sessionStorage 判断：它在重载后还在；模块级变量重载就没了，正好区分“同一文档”。
+ */
+export const DOC_ID = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+/** 会话最长保留 2 小时；同一文档里还在 running 的会话不受此限制 */
 export const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
 
 export type SessionPhase = 'ready' | 'running' | 'paused' | 'done';
@@ -31,6 +38,8 @@ export interface PracticeSession extends Timer {
   question: SessionQuestion;
   count: number;
   savedAt: number;
+  /** 保存时的文档标识；缺失（旧数据）按“不是同一文档”处理 */
+  docId?: string;
 }
 
 /** 此刻的用时。不在计时（或 runningSince 缺失）时就是已累计的值；时钟倒退按 0 处理 */
@@ -66,9 +75,18 @@ const isStr = (x: unknown): x is string => typeof x === 'string';
 /**
  * 校验并还原一份保存的会话。过期、格式不对、题目 id 不存在、范围为空都返回 null。
  * 范围里个别 id 已不存在（数据更新过）就丢掉那几个，剩下为空才放弃。
- * 保存时还在计时的，按保存时刻冻结成 paused，不把离开的时间算进去。
+ *
+ * 保存时还在计时（running）的：
+ * - docId 和当前文档相同（只是切了路由或切了后台）：保持 running，runningSince 原样，用时包含离开的时间，
+ *   也不受 2 小时过期限制；runningSince 不是数字就当数据异常，按下一条处理
+ * - docId 不同或缺失（重载、冷启动、进程被杀）：按保存时刻冻结成 paused，不把死掉的时间算进去
  */
-export function parseSession(raw: string | null, now: number, validId: (id: string) => boolean): PracticeSession | null {
+export function parseSession(
+  raw: string | null,
+  now: number,
+  validId: (id: string) => boolean,
+  docId: string,
+): PracticeSession | null {
   if (!raw) return null;
   let v: unknown;
   try {
@@ -78,13 +96,16 @@ export function parseSession(raw: string | null, now: number, validId: (id: stri
   }
   if (!v || typeof v !== 'object') return null;
   const o = v as Record<string, unknown>;
-  if (!isNum(o.savedAt) || now - o.savedAt > SESSION_TTL_MS) return null;
+  if (!isNum(o.savedAt)) return null;
+  if (!PHASES.includes(o.phase as SessionPhase)) return null;
+  const sameDoc = isStr(o.docId) && o.docId === docId;
+  const live = o.phase === 'running' && sameDoc && isNum(o.runningSince);
+  if (!live && now - o.savedAt > SESSION_TTL_MS) return null;
   if (!Array.isArray(o.poolIds) || !o.poolIds.every(isStr)) return null;
   const poolIds = o.poolIds.filter(validId);
   if (poolIds.length === 0) return null;
   const q = o.question as Record<string, unknown> | null;
   if (!q || typeof q !== 'object' || !isStr(q.id) || !isStr(q.alg) || !isStr(q.scramble) || !validId(q.id)) return null;
-  if (!PHASES.includes(o.phase as SessionPhase)) return null;
   if (!isNum(o.count) || o.count < 0 || !Number.isInteger(o.count)) return null;
   if (!isNum(o.elapsedMs) || o.elapsedMs < 0) return null;
   if (o.runningSince !== null && !isNum(o.runningSince)) return null;
@@ -96,9 +117,10 @@ export function parseSession(raw: string | null, now: number, validId: (id: stri
     elapsedMs: o.elapsedMs,
     runningSince: o.phase === 'running' ? (o.runningSince as number | null) : null,
     savedAt: o.savedAt,
+    ...(isStr(o.docId) ? { docId: o.docId } : {}),
   };
-  // 在计时的会话按保存时刻冻结；之后的时间是人不在的时间
-  return freeze(session, session.savedAt);
+  // 同一文档的 running 原样保留；否则按保存时刻冻结，之后的时间是进程不在的时间
+  return live ? session : freeze(session, session.savedAt);
 }
 
 /** 要写入的 JSON。savedAt 由调用方给，便于测试 */
@@ -125,6 +147,7 @@ export function saveSession(s: PracticeSession, storage: StorageLike | null = de
 export function loadSession(
   now: number,
   validId: (id: string) => boolean,
+  docId: string,
   storage: StorageLike | null = defaultStorage(),
 ): PracticeSession | null {
   let raw: string | null = null;
@@ -133,7 +156,7 @@ export function loadSession(
   } catch {
     return null;
   }
-  const s = parseSession(raw, now, validId);
+  const s = parseSession(raw, now, validId, docId);
   if (!s && raw) clearSession(storage);
   return s;
 }

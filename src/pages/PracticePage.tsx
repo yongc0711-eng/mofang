@@ -5,9 +5,9 @@ import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase, scrambleFor } from '../lib/practice';
 import {
+  DOC_ID,
   clearSession,
   elapsedOf,
-  freeze,
   loadSession,
   resumeTimer,
   saveSession,
@@ -64,8 +64,11 @@ export function PracticePage() {
   useEffect(() => {
     setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker });
   }, [sets, group, filter, picked, showPicker]);
-  // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的
-  const [restored, setRestored] = useState<PracticeSession | null>(() => loadSession(Date.now(), (id) => !!getCase(id)));
+  // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
+  // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
+  const [restored, setRestored] = useState<PracticeSession | null>(() =>
+    loadSession(Date.now(), (id) => !!getCase(id), DOC_ID),
+  );
   const [practicing, setPracticing] = useState(restored !== null);
 
   const activeSets = SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
@@ -193,13 +196,14 @@ function Session({
     const c = restore && getCase(restore.question.id);
     return restore && c ? { c, alg: restore.question.alg, scramble: restore.question.scramble } : null;
   });
-  // 恢复出来的会话一定是 paused（或 ready/done），不会自己跑
+  // 同一文档恢复的 running 会话继续走（用时包含离开的时间）；重载或冷启动恢复的是 paused，点屏幕才继续
   const [timer, setTimer] = useState<Timer>(
     restore ? { phase: restore.phase, elapsedMs: restore.elapsedMs, runningSince: restore.runningSince } : IDLE,
   );
   const [now, setNow] = useState(() => Date.now());
   const [count, setCount] = useState(restore?.count ?? 0);
-  const [banner, setBanner] = useState(restore !== null);
+  // 同一文档里恢复 running 是无感的，不提示；其他情况（暂停、已停表）才提示“已恢复”
+  const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
   const skipClick = useRef(false);
@@ -231,7 +235,8 @@ function Session({
   }, [phase]);
   const elapsed = elapsedOf(timer, now);
 
-  // 持久化：状态变化时存一份；离开页面、切后台、卸载时先冻结再存
+  // 持久化：状态变化时存一份；计时中每 4 秒刷新一次 savedAt；切后台、pagehide、卸载时各存一次。
+  // 这些时机都只保存当前快照，不改计时状态：计时不会因为离开页面而停。
   const live = useRef({ question, timer, count });
   live.current = { question, timer, count };
   const poolIds = useMemo(() => pool.map((c) => c.id), [pool]);
@@ -245,6 +250,7 @@ function Session({
         count: n,
         ...t,
         savedAt: Date.now(),
+        docId: DOC_ID,
       });
     },
     [poolIds],
@@ -253,11 +259,13 @@ function Session({
     persist(timer);
   }, [question, timer, count, persist]);
   useEffect(() => {
-    const leave = () => {
-      const frozen = freeze(live.current.timer, Date.now());
-      persist(frozen);
-      if (frozen !== live.current.timer) setTimer(frozen);
-    };
+    if (phase !== 'running') return;
+    // 只更新 savedAt，runningSince 不变；进程被杀后冷启动按最后一次保存的时刻冻结
+    const id = window.setInterval(() => persist(live.current.timer), 4000);
+    return () => window.clearInterval(id);
+  }, [phase, persist]);
+  useEffect(() => {
+    const leave = () => persist(live.current.timer);
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') leave();
     };
@@ -266,8 +274,8 @@ function Session({
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', leave);
-      // 卸载（点“查看详情”、切 tab、系统返回）也先冻结再存
-      if (!endedRef.current) persist(freeze(live.current.timer, Date.now()));
+      // 卸载（点“查看详情”、切 tab、系统返回）也存一次当前快照
+      if (!endedRef.current) persist(live.current.timer);
     };
   }, [persist]);
 
