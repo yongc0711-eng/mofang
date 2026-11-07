@@ -206,7 +206,32 @@ function Session({
   const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
-  const skipClick = useRef(false);
+  const [pressing, setPressing] = useState(false);
+  const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement } | null>(null);
+  const clearPress = useCallback(() => {
+    const held = heldPointer.current;
+    heldPointer.current = null;
+    setPressing(false);
+    if (held?.pad.hasPointerCapture(held.id)) held.pad.releasePointerCapture(held.id);
+  }, []);
+  // A hold is transient UI state, never part of the persisted timer/session.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') clearPress();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('blur', clearPress);
+    window.addEventListener('pagehide', clearPress);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('blur', clearPress);
+      window.removeEventListener('pagehide', clearPress);
+      const held = heldPointer.current;
+      heldPointer.current = null;
+      if (held?.pad.hasPointerCapture(held.id)) held.pad.releasePointerCapture(held.id);
+    };
+  }, [clearPress]);
+  useEffect(() => clearPress(), [phase, clearPress]);
   const endedRef = useRef(false);
 
   const next = useCallback(() => {
@@ -337,12 +362,13 @@ function Session({
   const stats = timeStats(c.id, user);
   const hint =
     phase === 'ready'
-      ? '点屏幕或按空格开始计时'
+      ? '按住后松手或按空格开始'
       : phase === 'running'
         ? '点屏幕或按空格停止'
         : phase === 'paused'
-          ? '已暂停，点屏幕或按空格继续'
-          : '点屏幕或按空格下一题';
+          ? '已暂停，松手或按空格继续'
+          : '松手或按空格下一题';
+  const padHint = pressing ? (phase === 'done' ? '松开下一题' : '松开开始') : hint;
 
   return (
     <div className="practice" data-phase={phase}>
@@ -364,22 +390,32 @@ function Session({
         className="practice-pad"
         role="button"
         tabIndex={0}
-        aria-label={hint}
-        // 停表要按下就响应（pointerdown）；开始和下一题用 click，滑动屏幕不会误触
+        aria-label={padHint}
+        data-pressing={pressing}
+        onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => {
-          skipClick.current = false;
-          if (phase !== 'running' || e.button !== 0 || !e.isPrimary) return;
+          if (e.button !== 0 || !e.isPrimary || heldPointer.current) return;
           if ((e.target as Element).closest('a,button')) return;
-          skipClick.current = true; // 同一次触摸随后的 click 不再前进
-          advance();
-        }}
-        onClick={(e) => {
-          if (skipClick.current) {
-            skipClick.current = false;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          if (phase === 'running') {
+            // Do not arm a release: this stop's pointerup must do nothing.
+            advance();
             return;
           }
-          if ((e.target as Element).closest('a,button')) return;
-          advance();
+          heldPointer.current = { id: e.pointerId, phase, pad: e.currentTarget };
+          setPressing(true);
+        }}
+        onPointerUp={(e) => {
+          const held = heldPointer.current;
+          if (!held || held.id !== e.pointerId) return;
+          clearPress();
+          if (e.button === 0 && e.isPrimary && phase === held.phase && document.visibilityState === 'visible') advance();
+        }}
+        onPointerCancel={(e) => {
+          if (heldPointer.current?.id === e.pointerId) clearPress();
+        }}
+        onLostPointerCapture={(e) => {
+          if (heldPointer.current?.id === e.pointerId) clearPress();
         }}
         onKeyDown={(e) => {
           // 空格由全局监听处理，这里只处理回车；按住不放不连续触发
@@ -417,7 +453,7 @@ function Session({
             </Link>
           </div>
         )}
-        <p className="muted practice-hint">{hint}</p>
+        <p className="muted practice-hint">{padHint}</p>
       </div>
     </div>
   );
