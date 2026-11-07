@@ -4,7 +4,7 @@ import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
-import { pickCase } from '../lib/practice';
+import { pickBottom, pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
 import {
   DOC_ID,
@@ -24,7 +24,8 @@ import { prepareSetup } from '../lib/prepareSetup';
 import { type PreparedSetup } from '../lib/practiceTarget';
 import { practiceInstructions } from '../lib/practiceInstructions';
 import { setupText } from '../lib/setupText';
-import { useDevicePrefs } from '../store/devicePrefs';
+import { BOTTOM_COLORS, useDevicePrefs, type BottomColor } from '../store/devicePrefs';
+import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
 import {
   STATUS_LABEL,
   addTime,
@@ -51,6 +52,7 @@ interface PracticeScope {
   filter: StatusFilter;
   picked: string[];
   showPicker: boolean;
+  bottoms: BottomColor[];
 }
 
 const IDLE: Timer = { phase: 'ready', elapsedMs: 0, runningSince: null };
@@ -58,22 +60,25 @@ interface Question {
   c: AlgCase;
   alg: string;
   scramble: string;
+  bottom?: BottomColor;
   prepared?: PreparedSetup;
   fromSession?: boolean;
 }
 
 export function PracticePage() {
   const user = useUserData();
+  const prefs = useDevicePrefs();
   // 范围和筛选放在内存里，从“查看详情”返回时还在
-  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false });
+  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, bottoms: [prefs.bottomColor] });
   const [sets, setSets] = useState<SetId[]>(saved.sets);
   const [group, setGroup] = useState(saved.group);
   const [filter, setFilter] = useState<StatusFilter>(saved.filter);
   const [picked, setPicked] = useState<string[]>(saved.picked);
   const [showPicker, setShowPicker] = useState(saved.showPicker);
+  const [bottoms, setBottoms] = useState<BottomColor[]>(() => saved.bottoms?.length ? [...saved.bottoms] : [prefs.bottomColor]);
   useEffect(() => {
-    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker });
-  }, [sets, group, filter, picked, showPicker]);
+    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, bottoms });
+  }, [sets, group, filter, picked, showPicker, bottoms]);
   // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
   // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
   const [restored, setRestored] = useState<PracticeSession | null>(() =>
@@ -96,6 +101,10 @@ export function PracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sets, group, filter, picked, user]);
 
+  const toggleBottom = (color: BottomColor) => setBottoms((current) => {
+    if (current.includes(color)) return current.length > 1 ? current.filter((item) => item !== color) : current;
+    return [...current, color];
+  });
   const toggleSet = (id: SetId) => {
     setSets((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
     setGroup('全部');
@@ -108,6 +117,7 @@ export function PracticePage() {
     return (
       <Session
         pool={sessionPool}
+        bottoms={bottoms}
         restore={restored}
         onExit={() => {
           setRestored(null);
@@ -130,6 +140,23 @@ export function PracticePage() {
         ))}
       </div>
       <p className="muted small">不选就是全部公式组</p>
+
+      <h2>练习底色</h2>
+      <div className="swatches" role="group" aria-label="练习底色">
+        {BOTTOM_COLORS.map((color) => (
+          <button
+            key={color}
+            className={`swatch ${bottoms.includes(color) ? 'swatch-on' : ''}`}
+            aria-pressed={bottoms.includes(color)}
+            aria-label={`练习底色${COLOR_LABEL[color]}色`}
+            onClick={() => toggleBottom(color)}
+          >
+            <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />
+            {COLOR_LABEL[color]}
+          </button>
+        ))}
+      </div>
+      <p className="muted small">可多选；每题随机一个；只换观察配色，setup 和打乱逻辑不变。</p>
 
       <div className={picked.length ? 'scope-off' : ''}>
         {/* 分组只有在单个公式组里才有意义，多个组混在一起时标签太多 */}
@@ -190,15 +217,18 @@ export function PracticePage() {
 
 function Session({
   pool: initialPool,
+  bottoms: initialBottoms,
   restore,
   onExit,
 }: {
   pool: AlgCase[];
+  bottoms: BottomColor[];
   restore: PracticeSession | null;
   onExit: () => void;
 }) {
   // 练习中记录用时会让用户数据变化，范围要在开始时固定，否则会中途换题
   const [pool] = useState(initialPool);
+  const [bottoms] = useState(() => [...initialBottoms]);
   const user = useUserData();
   const prefs = useDevicePrefs();
   const userRef = useRef(user);
@@ -222,7 +252,7 @@ function Session({
     setReadyQuestion(null);
     setPreparationError('');
     // Snapshot bottom per request. A settings change never recolors an already generated setup.
-    const bottom = prefs.bottomColor;
+    const bottom = requested.bottom ?? prefs.bottomColor;
     try {
       const sample = sampleTarget(requested.c, requested.scramble);
       void prepareSetup(sample.state, bottom, controller.signal).then((prepared) => {
@@ -247,6 +277,7 @@ function Session({
   const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
+  const lastBottom = useRef<BottomColor | null>(restore?.question.prepared?.bottom ?? null);
   const [pressing, setPressing] = useState(false);
   const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement; armed: boolean } | null>(null);
   const heldSpace = useRef<SpaceHold | null>(null);
@@ -281,11 +312,13 @@ function Session({
     if (!c) return;
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
+    const bottom = pickBottom(bottoms, lastBottom.current);
+    lastBottom.current = bottom;
     const { view, scramble } = practiceViewFor(c, alg);
     setReadyQuestion(null);
-    setQuestion({ c: view, alg, scramble });
+    setQuestion({ c: view, alg, scramble, bottom });
     setTimer(IDLE);
-  }, [pool]);
+  }, [pool, bottoms]);
 
   useEffect(() => {
     if (!restore) next();
@@ -429,7 +462,7 @@ function Session({
     </div>
   );
   const { c, alg, scramble, prepared } = question;
-  const bottom = prepared?.bottom ?? prefs.bottomColor;
+  const bottom = prepared?.bottom ?? question.bottom ?? prefs.bottomColor;
   const set = getSet(c.set)!;
   const stats = timeStats(c.id, user);
   const hint =
@@ -497,7 +530,7 @@ function Session({
         <div className="practice-case">
           {prepared
             ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} />
-            : <CaseDiagram c={c} view={set.view} bottom={prefs.bottomColor} />}
+            : <CaseDiagram c={c} view={set.view} bottom={bottom} />}
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
             <p className="muted small">{set.name} · {c.group}</p>
@@ -509,7 +542,7 @@ function Session({
           <code className="alg">{scramble || '（已还原）'}</code>
           <span className="muted small">{prepared
             ? practiceInstructions(prepared)
-            : setupText(prefs.bottomColor)}</span>
+            : setupText(bottom)}</span>
           <span className="muted small">{prepared ? '训练打乱由目标状态求解生成；图解显示本题实际终态，不是 WCA 随机打乱。' : '定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。'}</span>
         </p>
         <div className="practice-time" aria-live="off">

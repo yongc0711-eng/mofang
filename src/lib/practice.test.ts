@@ -121,3 +121,43 @@ describe('外围转体的等价改写（T22）', () => {
     expect(() => scrambleFor(c, () => 0)).toThrow(`${c.id} 的定义公式中间含整体转体`);
   });
 });
+
+import { pickBottom } from './practice';
+describe('T52 pickBottom', () => {
+  it('single color returns directly without consuming randomness', () => {
+    let calls = 0;
+    expect(pickBottom(['green'] as const, 'green', () => { calls++; return 0.5; })).toBe('green');
+    expect(calls).toBe(0);
+  });
+  it('multiple colors exclude the previous question color', () => {
+    expect(pickBottom(['white', 'green', 'blue'], 'green', () => 0)).toBe('white');
+    expect(pickBottom(['white', 'green', 'blue'], 'green', () => 0.99)).toBe('blue');
+  });
+  it('first question and an absent last color can choose any selected color', () => {
+    expect(pickBottom(['white', 'green'], null, () => 0)).toBe('white');
+    expect(pickBottom(['white', 'green'], 'blue', () => 0.99)).toBe('green');
+  });
+  it('every pick stays in the selected set and avoids repeats for a full sequence', () => {
+    const colors = ['white', 'yellow', 'red', 'orange', 'green', 'blue'];
+    let last: string | null = null;
+    for (let i = 0; i < 100; i++) {
+      const chosen: string = pickBottom(colors, last, () => (i % 11) / 10);
+      expect(colors).toContain(chosen);
+      expect(chosen).not.toBe(last);
+      last = chosen;
+    }
+  });
+  it('empty selection throws instead of yielding undefined', () => {
+    expect(() => pickBottom([], null)).toThrow('至少选择一种练习底色');
+  });
+  for (const random of [-1, 0, 0.999, 1, 100, NaN, Infinity, -Infinity]) {
+    it(`index is bounded for rand=${random}`, () => {
+      const colors = ['white', 'green', 'blue'];
+      const chosen = pickBottom(colors, 'green', () => random);
+      expect(['white', 'blue']).toContain(chosen);
+    });
+  }
+  it('duplicate entries cannot produce an undefined color', () => {
+    expect(pickBottom(['white', 'white'], 'white', () => 1)).toBe('white');
+  });
+});

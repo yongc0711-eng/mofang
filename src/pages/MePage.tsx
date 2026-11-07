@@ -1,20 +1,10 @@
 import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
-import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs, type BottomColor } from '../store/devicePrefs';
+import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
+import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
 
 /** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
-const COLOR_LABEL: Record<BottomColor, string> = { white: '白', yellow: '黄', red: '红', orange: '橙', green: '绿', blue: '蓝' };
-/** 色块用公式页同一组 CSS 变量，浅色和深色模式都跟着走 */
-const COLOR_VAR: Record<BottomColor, string> = {
-  white: 'var(--cube-d)',
-  yellow: 'var(--cube-u)',
-  red: 'var(--cube-l)',
-  orange: 'var(--cube-r)',
-  green: 'var(--cube-f)',
-  blue: 'var(--cube-b)',
-};
-
 function localDate(d = new Date()) {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
