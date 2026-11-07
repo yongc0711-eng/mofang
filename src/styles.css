@@ -128,7 +128,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 详情页 */
 .back { background: none; border: 0; color: var(--muted); padding: 4px 0; margin-bottom: 8px; min-height: 32px; }
-.case-head { display: flex; gap: 14px; align-items: center; margin-bottom: 14px; }
+.case-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-bottom: 14px; }
 .case-head .diagram { width: 96px; flex: none; }
 .case-head .page-title { margin-bottom: 0; }
 .fav-btn {
@@ -302,6 +302,14 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 }
 
 .seg-thumb-2 { width: calc((100% - 6px) / 2); }
+
+/* 详情页的学习状态：放在标题下，整行宽，选中用强调色 */
+.case-status { flex: 0 0 100%; min-width: 0; }
+.case-status-title { font-size: 0.95rem; margin: 0 0 6px; }
+.status-seg { border: 1px solid var(--border); }
+.status-seg button { min-height: 44px; font-size: 1rem; }
+.status-seg .seg-thumb { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.status-seg .seg-on { color: var(--accent); font-weight: 700; }
 .setting-note { margin-top: 6px; }
 
 /* 底面颜色：六个色块按钮，窄屏自动换行，不横向滚动 */
