@@ -223,6 +223,7 @@ export function CasePage() {
           >
             <input
               value={draft}
+              inputMode="none"
               onFocus={() => setKeyboardOpen(true)}
               onChange={(e) => {
                 setDraft(e.target.value);
