@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
 import { useScrollTop } from '../lib/uiState';
+import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlgKeyboard } from '../components/AlgKeyboard';
 import { editAlgDraft } from '../lib/algKeyboard';
@@ -34,7 +35,13 @@ export function CasePage() {
   const navigate = useNavigate();
   const c = getCase(caseId ?? '');
   const user = useUserData();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [, refreshSelection] = useState(0);
+  const selected = c ? readCaseSelection(c, user.cases[c.id]?.customAlgs ?? []) : null;
+  const setSelected = (alg: string | null) => {
+    if (!c) return;
+    rememberCaseSelection(c.id, alg);
+    refreshSelection((version) => version + 1);
+  };
   const prefs = useDevicePrefs();
   const caseSet = c?.set;
   const caseGroup = c?.group;
