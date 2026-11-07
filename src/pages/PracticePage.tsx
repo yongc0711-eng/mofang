@@ -5,6 +5,7 @@ import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase } from '../lib/practice';
+import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
 import {
   DOC_ID,
   clearSession,
@@ -247,31 +248,32 @@ function Session({
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
   const [pressing, setPressing] = useState(false);
-  const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement } | null>(null);
+  const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement; armed: boolean } | null>(null);
+  const heldSpace = useRef<SpaceHold | null>(null);
   const clearPress = useCallback(() => {
     const held = heldPointer.current;
     heldPointer.current = null;
+    heldSpace.current = null;
     setPressing(false);
     if (held?.pad.hasPointerCapture(held.id)) held.pad.releasePointerCapture(held.id);
   }, []);
   // A hold is transient UI state, never part of the persisted timer/session.
   useEffect(() => {
-    const onVisibility = () => {
-      if (document.visibilityState === 'hidden') clearPress();
-    };
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('blur', clearPress);
-    window.addEventListener('pagehide', clearPress);
+    const detach = watchPressCancellation(window, document, clearPress, () => document.visibilityState === 'hidden');
     return () => {
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('blur', clearPress);
-      window.removeEventListener('pagehide', clearPress);
+      detach();
       const held = heldPointer.current;
       heldPointer.current = null;
+      heldSpace.current = null;
       if (held?.pad.hasPointerCapture(held.id)) held.pad.releasePointerCapture(held.id);
     };
   }, [clearPress]);
-  useEffect(() => clearPress(), [phase, clearPress]);
+  useEffect(() => {
+    // Disarm on phase changes, but retain physical ownership until release so inputs cannot cross-start.
+    heldSpace.current = invalidateSpace(heldSpace.current);
+    if (heldPointer.current) heldPointer.current.armed = false;
+    setPressing(false);
+  }, [phase]);
   const endedRef = useRef(false);
 
   const next = useCallback(() => {
@@ -386,17 +388,38 @@ function Session({
   }, [timer, question, next]);
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.code === 'Space' || e.key === ' ') {
-        // 焦点在按钮或链接上时，空格留给它们自己
-        if ((e.target as Element | null)?.closest?.('a,button')) return;
-        e.preventDefault();
-        if (!e.repeat) advance();
-      }
+    const isSpace = (e: KeyboardEvent) => e.code === 'Space' || e.key === ' ';
+    const context = (e: KeyboardEvent) => ({
+      phase,
+      blocked: !!(e.target as Element | null)?.closest?.('a,button'),
+      pointerHeld: heldPointer.current !== null,
+      enabled: question !== null && document.visibilityState === 'visible',
+      repeat: e.repeat,
+    });
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!isSpace(e)) return;
+      const result = spaceDown(heldSpace.current, context(e));
+      if (!result.handled) return;
+      e.preventDefault();
+      heldSpace.current = result.hold;
+      setPressing(!!result.hold?.armed);
+      if (result.advance) advance();
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [advance]);
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (!isSpace(e) || !heldSpace.current) return;
+      const result = spaceUp(heldSpace.current, context(e));
+      heldSpace.current = result.hold;
+      setPressing(false);
+      if (result.handled) e.preventDefault();
+      if (result.advance) advance();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+    };
+  }, [advance, phase, question]);
 
   if (!question) return (
     <div className="practice">
@@ -443,22 +466,22 @@ function Session({
         data-pressing={pressing}
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => {
-          if (e.button !== 0 || !e.isPrimary || heldPointer.current) return;
+          if (e.button !== 0 || !e.isPrimary || heldPointer.current || heldSpace.current) return;
           if ((e.target as Element).closest('a,button')) return;
+          heldPointer.current = { id: e.pointerId, phase, pad: e.currentTarget, armed: phase !== 'running' };
           e.currentTarget.setPointerCapture(e.pointerId);
           if (phase === 'running') {
-            // Do not arm a release: this stop's pointerup must do nothing.
+            // Keep ownership, without arming: this stop's pointerup must do nothing.
             advance();
             return;
           }
-          heldPointer.current = { id: e.pointerId, phase, pad: e.currentTarget };
           setPressing(true);
         }}
         onPointerUp={(e) => {
           const held = heldPointer.current;
           if (!held || held.id !== e.pointerId) return;
           clearPress();
-          if (e.button === 0 && e.isPrimary && phase === held.phase && document.visibilityState === 'visible') advance();
+          if (held.armed && e.button === 0 && e.isPrimary && phase === held.phase && document.visibilityState === 'visible') advance();
         }}
         onPointerCancel={(e) => {
           if (heldPointer.current?.id === e.pointerId) clearPress();
@@ -468,7 +491,7 @@ function Session({
         }}
         onKeyDown={(e) => {
           // 空格由全局监听处理，这里只处理回车；按住不放不连续触发
-          if (e.key === 'Enter' && !e.repeat && e.target === e.currentTarget) advance();
+          if (e.key === 'Enter' && !e.repeat && e.target === e.currentTarget && !heldPointer.current && !heldSpace.current) advance();
         }}
       >
         <div className="practice-case">
