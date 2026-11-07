@@ -17,6 +17,8 @@ import {
   type Timer,
 } from '../lib/practiceSession';
 import { createWakeLock, type ScreenWakeLock } from '../lib/wakeLock';
+import { setupText } from '../lib/setupText';
+import { useDevicePrefs } from '../store/devicePrefs';
 import {
   STATUS_LABEL,
   addTime,
@@ -190,6 +192,7 @@ function Session({
   // 练习中记录用时会让用户数据变化，范围要在开始时固定，否则会中途换题
   const [pool] = useState(initialPool);
   const user = useUserData();
+  const prefs = useDevicePrefs();
   const userRef = useRef(user);
   userRef.current = user;
   const [question, setQuestion] = useState<Question | null>(() => {
@@ -423,7 +426,7 @@ function Session({
         }}
       >
         <div className="practice-case">
-          <CaseDiagram c={c} view={set.view} />
+          <CaseDiagram c={c} view={set.view} bottom={prefs.bottomColor} />
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
             <p className="muted small">{set.name} · {c.group}</p>
@@ -432,7 +435,7 @@ function Session({
         <p className="practice-scramble">
           <span className="muted small">摆出情形（setup）</span>
           <code className="alg">{scramble || '（已还原）'}</code>
-          <span className="muted small">白色中心朝上、绿色中心朝前起手；做完把魔方绕前后轴原地转 180°：黄顶朝上、白底朝下，绿色仍在前（不是前倾 90°）。</span>
+          <span className="muted small">{setupText(prefs.bottomColor)}</span>
           <span className="muted small">定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。</span>
         </p>
         <div className="practice-time" aria-live="off">
