@@ -167,7 +167,7 @@ function Session({ pool: initialPool, onExit }: { pool: AlgCase[]; onExit: () =>
     if (!c) return;
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
-    setQuestion({ c, alg, scramble: scrambleFor(c, alg) });
+    setQuestion({ c, alg, scramble: scrambleFor(c) });
     setPhase('ready');
     setElapsed(0);
   }, [pool]);

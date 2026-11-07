@@ -6,9 +6,12 @@ import { type AlgCase, type LearnStatus, type SetId, type UserData } from '../ty
 const AUF_SETS: SetId[] = ['oll', 'pll', 'cmll'];
 const AUFS = ['', 'U', "U'", 'U2'];
 
-/** 打乱 = 随机 AUF + 主公式的逆。返回字符串，可直接显示 */
-export function scrambleFor(c: AlgCase, alg: string, rand: () => number = Math.random): string {
-  const inv: Move[] = invertMoves(parseAlg(alg));
+/**
+ * 打乱 = 随机 AUF + 情形定义公式（algs[0]）的逆。返回字符串，可直接显示。
+ * 起始状态只由情形决定，和用户选的主公式无关，所以不接收公式参数。
+ */
+export function scrambleFor(c: AlgCase, rand: () => number = Math.random): string {
+  const inv: Move[] = invertMoves(parseAlg(c.algs[0]));
   const auf = AUF_SETS.includes(c.set) ? AUFS[Math.floor(rand() * AUFS.length)] : '';
   return [auf, movesToString(inv)].filter(Boolean).join(' ');
 }
