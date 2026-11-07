@@ -55,7 +55,7 @@ export const SET_RULES: Record<SetId, SetRule> = {
     preY: [0],
   },
   oll: {
-    display: (id) => isF2LPiece(id) || uFace(id),
+    display: inU,
     solve: (id) => isF2LPiece(id) || uFace(id),
     preserve: isF2LPiece,
     normalize: true,

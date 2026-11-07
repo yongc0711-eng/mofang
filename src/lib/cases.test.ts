@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { getSet } from '../data';
+import { OLL_CASES } from '../data/oll';
+import { stickerAt } from './cube';
 import { type AlgCase } from '../types';
-import { algSolvesCase, caseFingerprint, lintCase, lintCaseAlg } from './cases';
+import { algSolvesCase, caseFingerprint, displayColors, lintCase, lintCaseAlg } from './cases';
 
 const lse = (group: string, alg: string): AlgCase => ({ id: 'lse-x', set: 'lse', name: 'x', group, algs: [alg] });
 
@@ -65,4 +67,21 @@ describe('F2L 不允许前置 U', () => {
   it("前面多一个 U' 等于换了另一个情形，不能当作解", () => {
     expect(algSolvesCase(c, "U' " + c.algs[0])).toBe(false);
   });
+});
+
+describe('OLL 显示整个顶层（T20）', () => {
+  for (const c of OLL_CASES) {
+    it(`${c.id}：恰好显示顶层 21 张贴纸`, () => {
+      expect(displayColors(c).filter((color) => color !== null)).toHaveLength(21);
+    });
+    it(`${c.id}：四个侧面顶行 12 个位置逐格可见`, () => {
+      const colors = displayColors(c);
+      for (const t of [-1, 0, 1]) {
+        expect(colors[stickerAt([t, 1, 1], [0, 0, 1])], `F ${t}`).not.toBeNull();
+        expect(colors[stickerAt([t, 1, -1], [0, 0, -1])], `B ${t}`).not.toBeNull();
+        expect(colors[stickerAt([1, 1, t], [1, 0, 0])], `R ${t}`).not.toBeNull();
+        expect(colors[stickerAt([-1, 1, t], [-1, 0, 0])], `L ${t}`).not.toBeNull();
+      }
+    });
+  }
 });
