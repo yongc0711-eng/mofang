@@ -1,4 +1,4 @@
-import { invertMoves, type Move } from './cube';
+import { applyMoves, invertMoves, solved, type Move } from './cube';
 import { movesToString, parseAlg } from './alg';
 import { type AlgCase, type LearnStatus, type SetId, type UserData } from '../types';
 
@@ -6,12 +6,42 @@ import { type AlgCase, type LearnStatus, type SetId, type UserData } from '../ty
 const AUF_SETS: SetId[] = ['oll', 'pll', 'cmll'];
 const AUFS = ['', 'U', "U'", 'U2'];
 
+const isRotation = (m: Move) => 'xyz'.includes(m.base);
+// Reuse the engine's exact move permutations instead of changing its coordinate
+// system or duplicating face/wide/slice direction tables.
+const moveByPermutation = new Map<string, Move>();
+for (const base of 'RLUDFBMESrludfb') {
+  for (const amount of [1, 2, 3] as const) {
+    const move = { base, amount };
+    moveByPermutation.set(applyMoves(solved(), [move]).join(','), move);
+  }
+}
+
+/** Remove outer rotations by conjugating each body move into the original frame. */
+function withoutOuterRotations(moves: Move[], id: string): Move[] {
+  let first = 0;
+  let last = moves.length;
+  while (first < last && isRotation(moves[first])) first++;
+  while (last > first && isRotation(moves[last - 1])) last--;
+  const body = moves.slice(first, last);
+  if (body.some(isRotation)) throw new Error(`${id} 的定义公式中间含整体转体`);
+  if (first === 0) return body;
+  const prefix = moves.slice(0, first);
+  const undo = invertMoves(prefix);
+  return body.map((move) => {
+    // P m P^-1, in execution order. For x ... x': U→F, D→B, R→R.
+    const key = applyMoves(solved(), [...prefix, move, ...undo]).join(',');
+    const mapped = moveByPermutation.get(key);
+    if (!mapped) throw new Error(`${id} 的 ${move.base} 无法等价改写为无转体动作`);
+    return mapped;
+  });
+}
 /**
- * 打乱 = 随机 AUF + 情形定义公式（algs[0]）的逆。返回字符串，可直接显示。
+ * 打乱 = 随机 AUF + 情形定义公式去除外围转体（等价面转改写）后的逆。
  * 起始状态只由情形决定，和用户选的主公式无关，所以不接收公式参数。
  */
 export function scrambleFor(c: AlgCase, rand: () => number = Math.random): string {
-  const inv: Move[] = invertMoves(parseAlg(c.algs[0]));
+  const inv: Move[] = invertMoves(withoutOuterRotations(parseAlg(c.algs[0]), c.id));
   const auf = AUF_SETS.includes(c.set) ? AUFS[Math.floor(rand() * AUFS.length)] : '';
   return [auf, movesToString(inv)].filter(Boolean).join(' ');
 }

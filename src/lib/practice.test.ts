@@ -1,17 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { ALL_CASES, getSet } from '../data';
-import { parseAlg } from './alg';
-import { invertMoves } from './cube';
+import { movesToString, parseAlg } from './alg';
+import { caseState } from './cases';
+import { applyMoves, invertMoves, solved } from './cube';
 import { pickCase, scrambleFor } from './practice';
 import { type UserData } from '../types';
 
 const empty: UserData = { version: 1, cases: {} };
 
 describe('练习打乱', () => {
-  it('所有情形的打乱都能解析，且不加 AUF 时恰为公式的逆', () => {
+  it('不加 AUF 时为等价无转体公式的逆；无外围转体的定义逐步保持不变', () => {
     for (const c of ALL_CASES) {
       const s = scrambleFor(c, () => 0);
-      expect(parseAlg(s)).toEqual(invertMoves(parseAlg(c.algs[0])));
+      // Explicit x-conjugation expectations, not produced by the implementation.
+      const mapped: Record<string, string> = {
+        'pll-aa': "R' F R' B2 R F' R' B2 R2",
+        'pll-ab': "R2 B2 R F R' B2 R F' R",
+      };
+      expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
     }
   });
   it('只有 OLL/PLL/CMLL 加 AUF', () => {
@@ -71,5 +77,47 @@ describe('打乱与主公式无关', () => {
       expect(s.endsWith(base)).toBe(true);
       expect(['', 'U', "U'", 'U2']).toContain(s.slice(0, s.length - base.length).trim());
     }
+  });
+});
+
+describe('固定起手、无整体转体的打乱（T22）', () => {
+  for (const c of ALL_CASES) {
+    it(`${c.id}：打乱不含 x/y/z`, () => {
+      expect(parseAlg(scrambleFor(c, () => 0)).filter((m) => ['x', 'y', 'z'].includes(m.base))).toEqual([]);
+    });
+    it(`${c.id}：无 AUF 打乱原始 54 张贴纸与 caseState 完全相同`, () => {
+      const scramble = scrambleFor(c, () => 0);
+      // Compare all 54 stickers directly: no finish/normalization on the scramble.
+      expect(applyMoves(solved(), parseAlg(scramble))).toEqual(caseState(c));
+    });
+  }
+  for (const id of ['pll-aa', 'pll-ab']) {
+    it(`${id}：单独回归不含 x 且 54 张贴纸相同`, () => {
+      const c = ALL_CASES.find((c) => c.id === id)!;
+      const moves = parseAlg(scrambleFor(c, () => 0));
+      expect(moves.some((m) => m.base === 'x')).toBe(false);
+      expect(applyMoves(solved(), moves)).toEqual(caseState(c));
+    });
+  }
+});
+
+describe('外围转体的等价改写（T22）', () => {
+  for (const prefix of ['x', "x'", 'x2', 'y', "y'", 'y2', 'z', "z'", 'z2', 'x y']) {
+    it(`${prefix} 共轭保持面转、宽转和中层转的逐贴纸置换`, () => {
+      for (const base of 'RLUDFBMESrludfb') {
+        for (const amount of ['', "'", '2']) {
+          const suffix = movesToString(invertMoves(parseAlg(prefix)));
+          const alg = `${prefix} ${base}${amount} ${suffix}`;
+          const c = { ...ALL_CASES[0], algs: [alg] };
+          const output = parseAlg(scrambleFor(c, () => 0));
+          expect(output.some((m) => 'xyz'.includes(m.base))).toBe(false);
+          expect(applyMoves(solved(), output)).toEqual(applyMoves(solved(), invertMoves(parseAlg(alg))));
+        }
+      }
+    });
+  }
+  it('中间仍有转体时显式报错，不静默输出', () => {
+    const c = { ...ALL_CASES[0], algs: ["x R y U x'"] };
+    expect(() => scrambleFor(c, () => 0)).toThrow(`${c.id} 的定义公式中间含整体转体`);
   });
 });

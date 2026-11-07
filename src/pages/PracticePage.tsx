@@ -396,6 +396,7 @@ function Session({
         <p className="practice-scramble">
           <span className="muted small">打乱</span>
           <code className="alg">{scramble || '（已还原）'}</code>
+          <span className="muted small">白顶绿前起手；做完转黄顶绿前（前后不变，上下、左右对调），再对照图解/公式</span>
         </p>
         <div className="practice-time" aria-live="off">
           {formatTime(elapsed)}
