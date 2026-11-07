@@ -17,7 +17,7 @@ const fill = (f: Face | null) => (f ? COLOR_VAR[f] : 'var(--cube-mask)');
 const N = [-1, 0, 1];
 
 /** 顶视图：顶面 3x3，四周一圈侧面顶行 */
-function TopView({ colors }: { colors: (Face | null)[] }) {
+export function TopView({ colors }: { colors: (Face | null)[] }) {
   const cell = 20;
   const gap = 2;
   const strip = 7;
@@ -49,7 +49,7 @@ function TopView({ colors }: { colors: (Face | null)[] }) {
 }
 
 /** 等轴视图：显示 U、F、R 三面 */
-function IsoView({ colors }: { colors: (Face | null)[] }) {
+export function IsoView({ colors }: { colors: (Face | null)[] }) {
   const project = ([x, y, z]: number[]) => {
     const sx = (x - z) * 0.866;
     const sy = (x + z) * 0.5 - y;
@@ -77,7 +77,7 @@ function IsoView({ colors }: { colors: (Face | null)[] }) {
 }
 
 /** LSE 视图：顶视图下面加一张底面（从上方透视，上边是 DF），否则看不到 DB 棱 */
-function LseView({ colors }: { colors: (Face | null)[] }) {
+export function LseView({ colors }: { colors: (Face | null)[] }) {
   const cell = 20;
   const gap = 2;
   const inset = 9;
