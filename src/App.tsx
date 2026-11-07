@@ -3,7 +3,7 @@ import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 're
 import { formulaTabTarget, isFormulaPath, shouldPopToFormula, tabLinkState } from './lib/nav';
 import { useScrollRestoration } from './lib/scrollRestoration';
 import { getUi, setUi } from './lib/uiState';
-import { forceReload, versionChecker, watchVersionChecks } from './lib/version';
+import { forceReload, RELOAD_WARNING_MESSAGE, versionChecker, watchVersionChecks } from './lib/version';
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
 import { MePage } from './pages/MePage';
@@ -138,9 +138,11 @@ function UpdateNotice() {
       <button className="link-btn" disabled={reloading} onClick={() => {
         setReloading(true);
         setError('');
-        void forceReload().catch(() => {
+        void forceReload().then((result) => {
+          if (!result.cleaned) setError(RELOAD_WARNING_MESSAGE);
+        }).catch(() => {
           setReloading(false);
-          setError('刷新失败，请重试或在系统浏览器中打开。');
+          setError('未能重新加载，请关闭后用系统浏览器重新打开。');
         });
       }}>{reloading ? '正在刷新…' : '有新版本，点此刷新'}</button>
       <span className="small muted">请在完成当前操作后刷新。</span>

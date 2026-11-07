@@ -70,35 +70,74 @@ export function reloadUrl(href: string, timestamp: number): string {
   url.searchParams.set('v', String(timestamp));
   return url.href;
 }
+export const RELOAD_WARNING_MESSAGE = '可能仍是旧版，请关闭后用系统浏览器重新打开。';
+type WarningStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+export const appScope = (href: string): string => new URL('./', href).href;
+export const reloadWarningKey = (href: string): string => 'mofang.reload-incomplete:' + appScope(href);
+/** Workbox appends the exact registration scope. A prefix match would also delete nested apps. */
+export const isAppCache = (name: string, scope: string): boolean => name.endsWith(scope);
+interface WarningEnvironment { href: string; storage?: WarningStorage }
+export function hasReloadWarning(env?: WarningEnvironment): boolean {
+  try {
+    const href = env ? env.href : window.location.href;
+    const storage = env ? env.storage : window.sessionStorage;
+    return storage?.getItem(reloadWarningKey(href)) === '1';
+  } catch { return false; }
+}
+/** Separate reading from consumption so React StrictMode's double initializer cannot lose the warning. */
+export function clearReloadWarning(env?: WarningEnvironment): void {
+  try {
+    const href = env ? env.href : window.location.href;
+    const storage = env ? env.storage : window.sessionStorage;
+    storage?.removeItem(reloadWarningKey(href));
+  } catch { /* Storage denial must not block the page. */ }
+}
 export interface ReloadEnvironment {
-  serviceWorker?: { getRegistrations(): Promise<readonly { unregister(): Promise<boolean> }[]> };
+  serviceWorker?: { getRegistrations(): Promise<readonly { scope: string; unregister(): Promise<boolean> }[]> };
   caches?: { keys(): Promise<string[]>; delete(name: string): Promise<boolean> };
+  sessionStorage?: WarningStorage;
   location: { href: string; replace(url: string): void };
   now?: () => number;
 }
-/** Explicit user action only. Keep localStorage / IndexedDB / cookies, and keep the route hash. */
-export async function forceReload(env?: ReloadEnvironment): Promise<void> {
+export interface ReloadResult { cleaned: boolean; warningStored: boolean }
+/** Cleanup is best effort and app-scoped; even denial must not trap the user on the current page. */
+export async function forceReload(env?: ReloadEnvironment): Promise<ReloadResult> {
   const target: ReloadEnvironment = env ?? {
-    serviceWorker: navigator.serviceWorker,
-    caches: typeof caches === 'undefined' ? undefined : caches,
+    // Browser API getters can themselves throw in restricted containers; read them inside the stage try/catch.
+    get serviceWorker() { return navigator.serviceWorker; },
+    get caches() { return typeof caches === 'undefined' ? undefined : caches; },
+    get sessionStorage() { return window.sessionStorage; },
     location: window.location,
   };
-  const errors: unknown[] = [];
-  // Try every registration, then every cache, even if a sibling operation rejects.
-  if (target.serviceWorker) {
-    try {
-      const registrations = await target.serviceWorker.getRegistrations();
+  const scope = appScope(target.location.href);
+  let cleaned = true;
+  try {
+    const workers = target.serviceWorker;
+    if (!workers) cleaned = false;
+    else {
+      const registrations = (await workers.getRegistrations()).filter((registration) => registration.scope === scope);
       const results = await Promise.allSettled(registrations.map((registration) => Promise.resolve().then(() => registration.unregister())));
-      errors.push(...results.filter((result) => result.status === 'rejected'));
-    } catch (error) { errors.push(error); }
-  }
-  if (target.caches) {
-    try {
-      const names = await target.caches.keys();
-      const results = await Promise.allSettled(names.map((name) => Promise.resolve().then(() => target.caches!.delete(name))));
-      errors.push(...results.filter((result) => result.status === 'rejected'));
-    } catch (error) { errors.push(error); }
-  }
-  if (errors.length) throw new Error('清理离线缓存失败，请重试或在系统浏览器中打开');
+      if (results.some((result) => result.status === 'rejected')) cleaned = false;
+    }
+  } catch { cleaned = false; }
+  try {
+    const cacheStore = target.caches;
+    if (!cacheStore) cleaned = false;
+    else {
+      const names = (await cacheStore.keys()).filter((name) => isAppCache(name, scope));
+      const results = await Promise.allSettled(names.map((name) => Promise.resolve().then(() => cacheStore.delete(name))));
+      if (results.some((result) => result.status === 'rejected')) cleaned = false;
+    }
+  } catch { cleaned = false; }
+  let warningStored = false;
+  try {
+    const storage = target.sessionStorage;
+    if (cleaned) storage?.removeItem(reloadWarningKey(target.location.href));
+    else if (storage) {
+      storage.setItem(reloadWarningKey(target.location.href), '1');
+      warningStored = true;
+    }
+  } catch { /* Return the incomplete result even when the one-time marker cannot be stored. */ }
   target.location.replace(reloadUrl(target.location.href, (target.now ?? Date.now)()));
+  return { cleaned, warningStored };
 }
