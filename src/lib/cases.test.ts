@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { type AlgCase } from '../types';
-import { algSolvesCase, caseFingerprint, lintCase } from './cases';
+import { algSolvesCase, caseFingerprint, lintCase, lintCaseAlg } from './cases';
 
 const lse = (group: string, alg: string): AlgCase => ({ id: 'lse-x', set: 'lse', name: 'x', group, algs: [alg] });
 
@@ -27,6 +27,22 @@ describe('LSE 校验', () => {
   });
   it('只能用 M 和 U', () => {
     expect(lintCase(lse('4c', "R U R'"))).not.toEqual([]);
+  });
+  it('LSE 备选公式即使能还原，带 R 也必须校验失败', () => {
+    const c = lse('4c', 'M2 U2 M2 U2');
+    c.algs.push("M2 U2 M2 U2 R R'");
+    expect(lintCase(c)).toContain('只能使用 MU 转动，出现了 R');
+  });
+  it('LSE 自定义公式即使能还原，带 R 也必须校验失败', () => {
+    const c = lse('4c', 'M2 U2 M2 U2');
+    expect(algSolvesCase(c, "M2 U2 M2 U2 R R'")).toBe(false);
+  });
+  it('单条公式检查供自定义公式共用，合法 M/U 公式仍通过', () => {
+    const c = lse('4c', 'M2 U2 M2 U2');
+    expect(lintCaseAlg(c, "M2 U2 M2 U2 R R'")).toEqual(['只能使用 MU 转动，出现了 R']);
+    expect(lintCaseAlg(c, "M' U2 M U'")).toEqual([]);
+    c.algs.push(c.algs[0], "M2 U2 M2 U2 R R'");
+    expect(lintCase(c)).toContain('只能使用 MU 转动，出现了 R');
   });
   it('EO 指纹只看好棱坏棱，排列不同也算同一情形', () => {
     expect(caseFingerprint(lse('EO', "M' U M'"))).toBe(caseFingerprint(lse('EO', "M' U M' U2 M2 U2 M2")));

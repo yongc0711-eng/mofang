@@ -6,7 +6,7 @@ import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
-import { algSolvesCase, displayMask } from '../lib/cases';
+import { algSolvesCase, displayMask, lintCaseAlg } from '../lib/cases';
 import {
   STATUS_LABEL,
   addCustomAlg,
@@ -66,6 +66,11 @@ export function CasePage() {
     if (!alg) return;
     let solves: boolean;
     try {
+      const problems = lintCaseAlg(c, alg);
+      if (problems.length) {
+        setMessage({ kind: 'error', text: problems.join('；') });
+        return;
+      }
       solves = parseAlg(alg).length > 0 && algSolvesCase(c, alg);
     } catch (e) {
       setMessage({ kind: 'error', text: `公式格式有误：${(e as Error).message}` });

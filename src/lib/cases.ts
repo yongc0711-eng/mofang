@@ -157,8 +157,17 @@ const LSE_DISPLAY: Record<LseStep, Mask> = {
   '4c': () => true,
 };
 
-/** 判断公式能否解决该情形，允许前后调整 U 层，部分组还允许先整体 y 转 */
+/** 按情形检查单条公式的转动限制；格式错误沿用 parseAlg 的异常 */
+export function lintCaseAlg(c: Pick<AlgCase, 'set'>, alg: string): string[] {
+  const moves = parseAlg(alg);
+  const { allowedBases } = SET_RULES[c.set];
+  const bad = allowedBases && moves.find((m) => !allowedBases.includes(m.base));
+  return bad ? [`只能使用 ${allowedBases} 转动，出现了 ${bad.base}`] : [];
+}
+
+/** 判断合规公式能否解决该情形，允许前后调整 U 层，部分组还允许先整体 y 转 */
 export function algSolvesCase(c: CaseRef, alg: string): boolean {
+  if (lintCaseAlg(c, alg).length) return false;
   const rule = SET_RULES[c.set];
   const moves = parseAlg(alg);
   if (c.set === 'lse') {
@@ -181,15 +190,11 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
   return false;
 }
 
-/** 检查定义公式本身是否合规，返回问题列表（空数组表示合规） */
+/** 检查所有公式的转动限制及定义公式的不变量，空数组表示合规 */
 export function lintCase(c: AlgCase): string[] {
   const rule = SET_RULES[c.set];
   const problems: string[] = [];
-  const moves = parseAlg(c.algs[0]);
-  if (rule.allowedBases) {
-    const bad = moves.find((m) => !rule.allowedBases!.includes(m.base));
-    if (bad) problems.push(`只能使用 ${rule.allowedBases} 转动，出现了 ${bad.base}`);
-  }
+  for (const alg of c.algs) problems.push(...lintCaseAlg(c, alg));
   const after = caseState(c);
   if (!after.every((id, loc) => !rule.preserve(loc) || id === loc)) {
     problems.push('定义公式破坏了本该保持不动的块');
