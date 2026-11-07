@@ -165,7 +165,12 @@ export function lintCaseAlg(c: Pick<AlgCase, 'set'>, alg: string): string[] {
   return bad ? [`只能使用 ${allowedBases} 转动，出现了 ${bad.base}`] : [];
 }
 
-/** 判断合规公式能否解决该情形，允许前后调整 U 层，部分组还允许先整体 y 转 */
+/**
+ * 判断合规公式能否解决该情形，部分组还允许先整体 y 转。
+ * U 层调整：OLL/PLL/CMLL 前后都可以（前置 U 就是 AUF）；LSE 走自己的分支；
+ * F2L 只允许 post-U（做完后转 U 对齐），不允许 pre-U：F2L 的起始状态对 U 敏感，
+ * 公式前面多转一下 U 等于换了另一个情形，不能算这个情形的解。
+ */
 export function algSolvesCase(c: CaseRef, alg: string): boolean {
   if (lintCaseAlg(c, alg).length) return false;
   const rule = SET_RULES[c.set];
@@ -178,8 +183,9 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
   }
   const target = render(solved(), rule.solve);
   const start = caseState(c);
+  const preUs = c.set === 'f2l' ? [0] : [0, 1, 2, 3];
   for (const y of rule.preY) {
-    for (let pre = 0; pre < 4; pre++) {
+    for (const pre of preUs) {
       const after = applyMoves(start, [...turn('U', pre), ...turn('y', y), ...moves]);
       const base = finish(after, c.set);
       for (let post = 0; post < 4; post++) {

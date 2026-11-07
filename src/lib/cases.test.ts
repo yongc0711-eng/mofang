@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { getSet } from '../data';
 import { type AlgCase } from '../types';
 import { algSolvesCase, caseFingerprint, lintCase, lintCaseAlg } from './cases';
 
@@ -53,5 +54,15 @@ describe('其他公式组不受影响', () => {
   it('错误公式会被拒绝', () => {
     const t: AlgCase = { id: 'pll-t', set: 'pll', name: 'T', group: 'x', algs: ["R U R' U' R' F R2 U' R' U' R U R' F'"] };
     expect(algSolvesCase(t, "R U R'")).toBe(false);
+  });
+});
+
+describe('F2L 不允许前置 U', () => {
+  const c = getSet('f2l')!.cases[0];
+  it('定义公式本身仍能解决情形', () => {
+    expect(algSolvesCase(c, c.algs[0])).toBe(true);
+  });
+  it("前面多一个 U' 等于换了另一个情形，不能当作解", () => {
+    expect(algSolvesCase(c, "U' " + c.algs[0])).toBe(false);
   });
 });

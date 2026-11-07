@@ -17,13 +17,6 @@
 
 并行限制：T8 与 T13 可以同时开；T9/T10/T11 都改 cases.ts、CasePage.tsx、userStore.ts、practice.ts 这一批文件，等 T8 合并后串行。
 
-### T9 F2L 前置 U 的规则和注释矛盾
-
-- **问题：** `algSolvesCase` 对 F2L 也允许前置 U，而 `src/lib/practice.ts:5` 的注释说 F2L 的起始状态对 U 敏感。要先判断哪一边才对。
-- **允许改：** `src/lib/cases.ts`、`src/lib/practice.ts`、对应测试文件、`docs/decisions.md`
-- **验收：** `npm test`。如果要改判定语义，先在 `docs/decisions.md` 记录原因
-- **非目标：** 不为了通过测试放宽规则，不改 F2L 数据
-
 ### T11 导入备份校验太松
 
 - **问题：** `importUserData` 只查 `version` 和 `typeof cases`。`times` 不是数组时，`timeStats` 会抛错。
