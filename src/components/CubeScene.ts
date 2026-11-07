@@ -72,6 +72,9 @@ export class CubeScene {
   private yaw = DEFAULT_YAW;
   private pitch = DEFAULT_PITCH;
   private drag: { id: number; x: number; y: number } | null = null;
+  private downX = 0;
+  private downY = 0;
+  private lastTapAt = -Infinity;
 
   constructor(
     private readonly host: HTMLElement,
@@ -83,8 +86,8 @@ export class CubeScene {
     canvas.style.display = 'block';
     canvas.style.width = '100%';
     canvas.style.height = '100%';
-    // 竖向滑动留给页面滚动，横向拖动才转视角
-    canvas.style.touchAction = 'pan-y';
+    // 手指放在魔方上时，上下左右都只转魔方，不滚动页面
+    canvas.style.touchAction = 'none';
     host.replaceChildren(canvas);
 
     // 亮面要有东西可反射：用内置的室内环境，不用加载图片
@@ -159,7 +162,6 @@ export class CubeScene {
     canvas.addEventListener('pointermove', this.onMove);
     canvas.addEventListener('pointerup', this.onUp);
     canvas.addEventListener('pointercancel', this.onUp);
-    canvas.addEventListener('dblclick', this.resetView);
   }
 
   setFinish(finish: CubeFinish) {
@@ -216,7 +218,6 @@ export class CubeScene {
     canvas.removeEventListener('pointermove', this.onMove);
     canvas.removeEventListener('pointerup', this.onUp);
     canvas.removeEventListener('pointercancel', this.onUp);
-    canvas.removeEventListener('dblclick', this.resetView);
     for (const d of this.disposables) d.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
@@ -251,6 +252,8 @@ export class CubeScene {
   private readonly onDown = (e: PointerEvent) => {
     if (e.button !== 0) return;
     this.drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+    this.downX = e.clientX;
+    this.downY = e.clientY;
     this.renderer.domElement.setPointerCapture(e.pointerId);
   };
 
@@ -266,7 +269,17 @@ export class CubeScene {
   };
 
   private readonly onUp = (e: PointerEvent) => {
-    if (this.drag?.id === e.pointerId) this.drag = null;
+    if (this.drag?.id !== e.pointerId) return;
+    this.drag = null;
+    if (e.type !== 'pointerup') return;
+    // 手机上不一定有 dblclick 事件，所以自己判断连点两下：两次都没怎么移动，且间隔够短
+    const isTap = Math.hypot(e.clientX - this.downX, e.clientY - this.downY) < 10;
+    if (isTap && e.timeStamp - this.lastTapAt < 350) {
+      this.lastTapAt = -Infinity;
+      this.resetView();
+    } else {
+      this.lastTapAt = isTap ? e.timeStamp : -Infinity;
+    }
   };
 
   /** 双击回到默认视角 */

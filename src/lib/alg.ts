@@ -70,7 +70,7 @@ export function movesToString(moves: Move[]): string {
   return moves.map((m) => m.base + (m.amount === 1 ? '' : m.amount === 2 ? '2' : "'")).join(' ');
 }
 
-/** 转成 cubing.js 能直接播放的扁平写法 */
+/** 去掉括号和重复，转成扁平写法 */
 export const normalizeAlg = (alg: string): string => movesToString(parseAlg(alg));
 
 /** 公式步数（HTM，整体转动不计，M/E/S 记 1 步） */

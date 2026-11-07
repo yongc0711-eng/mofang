@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
+import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
 
 /** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
@@ -10,6 +11,7 @@ function localDate(d = new Date()) {
 
 export function MePage() {
   const user = useUserData();
+  const prefs = useDevicePrefs();
   const file = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
 
@@ -44,6 +46,18 @@ export function MePage() {
         <div><strong>{count('learning')}</strong><span className="muted small">学习中</span></div>
         <div><strong>{favorites}</strong><span className="muted small">收藏</span></div>
       </div>
+      <h2>魔方表面</h2>
+      <div className="segmented" role="group" aria-label="魔方表面">
+        <span className="seg-thumb seg-thumb-2" aria-hidden="true" style={{ transform: `translateX(${prefs.finish === 'uv' ? 0 : 100}%)` }} />
+        <button className={prefs.finish === 'uv' ? 'seg-on' : ''} aria-pressed={prefs.finish === 'uv'} onClick={() => setDevicePrefs({ finish: 'uv' })}>
+          UV 亮面
+        </button>
+        <button className={prefs.finish === 'matte' ? 'seg-on' : ''} aria-pressed={prefs.finish === 'matte'} onClick={() => setDevicePrefs({ finish: 'matte' })}>
+          普通面
+        </button>
+      </div>
+      <p className="muted small setting-note">只对这台设备生效。手机卡顿或发热时可以选普通面。</p>
+
       <h2>备份和迁移</h2>
       <p className="muted">进度和自定义公式只保存在这台设备的浏览器里。换设备时先导出，再到另一台设备导入。导入会覆盖那台设备上现有的数据。</p>
       <div className="button-row">

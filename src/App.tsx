@@ -2,7 +2,6 @@ import { type ReactNode } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
-import { LabPage } from './pages/LabPage';
 import { MePage } from './pages/MePage';
 import { PracticePage } from './pages/PracticePage';
 import { SearchPage } from './pages/SearchPage';
@@ -85,7 +84,6 @@ function AnimatedRoutes() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/practice" element={<PracticePage />} />
         <Route path="/me" element={<MePage />} />
-        <Route path="/lab" element={<LabPage />} />
         <Route path="*" element={<HomePage />} />
       </Routes>
     </div>

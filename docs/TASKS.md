@@ -23,14 +23,6 @@
 
 下面 T1–T4 的说明仅作记录，不用再做。
 
-## 进行中：用 Three.js 替换 3D 播放器
-
-新播放器 `src/components/CubePlayer3D.tsx` 和隐藏对比页 `#/lab` 已在本地做好，用户在真手机上试过并满意后才替换。替换时要做：
-
-- 详情页改用 `CubePlayer3D`，接上“只显示相关贴纸”（`displayMask`）
-- 在“我的”页面加涂层开关（UV 亮面 / 普通面），按设备保存，不跟随备份迁移
-- 删除 `cubing` 依赖、旧 `CubePlayer.tsx` 和对比页，更新 `CLAUDE.md`
-
 ## 待办
 
 | 编号 | 任务 | 模型 | 依赖 |

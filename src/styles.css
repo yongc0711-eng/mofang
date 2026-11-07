@@ -298,6 +298,10 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
   transition: transform 0.26s var(--ease);
 }
 
+.seg-thumb-2 { width: calc((100% - 6px) / 2); }
+.setting-note { margin-top: 6px; }
+.focus-chip { display: block; margin: 8px auto 0; }
+
 /* 公式 */
 .alg-row { border-radius: 10px; }
 .alg-row-on { box-shadow: 0 0 0 1px var(--accent); }
@@ -310,7 +314,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 }
 .player-stage {
   height: min(46vh, 340px); display: flex; align-items: center; justify-content: center;
-  cursor: grab; touch-action: pan-y;
+  cursor: grab; touch-action: none;
 }
 .player-stage:active { cursor: grabbing; }
 .player-loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 0.9rem; }
@@ -388,9 +392,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 [data-phase='done'] .practice-time { color: var(--ok); }
 .practice-time { transition: color 0.2s ease; }
 .practice-result { animation: card-in 0.28s var(--ease); }
-
-/* 3D 对比测试页 */
-.lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
 
 /* 导航滑块只在手机胶囊里用 */
 .nav-thumb { display: none; }

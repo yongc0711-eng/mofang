@@ -18,7 +18,10 @@
 - `src/data/data.test.ts`：数据校验
 - `src/store/userStore.ts`：进度、收藏、自定义公式，存在 localStorage，靠导出/导入跨设备迁移
 - `src/components/CaseDiagram.tsx`：由公式推导的 SVG 图解
-- `src/components/CubePlayer.tsx`：cubing.js 3D 播放器，动态加载
+- `src/lib/timeline.ts`：播放时间线，任意时刻的画面都由时间算出
+- `src/components/CubePlayer.tsx`：3D 播放器和控制条
+- `src/components/CubeScene.ts`：Three.js 渲染层，动态加载，只管画，不含播放逻辑
+- `src/store/devicePrefs.ts`：按设备保存的显示设置，不进备份
 - `src/pages/`：路由页面，使用 HashRouter
 
 ## 约定

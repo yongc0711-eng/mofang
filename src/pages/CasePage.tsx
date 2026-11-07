@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
-import { algSolvesCase } from '../lib/cases';
+import { algSolvesCase, displayMask } from '../lib/cases';
 import {
   STATUS_LABEL,
   addCustomAlg,
@@ -32,6 +33,13 @@ export function CasePage() {
   const user = useUserData();
   const [selected, setSelected] = useState<string | null>(null);
   const [replayKey, setReplayKey] = useState(0);
+  const prefs = useDevicePrefs();
+  const caseSet = c?.set;
+  const caseGroup = c?.group;
+  const mask = useMemo(
+    () => (prefs.focusRelevant && caseSet && caseGroup !== undefined ? displayMask({ set: caseSet, group: caseGroup }) : null),
+    [prefs.focusRelevant, caseSet, caseGroup],
+  );
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
@@ -134,7 +142,16 @@ export function CasePage() {
       </header>
 
       <div className="case-layout">
-        <CubePlayer alg={playing} replayKey={replayKey} />
+        <div className="case-player">
+          <CubePlayer alg={playing} replayKey={replayKey} mask={mask} finish={prefs.finish} />
+          <button
+            className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
+            aria-pressed={prefs.focusRelevant}
+            onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
+          >
+            只看相关的块
+          </button>
+        </div>
         <div className="case-side">
           <div className="segmented" role="group" aria-label="学习状态">
             <span className="seg-thumb" aria-hidden="true" style={{ transform: `translateX(${STATUSES.indexOf(status) * 100}%)` }} />

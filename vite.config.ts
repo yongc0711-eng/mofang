@@ -6,7 +6,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   base: './',
   build: { target: 'esnext', chunkSizeWarningLimit: 3000 },
-  worker: { format: 'es' },
   plugins: [
     react(),
     VitePWA({
@@ -25,7 +24,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
-        // cubing.js 的 chunk 较大，也要缓存才能离线播放 3D 动画
+        // Three.js 的 chunk 较大，也要缓存才能离线播放 3D 动画
         maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
       },
     }),
