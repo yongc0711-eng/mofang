@@ -56,7 +56,8 @@ export function CasePage() {
   useEffect(() => {
     if (!keyboardOpen) return;
     const frame = requestAnimationFrame(() => {
-      keyboardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      keyboardRef.current?.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
     });
     return () => cancelAnimationFrame(frame);
   }, [keyboardOpen]);

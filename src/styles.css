@@ -503,3 +503,13 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .alg-keyboard-actions button { padding-inline: 4px; }
 
 .alg-keyboard > p { margin-bottom: 8px; }
+
+/* 仅绘制层入场；布局立即就位，按键不等待动画结束。 */
+.alg-keyboard { animation: alg-keyboard-enter 170ms ease-out; }
+@keyframes alg-keyboard-enter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .alg-keyboard { animation: none; }
+}
