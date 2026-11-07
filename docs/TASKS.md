@@ -52,13 +52,6 @@
 - **验收：** `npm test`，测试覆盖顶视图和等轴视图的贴纸位置，以及和引擎坐标的一致性
 - **非目标：** 不改图解外观，不引入组件测试框架
 
-### T13 PLL 识别要点重写
-
-- **问题：** 这些 recognition 区分不了情形：7 条都是“只有一面车灯”（T、Ra、Rb、Ga、Gb、Gc、Gd），3 条都是“没有车灯，另有1面是完整色条”（F、Ja、Jb），4 条都是“没有车灯、没有色条”（V、Y、Na、Nb）。
-- **允许改：** `src/data/pll.ts`
-- **验收：** `npm run check:data`；对照图解和公认资料人工核对。重写或留空，不确定就留空
-- **非目标：** 不改 `id`、`algs`、`name`
-
 ### T14 其他公式组的识别要点（技术债）
 
 - **问题：** OLL 57 条都是模板化的状态描述，部分情形完全相同，如 OLL 5 和 OLL 8。F2L、CMLL、LSE 还没有 recognition。
@@ -86,3 +79,17 @@
 - **允许改：** `src/styles.css`
 - **验收：** 在 1280 像素以上的窗口逐页检查；`npm run build`
 - **非目标：** 不改手机布局
+
+### T18 PLL 特征提取写成测试
+
+- **问题：** T13 的 recognition 是照临时脚本的结果手写的，脚本没提交。以后改引擎、改 `algs[0]` 或改显示规则，recognition 可能悄悄过期，没有测试会报。
+- **允许改：** `src/data/pll.test.ts`（新增）、`docs/tasks/T13.md`
+- **验收：** `npm test`、`npm run check:data`；测试从 `caseState` 提取车灯、色条、同色对等特征，断言 21 条的完整特征行互不相同，并与 recognition 的关键描述一致
+- **非目标：** 不改 `src/data/pll.ts` 的 `id`、`algs`、`name`，不放宽现有测试
+
+### T19 PLL 识别要点抽检
+
+- **问题：** T13 的特征由引擎推出，只保证和 `algs[0]` 一致，没有和外部资料比对过。
+- **允许改：** `src/data/pll.ts`（只改 `recognition`）、`docs/tasks/T13.md`
+- **验收：** 对照公开资料抽检 3–5 条 PLL（建议含 Aa/Ab、T、Ja/Jb 里的几条），结果记入 `docs/tasks/T13.md`；有出入的改正或留空
+- **非目标：** 不改 `id`、`algs`、`name`
