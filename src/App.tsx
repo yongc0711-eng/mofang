@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react';
-import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { formulaTabTarget, isFormulaPath } from './lib/nav';
+import { HashRouter, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { formulaTabTarget, isFormulaPath, shouldPopToFormula, tabLinkState } from './lib/nav';
 import { useScrollRestoration } from './lib/scrollRestoration';
 import { getUi, setUi } from './lib/uiState';
 import { CasePage } from './pages/CasePage';
@@ -52,7 +52,9 @@ const NAV = [
 ];
 
 function Nav() {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const navigate = useNavigate();
   // 公式组和详情页都属于“公式”这个 tab
   const inFormulas = isFormulaPath(pathname);
   // 返回栈（T53）：详情和三个 tab 页是“临时落脚点”，从它们出去用 replace，不留在历史里；
@@ -69,18 +71,28 @@ function Nav() {
     getUi<string | null>('lastFormulaPath', null),
     getUi<string | null>('lastCaseId', null),
   );
+  // 去搜索/练习/我的的链接带上“从哪个公式页出来的”（T55）
+  const tabState = tabLinkState(pathname, location.state);
+  // 在别的 tab 点“公式”：这条历史就是从要回的公式页 push 出来的，直接后退一步，
+  // 用 replace 会在历史里留下重复的一条，要按两次返回才能离开
+  const onFormulaClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (shouldPopToFormula(pathname, location.state, getUi<string | null>('lastFormulaPath', null))) {
+      event.preventDefault();
+      navigate(-1);
+    }
+  };
   // 其他路径都会显示首页，所以找不到时滑块停在“公式”
   const active = Math.max(0, NAV.findIndex((n) => pathname.startsWith(n.to)) + 1);
   return (
     <nav className="nav" aria-label="主导航">
       <span className="nav-brand">魔方公式</span>
       <span className="nav-thumb" aria-hidden="true" style={{ transform: `translateX(${active * 100}%)` }} />
-      <NavLink to={formulaTo} replace={!inFormulas || formulaTo === pathname} className={`nav-item ${inFormulas ? 'active' : ''}`}>
+      <NavLink to={formulaTo} replace={!inFormulas || formulaTo === pathname} className={`nav-item ${inFormulas ? 'active' : ''}`} onClick={onFormulaClick}>
         {ICONS.formulas}
         <span>公式</span>
       </NavLink>
       {NAV.map((n) => (
-        <NavLink key={n.to} to={n.to} replace={inCase || inTab} className="nav-item">
+        <NavLink key={n.to} to={n.to} replace={inCase || inTab} className="nav-item" state={tabState}>
           {n.icon}
           <span>{n.label}</span>
         </NavLink>
