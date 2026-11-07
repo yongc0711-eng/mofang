@@ -1,3 +1,5 @@
+import { verifySetup, type PreparedSetup } from './practiceTarget';
+
 /**
  * 练习会话的计时状态机和持久化。
  *
@@ -31,6 +33,8 @@ export interface SessionQuestion {
   id: string;
   alg: string;
   scramble: string;
+  /** Absent means legacy: preserve stored setup, never infer its original bottom. */
+  prepared?: PreparedSetup;
 }
 
 export interface PracticeSession extends Timer {
@@ -111,7 +115,11 @@ export function parseSession(
   if (o.runningSince !== null && !isNum(o.runningSince)) return null;
   const session: PracticeSession = {
     poolIds,
-    question: { id: q.id, alg: q.alg, scramble: q.scramble },
+    question: { id: q.id, alg: q.alg, scramble: q.scramble,
+      ...(q.prepared && typeof q.prepared === 'object' &&
+        (q.prepared as PreparedSetup).scramble === q.scramble && verifySetup(q.prepared as PreparedSetup)
+        ? { prepared: q.prepared as PreparedSetup } : {}),
+    },
     phase: o.phase as SessionPhase,
     count: o.count,
     elapsedMs: o.elapsedMs,

@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { caseState, displayColors, displayMask, type Mask } from '../lib/cases';
-import { STICKERS, stickerAt, type Face, type Vec } from '../lib/cube';
+import { STICKERS, stickerAt, type Face, type Vec, type State } from '../lib/cube';
 import { displayFace, ollTopMask, type BottomColor } from '../store/devicePrefs';
 import { type AlgCase } from '../types';
 
@@ -114,6 +114,8 @@ interface Props {
   mask?: Mask | null;
   /** 底面颜色，换一套配色画；不传是白色（标准配色） */
   bottom?: BottomColor;
+  /** Practice only: validated actual terminal state, in observation coordinates. */
+  state?: Readonly<State>;
 }
 
 /**
@@ -125,16 +127,17 @@ export function diagramColors(
   c: Pick<AlgCase, 'set' | 'algs' | 'group'>,
   mask?: Mask | null,
   bottom: BottomColor = 'white',
+  state?: Readonly<State>,
 ): (Face | null)[] {
   const chosen = mask ?? (c.set === 'oll' ? ollTopMask : null);
-  if (!chosen && bottom === 'white') return displayColors(c);
+  if (!state && !chosen && bottom === 'white') return displayColors(c);
   const m = chosen ?? displayMask(c);
-  return caseState(c).map((id) => (m(id) ? displayFace(id, bottom) : null));
+  return (state ?? caseState(c)).map((id) => (m(id) ? displayFace(id, bottom) : null));
 }
 
 /** 情形图解。纯由公式推导，不需要任何图片素材 */
-export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom }: Props) {
-  const colors = diagramColors(c, mask, bottom);
+export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom, state }: Props) {
+  const colors = diagramColors(c, mask, bottom, state);
   const View = view === 'top' ? TopView : view === 'iso' ? IsoView : LseView;
   return (
     <div className="diagram">

@@ -18,6 +18,10 @@ import {
   type Timer,
 } from '../lib/practiceSession';
 import { createWakeLock, type ScreenWakeLock } from '../lib/wakeLock';
+import { sampleTarget } from '../lib/practiceSample';
+import { prepareSetup } from '../lib/prepareSetup';
+import { type PreparedSetup } from '../lib/practiceTarget';
+import { practiceInstructions } from '../lib/practiceInstructions';
 import { setupText } from '../lib/setupText';
 import { useDevicePrefs } from '../store/devicePrefs';
 import {
@@ -53,6 +57,8 @@ interface Question {
   c: AlgCase;
   alg: string;
   scramble: string;
+  prepared?: PreparedSetup;
+  fromSession?: boolean;
 }
 
 export function PracticePage() {
@@ -196,16 +202,40 @@ function Session({
   const prefs = useDevicePrefs();
   const userRef = useRef(user);
   userRef.current = user;
-  const [question, setQuestion] = useState<Question | null>(() => {
+  const [requested, setQuestion] = useState<Question | null>(() => {
     const base = restore && getCase(restore.question.id);
     if (!restore || !base) return null;
-    // 从 id + alg 重建图解用的 view；旧会话的 scramble 是按 algs[0] 生成的，
-    // alg 不是 algs[0] 时要按 view 重算，否则和图解对不上（T33）
-    const { alg } = restore.question;
-    if (alg === base.algs[0]) return { c: base, alg, scramble: restore.question.scramble };
-    const { view, scramble } = practiceViewFor(base, alg);
-    return { c: view, alg, scramble: view === base ? restore.question.scramble : scramble };
+    // Keep the stored string and timer, including legacy sessions with unknown original bottom.
+    const { alg, prepared } = restore.question;
+    if (alg === base.algs[0]) return { c: base, alg, scramble: restore.question.scramble, prepared, fromSession: true };
+    const { view } = practiceViewFor(base, alg);
+    const scramble = prepared?.scramble ?? restore.question.scramble;
+    return { c: view, alg, scramble: view === base ? restore.question.scramble : scramble, prepared, fromSession: true };
   });
+  const [question, setReadyQuestion] = useState<Question | null>(requested);
+  const [preparationError, setPreparationError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    if (!requested || requested.fromSession) return;
+    const controller = new AbortController();
+    setReadyQuestion(null);
+    setPreparationError('');
+    // Snapshot bottom per request. A settings change never recolors an already generated setup.
+    const bottom = prefs.bottomColor;
+    try {
+      const sample = sampleTarget(requested.c, requested.scramble);
+      void prepareSetup(sample.state, bottom, controller.signal).then((prepared) => {
+        if (!controller.signal.aborted) setReadyQuestion({ ...requested, scramble: prepared.scramble, prepared });
+      }).catch((error: unknown) => {
+        if (!controller.signal.aborted) setPreparationError(error instanceof Error ? error.message : '准备失败');
+      });
+    } catch (error) {
+      setPreparationError(error instanceof Error ? error.message : '准备失败');
+    }
+    return () => controller.abort();
+    // Only a new request or explicit retry generates a target, not palette/store subscriptions.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requested, attempt]);
   // 同一文档恢复的 running 会话继续走（用时包含离开的时间）；重载或冷启动恢复的是 paused，点屏幕才继续
   const [timer, setTimer] = useState<Timer>(
     restore ? { phase: restore.phase, elapsedMs: restore.elapsedMs, runningSince: restore.runningSince } : IDLE,
@@ -250,6 +280,7 @@ function Session({
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
     const { view, scramble } = practiceViewFor(c, alg);
+    setReadyQuestion(null);
     setQuestion({ c: view, alg, scramble });
     setTimer(IDLE);
   }, [pool]);
@@ -283,7 +314,7 @@ function Session({
       if (endedRef.current || !q) return;
       saveSession({
         poolIds,
-        question: { id: q.c.id, alg: q.alg, scramble: q.scramble },
+        question: { id: q.c.id, alg: q.alg, scramble: q.scramble, ...(q.prepared ? { prepared: q.prepared } : {}) },
         count: n,
         ...t,
         savedAt: Date.now(),
@@ -367,8 +398,15 @@ function Session({
     return () => window.removeEventListener('keydown', onKey);
   }, [advance]);
 
-  if (!question) return null;
-  const { c, alg, scramble } = question;
+  if (!question) return (
+    <div className="practice">
+      <button className="back" onClick={finish}>‹ 结束</button>
+      <p role={preparationError ? 'alert' : 'status'}>{preparationError ? '准备失败：' + preparationError : '正在准备训练打乱…'}</p>
+      {preparationError && <button className="btn" onClick={() => setAttempt((n) => n + 1)}>重试</button>}
+    </div>
+  );
+  const { c, alg, scramble, prepared } = question;
+  const bottom = prepared?.bottom ?? prefs.bottomColor;
   const set = getSet(c.set)!;
   const stats = timeStats(c.id, user);
   const hint =
@@ -434,17 +472,22 @@ function Session({
         }}
       >
         <div className="practice-case">
-          <CaseDiagram c={c} view={set.view} bottom={prefs.bottomColor} />
+          {prepared
+            ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} />
+            : <CaseDiagram c={c} view={set.view} bottom={prefs.bottomColor} />}
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
             <p className="muted small">{set.name} · {c.group}</p>
           </div>
         </div>
         <p className="practice-scramble">
+          {!prepared && <span className="muted small">旧版会话：原底色未知，以下是旧版参考说明与图解；保留原题及计时，新题使用求解器。</span>}
           <span className="muted small">摆出情形（setup）</span>
           <code className="alg">{scramble || '（已还原）'}</code>
-          <span className="muted small">{setupText(prefs.bottomColor)}</span>
-          <span className="muted small">定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。</span>
+          <span className="muted small">{prepared
+            ? practiceInstructions(prepared)
+            : setupText(prefs.bottomColor)}</span>
+          <span className="muted small">{prepared ? '训练打乱由目标状态求解生成；图解显示本题实际终态，不是 WCA 随机打乱。' : '定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。'}</span>
         </p>
         <div className="practice-time" aria-live="off">
           {formatTime(elapsed)}
