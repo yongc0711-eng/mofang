@@ -15,6 +15,8 @@
 
 下面的任务本轮只登记，都还没修。
 
+并行限制：T8 与 T13 可以同时开；T9/T10/T11 都改 cases.ts、CasePage.tsx、userStore.ts、practice.ts 这一批文件，等 T8 合并后串行。
+
 ### T8 备选和自定义公式没查 allowedBases
 
 - **问题：** `lintCase` 只校验 `algs[0]`，LSE 的备选公式和用户自定义公式没有检查 `allowedBases`。
