@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
+import { caseMask, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { useScrollTop } from '../lib/uiState';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
-import { algSolvesCase, displayMask, lintCaseAlg, viewCaseFor } from '../lib/cases';
+import { algSolvesCase, lintCaseAlg, viewCaseFor } from '../lib/cases';
 import {
   STATUS_LABEL,
   addCustomAlg,
@@ -35,9 +35,13 @@ export function CasePage() {
   const prefs = useDevicePrefs();
   const caseSet = c?.set;
   const caseGroup = c?.group;
+  // 2D 图解和 3D 播放器共用同一个 mask；OLL 按“我的”里的识别视图，其他组按“只看相关的块”
   const mask = useMemo(
-    () => (prefs.focusRelevant && caseSet && caseGroup !== undefined ? displayMask({ set: caseSet, group: caseGroup }) : null),
-    [prefs.focusRelevant, caseSet, caseGroup],
+    () =>
+      caseSet && caseGroup !== undefined
+        ? caseMask({ set: caseSet, group: caseGroup }, { ollView: prefs.ollView, focusRelevant: prefs.focusRelevant })
+        : null,
+    [prefs.ollView, prefs.focusRelevant, caseSet, caseGroup],
   );
   const [draft, setDraft] = useState('');
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
@@ -141,7 +145,7 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={viewCase} view={set.view} />
+        <CaseDiagram c={viewCase} view={set.view} mask={mask} />
         <div>
           <h1 className="page-title">{c.name}</h1>
           <p className="muted">
@@ -160,13 +164,16 @@ export function CasePage() {
       <div className="case-layout">
         <div className="case-player">
           <CubePlayer alg={playing} autoPlay={false} mask={mask} finish={prefs.finish} />
-          <button
-            className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
-            aria-pressed={prefs.focusRelevant}
-            onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
-          >
-            只看相关的块
-          </button>
+          {/* OLL 的显示范围由“我的”里的识别视图决定，这个开关对它没有作用，就不显示 */}
+          {c.set !== 'oll' && (
+            <button
+              className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
+              aria-pressed={prefs.focusRelevant}
+              onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
+            >
+              只看相关的块
+            </button>
+          )}
         </div>
         <div className="case-side">
           <div className="segmented" role="group" aria-label="学习状态">

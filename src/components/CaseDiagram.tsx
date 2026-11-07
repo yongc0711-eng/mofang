@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { displayColors } from '../lib/cases';
+import { caseState, displayColors, type Mask } from '../lib/cases';
 import { STICKERS, stickerAt, type Face, type Vec } from '../lib/cube';
 import { type AlgCase } from '../types';
 
@@ -109,11 +109,19 @@ export function LseView({ colors }: { colors: (Face | null)[] }) {
 interface Props {
   c: Pick<AlgCase, 'set' | 'algs' | 'group'>;
   view: 'top' | 'iso' | 'lse';
+  /** 哪些贴纸显示颜色，其余画成灰色（和 3D 播放器的 mask 同一个）。不传或 null 用该组默认的显示规则 */
+  mask?: Mask | null;
+}
+
+/** 每个位置该显示的颜色。有 mask 就按 mask，否则按该组默认的显示规则 */
+export function diagramColors(c: Pick<AlgCase, 'set' | 'algs' | 'group'>, mask?: Mask | null): (Face | null)[] {
+  if (!mask) return displayColors(c);
+  return caseState(c).map((id) => (mask(id) ? STICKERS[id].face : null));
 }
 
 /** 情形图解。纯由公式推导，不需要任何图片素材 */
-export const CaseDiagram = memo(function CaseDiagram({ c, view }: Props) {
-  const colors = displayColors(c);
+export const CaseDiagram = memo(function CaseDiagram({ c, view, mask }: Props) {
+  const colors = diagramColors(c, mask);
   const View = view === 'top' ? TopView : view === 'iso' ? IsoView : LseView;
   return (
     <div className="diagram">
