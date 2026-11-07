@@ -493,6 +493,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 公式输入辅助键盘：六列与三种转法，沿用全局焦点和深浅色变量。 */
 .alg-keyboard-toggle { margin-top: 8px; min-height: 40px; }
+.alg-keyboard-wrap { scroll-margin-bottom: calc(76px + env(safe-area-inset-bottom)); }
 .alg-keyboard { margin-top: 8px; padding: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); }
 .alg-keyboard-moves { display: grid; grid-template-columns: repeat(6, minmax(32px, 1fr)); gap: 6px; }
 .alg-keyboard button { min-height: 40px; min-width: 32px; padding: 6px 4px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }

@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
 import { useScrollTop } from '../lib/uiState';
@@ -51,6 +51,15 @@ export function CasePage() {
   const [draft, setDraft] = useState('');
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const keyboardId = useId();
+  const keyboardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!keyboardOpen) return;
+    const frame = requestAnimationFrame(() => {
+      keyboardRef.current?.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [keyboardOpen]);
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
 
   const primary = c ? primaryAlgOf(c, user) : '';
@@ -249,14 +258,16 @@ export function CasePage() {
             {keyboardOpen ? '收起公式键盘' : '公式键盘'}
           </button>
           {keyboardOpen && (
-            <AlgKeyboard
-              id={keyboardId}
-              empty={draft.length === 0}
-              onEdit={(edit) => {
-                setDraft((current) => editAlgDraft(current, edit));
-                setMessage(null);
-              }}
-            />
+            <div ref={keyboardRef} className="alg-keyboard-wrap">
+              <AlgKeyboard
+                id={keyboardId}
+                empty={draft.length === 0}
+                onEdit={(edit) => {
+                  setDraft((current) => editAlgDraft(current, edit));
+                  setMessage(null);
+                }}
+              />
+            </div>
           )}
           {message && (
             <p className={`form-msg form-${message.kind}`}>
