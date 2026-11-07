@@ -26,6 +26,12 @@ export function HomePage() {
         <p className="muted small">
           共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
         </p>
+        {/* 只是提示，切换控件在「我的」里；底色逻辑不在这里（T50） */}
+        <p className="home-hint">
+          <Link to="/me" className="home-hint-link">
+            想换魔方底色？到「我的」里切换 <span aria-hidden="true">›</span>
+          </Link>
+        </p>
       </header>
       {METHODS.map((m) => (
         <section key={m.id} className="method">
