@@ -46,5 +46,5 @@ git 报 dubious ownership 时，用 `git -c safe.directory=D:/allwork/mofang ...
 
 ## 分工
 
-- **Opus**：架构、魔方引擎、校验规则、部署，以及校验器报出的疑难问题。
-- **Sonnet**：照样板录入数据、做功能页面、打磨界面。
+- **Lead**：架构、魔方引擎、校验规则、部署、审查与合并，维护 `docs/TASKS.md`。
+- **Codex**：按任务实现、跑门禁、写 `docs/tasks/<id>.md`；交付时不合并、不 push。
