@@ -7,31 +7,32 @@ const { readFileSync } = (await import(/* @vite-ignore */ fsModule)) as {
   readFileSync(path: URL, encoding: 'utf8'): string;
 };
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
-const rule = (sel: string) => css.match(new RegExp(`^${sel.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'm'))?.[1] ?? '';
 
-describe('T50 首页的“底色可切换”提示', () => {
-  it('文案存在：想换魔方底色？点顶部的「配色」', () => {
-    expect(homeSource).toContain('想换魔方底色？点顶部的「配色」');
+describe('T50 首页“底色可切换”提示已在 2026-11-08 按用户要求删除', () => {
+  it('不再出现提示文案', () => {
+    expect(homeSource).not.toContain('想换魔方底色');
+    expect(homeSource).not.toContain('home-hint');
   });
 
-  it('精确指向首页唯一顶部配色入口', () => {
-    expect(homeSource).toContain("document.getElementById('browse-colors')?.click()");
-    expect(homeSource).toMatch(/<button type="button" className="home-hint-link"/);
+  it('顶部唯一入口仍是首页共用的 FormulaColors，没有旧提示按钮或“我的”链接', () => {
     expect(homeSource.match(/<FormulaColors \/>/g)).toHaveLength(1);
     expect(homeSource).not.toContain('<FormulaColors method={m.id} />');
+    expect(homeSource).not.toContain('document.getElementById');
     expect(homeSource).not.toContain('to="/me"');
   });
 
-  it('位置：在标题和公式计数之后、方法/课程卡之前，且在 header 里', () => {
+  it('位置：标题、计数、配色入口、搜索框依次在 header 内，之后才是方法/课程卡', () => {
     const title = homeSource.indexOf('魔方公式</h1>');
     const count = homeSource.indexOf('已掌握 {mastered} 条');
-    const hint = homeSource.indexOf('home-hint-link');
+    const entry = homeSource.indexOf('<FormulaColors />');
+    const search = homeSource.indexOf('aria-label="搜索公式"');
     const headEnd = homeSource.indexOf('</header>');
     const cards = homeSource.indexOf('METHODS.map');
     expect(title).toBeGreaterThan(0);
     expect(title).toBeLessThan(count);
-    expect(count).toBeLessThan(hint);
-    expect(hint).toBeLessThan(headEnd);
+    expect(count).toBeLessThan(entry);
+    expect(entry).toBeLessThan(search);
+    expect(search).toBeLessThan(headEnd);
     expect(headEnd).toBeLessThan(cards);
   });
 
@@ -41,16 +42,8 @@ describe('T50 首页的“底色可切换”提示', () => {
     expect(homeSource).toContain('viewForPrimary(cover, primaryAlgOf(cover, user))');
   });
 
-  it('触控目标 ≥ 32px，颜色用变量，不写死宽度（320 宽不横向撑开）', () => {
-    const link = rule('.home-hint-link');
-    expect(link).not.toBe('');
-    expect(Number(link.match(/min-height:\s*(\d+)px/)?.[1])).toBeGreaterThanOrEqual(32);
-    expect(link).toContain('display: inline-flex');
-    expect(link).toContain('color: var(--accent)');
-    expect(link).toContain('max-width: 100%');
-    expect(link).toContain('overflow-wrap: anywhere');
-    expect(link).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgb\(/);
-    expect(link).not.toMatch(/(^|[;\s])(min-)?width:\s*\d+px/);
-    expect(css.match(/--accent:/g)!.length).toBeGreaterThanOrEqual(2); // 浅色 + 深色都有定义
+  it('旧提示的样式已删除，顶部入口仍保留 44px 触控高度', () => {
+    expect(css).not.toContain('.home-hint');
+    expect(css).toContain('.color-dialog-entry { min-height: 44px; }');
   });
 });

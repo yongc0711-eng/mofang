@@ -244,11 +244,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .home-head { margin-bottom: 12px; }
 .home-head .page-title { margin-bottom: 2px; font-size: var(--fs-title); font-weight: 600; line-height: 1.25; }
 .home-head .small { font-size: var(--fs-meta); }
-.home-hint-link {
-  display: inline-flex; align-items: center; gap: 4px; min-height: 32px; max-width: 100%;
-  padding: 4px 12px 4px 0; font-size: var(--fs-meta); color: var(--accent); overflow-wrap: anywhere;
-}
-.home-hint-link:active { opacity: 0.7; }
 .method { margin-bottom: 16px; }
 .method:last-child { margin-bottom: 0; }
 .method-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 24px; margin-bottom: 6px; }
@@ -610,7 +605,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .formula-pairs { display: flex; gap: 8px; flex-wrap: wrap; }
 .formula-color-grid button { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .formula-colors-panel button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
-button.home-hint-link { background: none; border: 0; padding: 0; text-align: left; min-height: 44px; }
 
 /* T60b settings only; no change to the timer pad or detail player budgets. */
 .practice-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

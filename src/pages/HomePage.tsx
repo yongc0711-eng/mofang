@@ -34,11 +34,6 @@ export function HomePage() {
           共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
         </p>
         <FormulaColors />
-        <p className="home-hint">
-          <button type="button" className="home-hint-link" onClick={() => document.getElementById('browse-colors')?.click()}>
-            想换魔方底色？点顶部的「配色」 <span aria-hidden="true">›</span>
-          </button>
-        </p>
         <input
           className="search-input"
           type="search"
