@@ -670,3 +670,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
   [data-cards="a"] .method .set-card:hover { background: var(--surface-2); }
   [data-cards="b"] .method .set-card:hover { background: var(--surface); }
 }
+
+/* T64 follow-up: method names stand alone in all opt-in directions. */
+[data-cards] .method .method-head > .small { display: none; }
