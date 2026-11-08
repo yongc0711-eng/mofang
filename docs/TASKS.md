@@ -46,7 +46,7 @@
 - [UI-home](tasks/UI-home.md) 首页 UI 重做试点：用户看过方向 A 后选定方向 C（分组面板），实现提交 `a8ac4e8`，fast-forward 合并。只改首页样式，底栏和其他页没动。`npm test` 3396 / `check:data` 393 / `build` 通过。
 - [T57](tasks/T57.md) 首页顶部搜索框与结果区：复用 SearchPage 的匹配逻辑抽到 `src/lib/search.ts`，首页显示结果计数、CaseCard 或无结果提示；旧 `/search` 与底栏搜索 tab 未动。收尾 rebase 到 `ae03af8`，补 320×640 无头 Edge 实测（scrollWidth 320 = clientWidth，结果卡宽 288 单列），3422/393/build 通过，合并 `c4ea962`。
 - [T59](tasks/T59.md) 练习完成后的 2D 图改用主公式的 canonical view，与公式详情页同向；训练中仍显示本题实际目标，未改 `sampleTarget`/`scrambleFor`/`prepareSetup`/求解/3D。fast-forward 合并 main `830fb1c`，3409/393/build 通过。
-- [T58](tasks/T58.md) 首页保留 T57 搜索；`/search` 改为纯试转页（底栏“试转”），3×3 主键 R U F / L D B / x y z，「更多」切 r l u d f b / M E S，后缀只作用下一转，撤销/复原；复用 `CubeScene`、不走 Timeline，x/y/z 不 normalize。Codex 实现，Lead 复核并补 320×640 首屏遮挡修正（stage 220→180）；3450/393/build 通过，fast-forward 合并 main `47fca10`。
+- [T58](tasks/T58.md) 首页保留 T57 搜索；`/search` 改为纯试转页（底栏“试转”），3×3 主键 R U F / L D B / x y z，「更多」切 r l u d f b / M E S，后缀选中后锁定（点“无”或复原才清除），撤销/复原；复用 `CubeScene`、不走 Timeline，x/y/z 不 normalize，UV/普通面跟“我的 → 魔方表面”设置走。Codex 实现，Lead 复核并补 320×640 首屏遮挡修正（stage 220→180）；T58-fix 后缀锁定 + finish 同步 `e78e258`；3450/393/build 通过，fast-forward 合并 main `47fca10`、`e78e258`。
 
 ## 待确认（不建任务）
 
