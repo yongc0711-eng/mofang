@@ -330,7 +330,8 @@ describe('CasePage 和「我的」页的接线（T32）', () => {
     expect(mePageSource).not.toContain('aria-label="底面颜色"');
     expect(mePageSource).not.toContain('setDevicePrefs({ bottomColor:');
     expect(METHODS.map(({ id, name }) => ({ id, name }))).toEqual([{ id: 'cfop', name: 'CFOP' }, { id: 'roux', name: '桥式 Roux' }]);
-    expect(homeSource).toContain('<FormulaColors method={m.id} />');
+    expect(homeSource.match(/<FormulaColors \/>/g)).toHaveLength(1);
+    expect(homeSource).not.toContain('<FormulaColors method={m.id} />');
   });
 });
 

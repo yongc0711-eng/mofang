@@ -9,7 +9,7 @@ import { matches } from '../lib/search';
 const state = vi.hoisted(() => ({ query: '' }));
 vi.mock('react', async (original) => ({
   ...await original<typeof import('react')>(),
-  useState: () => [state.query, vi.fn()],
+  useState: (initial: unknown) => [initial === '' ? state.query : initial, vi.fn()],
 }));
 vi.mock('../store/userStore', async (original) => ({
   ...await original<typeof import('../store/userStore')>(),

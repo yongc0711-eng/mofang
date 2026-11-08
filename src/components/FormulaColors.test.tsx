@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { HomePage } from '../pages/HomePage';
-import { FormulaColors } from './FormulaColors';
+import { BrowseColorPanel, FormulaColors } from './FormulaColors';
 import { getDevicePrefs } from '../store/devicePrefs';
 import { browsePalette, FACE_COLOR, rouxPalette } from '../lib/colorScheme';
 import { getCase } from '../data';
@@ -20,18 +20,18 @@ vi.mock('react',async original=>({...await original<typeof import('react')>(),us
 vi.mock('../store/devicePrefs',async original=>{const actual=await original<typeof import('../store/devicePrefs')>();return {...actual,useDevicePrefs:()=>actual.getDevicePrefs()};});
 vi.mock('../store/userStore', async original => ({ ...await original<typeof import('../store/userStore')>(), useUserData: () => ({ version: 1, cases: {} }) }));
 it('CFOP panel has exactly six bottom selectors and no bridge controls',()=>{
-  const html=renderToStaticMarkup(createElement(FormulaColors,{method:'cfop'}));
-  expect(html).toContain('id="colors-cfop"');expect(html).toContain('aria-expanded="true"');
+  const html=renderToStaticMarkup(createElement(BrowseColorPanel,{method:'cfop'}));
+  expect(html).toContain('CFOP 浏览配色');
   expect(html.match(/aria-label="底面/g)).toHaveLength(6);expect(html).not.toContain('交换左右');
 });
 it('Roux panel shows exactly two legal pairs, stable left/right summary and swap button',()=>{
-  const html=renderToStaticMarkup(createElement(FormulaColors,{method:'roux'}));
-  expect(html).toContain('id="colors-roux"');expect(html.match(/桥<\/button>/g)).toHaveLength(2);
+  const html=renderToStaticMarkup(createElement(BrowseColorPanel,{method:'roux'}));
+  expect(html).toContain('桥式 Roux 浏览配色');expect(html.match(/桥<\/button>/g)).toHaveLength(2);
   expect(html).toContain('红 / 橙桥');expect(html).toContain('绿 / 蓝桥');expect(html).toContain('左红 · 右橙');
   expect(html).toContain('aria-label="交换左右桥色"');
 });
 it('closed panel retains accessible method entry and does not mount controls',()=>{
-  ui.open=false;const html=renderToStaticMarkup(createElement(FormulaColors,{method:'roux'}));ui.open=true;
+  ui.open=false;const html=renderToStaticMarkup(createElement(FormulaColors));ui.open=true;
   expect(html).toContain('aria-expanded="false"');expect(html).not.toContain('浏览桥色对');
 });
 it('2D 54 colors use the explicit palette shared with 3D, including swapped direction',()=>{
@@ -52,11 +52,12 @@ it('sandbox is explicitly fixed and no longer subscribes its drawing to legacy b
   const prefs=getDevicePrefs();expect(FACE_COLOR[browsePalette({set:'oll'},prefs).D]).toBe(prefs.cfop.bottomColor);
 });
 
-it('home mounts exactly the CFOP and Roux operable button entries, not detail or group duplicates', () => {
+it('home mounts exactly one browse entry before the methods, with no method entry duplicates', () => {
+  ui.open=false;
   const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(HomePage)));
-  for (const method of ['cfop', 'roux']) {
-    expect(html.match(new RegExp(`id="colors-${method}"`, 'g'))).toHaveLength(1);
-    expect(html).toContain(`aria-label="${method === 'cfop' ? 'CFOP' : 'Roux'} 配色" aria-expanded="true"`);
-  }
-  expect(html.match(/class="formula-colors"/g)).toHaveLength(2);
+  ui.open=true;
+  expect(html.match(/id="browse-colors"/g)).toHaveLength(1);
+  expect(html).toContain('aria-label="浏览配色" aria-haspopup="dialog" aria-expanded="false"');
+  expect(html).not.toContain('id="colors-cfop"');expect(html).not.toContain('id="colors-roux"');
+  expect(html).not.toContain('role="dialog"');
 });

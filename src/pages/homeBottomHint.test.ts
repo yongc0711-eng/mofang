@@ -10,14 +10,15 @@ const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const rule = (sel: string) => css.match(new RegExp(`^${sel.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'm'))?.[1] ?? '';
 
 describe('T50 首页的“底色可切换”提示', () => {
-  it('文案存在：想换魔方底色？点方法标题旁的「配色」', () => {
-    expect(homeSource).toContain('想换魔方底色？点方法标题旁的「配色」');
+  it('文案存在：想换魔方底色？点顶部的「配色」', () => {
+    expect(homeSource).toContain('想换魔方底色？点顶部的「配色」');
   });
 
-  it('精确指向首页 CFOP 配色入口，且两方法标题都接共享入口', () => {
-    expect(homeSource).toContain("document.getElementById('colors-cfop')?.click()");
+  it('精确指向首页唯一顶部配色入口', () => {
+    expect(homeSource).toContain("document.getElementById('browse-colors')?.click()");
     expect(homeSource).toMatch(/<button type="button" className="home-hint-link"/);
-    expect(homeSource).toContain('<FormulaColors method={m.id} />');
+    expect(homeSource.match(/<FormulaColors \/>/g)).toHaveLength(1);
+    expect(homeSource).not.toContain('<FormulaColors method={m.id} />');
     expect(homeSource).not.toContain('to="/me"');
   });
 

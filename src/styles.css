@@ -605,15 +605,11 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 }
 
 /* 方法配色入口与内联面板；不改变详情播放器的高度预算。 */
-.method-head:has(.formula-colors) { flex-wrap: wrap; }
-.formula-colors { min-width: 0; }
-.formula-colors:has(.formula-colors-panel) { flex-basis: 100%; }
 .formula-colors-panel { background: var(--surface); padding: 12px; margin-top: 8px; border-radius: 8px; }
 .formula-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .formula-pairs { display: flex; gap: 8px; flex-wrap: wrap; }
-.formula-colors button { min-height: 44px; }
 .formula-color-grid button { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
-.formula-colors button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.formula-colors-panel button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 button.home-hint-link { background: none; border: 0; padding: 0; text-align: left; min-height: 44px; }
 
 /* T60b settings only; no change to the timer pad or detail player budgets. */
@@ -622,3 +618,14 @@ button.home-hint-link { background: none; border: 0; padding: 0; text-align: lef
 .practice-colors button, .practice-bridge-pools button { min-height: 44px; min-width: 0; }
 .practice-color-grid button { display: flex; justify-content: center; align-items: center; gap: 4px; }
 .practice-colors button[aria-pressed="true"], .practice-bridge-pools button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+
+/* T61: portaled overlay never contributes to page/player height. */
+.color-dialog-entry { min-height: 44px; }
+.color-dialog-overlay { position: fixed; inset: 0; z-index: 100; background: rgb(0 0 0 / 0.45); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.color-dialog { width: 100%; max-width: 480px; max-height: calc(100dvh - 32px); overflow-y: auto; min-width: 0; padding: 16px; background: var(--surface); color: var(--text); border-radius: 14px; box-shadow: 0 10px 36px rgb(0 0 0 / 0.2); }
+.color-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.color-dialog-head h2 { margin: 0; }
+.color-dialog button { min-height: 44px; min-width: 44px; }
+.color-dialog-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.color-dialog-tabs [aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+.color-dialog .formula-colors-panel { padding: 0; margin: 0; }

@@ -1,3 +1,4 @@
+import practicePanelSource from '../components/PracticeColorsDialog.tsx?raw';
 import { expect, it } from 'vitest';
 import practiceSource from './PracticePage.tsx?raw';
 import formulaSource from '../components/FormulaColors.tsx?raw';
@@ -7,14 +8,16 @@ import { initializeColorPools, togglePoolBottom } from '../lib/practiceColors';
 const prefs = { cfop: { bottomColor: 'blue' as const }, roux: { bottomColor: 'red' as const, bridgePair: 'white-yellow' as const, leftColor: 'white' as const } };
 
 it('T60b renders both method six-color multiselects and explicit complete-color explanation', () => {
-  expect(practiceSource).toContain("{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}");
-  expect(practiceSource).toContain('className="practice-color-grid" role="group" aria-label={`${method} 练习底色`}');
-  expect(practiceSource).toContain('BOTTOM_COLORS.map(color =>');
-  expect(practiceSource).toContain("aria-pressed={(method === 'cfop' ? cfopBottoms : rouxBottoms).includes(color)}");
-  expect(practiceSource).toContain('togglePoolBottom(current, method, color)');
-  expect(practiceSource).toContain('每题按所属方法随机一个已选完整配色');
-  expect(practiceSource).toContain('validPairs(bottom).map(pair =>');
-  expect(practiceSource).toContain('aria-pressed={rouxPairsByBottom[bottom]!.includes(pair)}');
+  expect(practicePanelSource).toContain("{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}");
+  expect(practicePanelSource).toContain('className="practice-color-grid" role="group" aria-label={`${method} 练习底色`}');
+  expect(practicePanelSource).toContain('BOTTOM_COLORS.map(color =>');
+  expect(practicePanelSource).toContain("aria-pressed={(method === 'cfop' ? cfopBottoms : rouxBottoms).includes(color)}");
+  expect(practicePanelSource).toContain('togglePoolBottom(current, method, color)');
+  expect(practiceSource.match(/<PracticeColorsDialog colorPools=\{colorPools\} onChange=\{setColorPools\} \/>/g)).toHaveLength(1);
+  expect(practiceSource).not.toContain('className="practice-color-grid"');
+  expect(practicePanelSource).toContain('每题按所属方法随机一个已选完整配色');
+  expect(practicePanelSource).toContain('validPairs(bottom).map(pair =>');
+  expect(practicePanelSource).toContain('aria-pressed={rouxPairsByBottom[bottom]!.includes(pair)}');
 });
 it('T60b actual toggle implementation adds/removes each method independently and always retains one', () => {
   const original = initializeColorPools({}, prefs);
@@ -70,7 +73,7 @@ it('T60b diagrams use the frozen complete palette while v1/fallback bottom and w
   expect(practiceSource).toContain('旧版会话：原底色未知');
 });
 it('T52 FormulaColors and PracticePage reuse one complete label/color-variable definition', () => {
-  for (const source of [practiceSource, formulaSource]) {
+  for (const source of [practicePanelSource, formulaSource]) {
     expect(source).toContain("import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames'");
     expect(source).not.toMatch(/const COLOR_(?:LABEL|VAR)\s*:/);
   }

@@ -1,5 +1,5 @@
-import { initializeColorPools, snapshotPools, togglePoolBottom, togglePoolPair, pickPracticeColors, colorBottom, paletteFor, type PracticeColors, type PracticeColorPools } from '../lib/practiceColors';
-import { PAIRS, validPairs, type Palette } from '../lib/colorScheme';
+import { initializeColorPools, snapshotPools, pickPracticeColors, colorBottom, paletteFor, type PracticeColors, type PracticeColorPools } from '../lib/practiceColors';
+import { type Palette } from '../lib/colorScheme';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
@@ -26,8 +26,8 @@ import { prepareSetup } from '../lib/prepareSetup';
 import { type PreparedSetup } from '../lib/practiceTarget';
 import { practiceInstructions } from '../lib/practiceInstructions';
 import { setupText } from '../lib/setupText';
-import { BOTTOM_COLORS, useDevicePrefs, type BottomColor } from '../store/devicePrefs';
-import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
+import { useDevicePrefs, type BottomColor } from '../store/devicePrefs';
+import { PracticeColorsDialog } from '../components/PracticeColorsDialog';
 import {
   STATUS_LABEL,
   addTime,
@@ -140,6 +140,7 @@ export function PracticePage() {
   return (
     <div className="page">
       <h1 className="page-title">练习</h1>
+      <PracticeColorsDialog colorPools={colorPools} onChange={setColorPools} />
 
       <h2>公式组</h2>
       <div className="chips" role="group" aria-label="选择公式组">
@@ -150,33 +151,6 @@ export function PracticePage() {
         ))}
       </div>
       <p className="muted small">不选就是全部公式组</p>
-
-      {(['cfop', 'roux'] as const).map(method => (
-        <section className="practice-colors" key={method}>
-          <h2>{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}</h2>
-          <div className="practice-color-grid" role="group" aria-label={`${method} 练习底色`}>
-            {BOTTOM_COLORS.map(color => <button type="button" key={color}
-              className="chip" aria-pressed={(method === 'cfop' ? cfopBottoms : rouxBottoms).includes(color)}
-              aria-label={`${method} 练习底色${COLOR_LABEL[color]}色`}
-              onClick={() => setColorPools(current => togglePoolBottom(current, method, color))}>
-              <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />{COLOR_LABEL[color]}
-            </button>)}
-          </div>
-        </section>
-      ))}
-      <div className="practice-bridge-pools">
-        {rouxBottoms.map(bottom => <section key={bottom}>
-          <h3>{COLOR_LABEL[bottom]}底桥色</h3>
-          <div className="practice-pair-grid" role="group" aria-label={`${COLOR_LABEL[bottom]}底桥色`}>
-            {validPairs(bottom).map(pair => <button type="button" className="chip" key={pair}
-              aria-pressed={rouxPairsByBottom[bottom]!.includes(pair)}
-              onClick={() => setColorPools(current => togglePoolPair(current, bottom, pair))}>
-              {PAIRS[pair].map(c => COLOR_LABEL[c]).join(' / ')}桥
-            </button>)}
-          </div>
-        </section>)}
-      </div>
-      <p className="muted small">可多选；每题按所属方法随机一个已选完整配色。Roux 两个左右方向都包含；新增底色会带入上方显示的默认桥对，每底至少一对。</p>
 
       <div className={picked.length ? 'scope-off' : ''}>
         {/* 分组只有在单个公式组里才有意义，多个组混在一起时标签太多 */}
