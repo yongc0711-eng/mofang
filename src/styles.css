@@ -676,7 +676,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* T64 opt-in color study: ?cards=a|b|c&tone=mist. No cube or global tokens change. */
 [data-cards][data-card-tone="mist"] {
-  --cards-bg: #f3f5f8;
   --cards-surface: #ffffff;
   --cards-surface-2: #e9edf3;
   --cards-text: #252b35;
@@ -684,7 +683,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
   --cards-border: #dce2ea;
   --cards-accent: #596b91;
   --cards-accent-soft: #e7ecf5;
-  background: var(--cards-bg);
 }
 [data-card-tone="mist"] .method {
   --surface: var(--cards-surface);
@@ -700,7 +698,6 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 [data-card-tone="mist"] .method .progress > div { background: var(--accent); }
 @media (prefers-color-scheme: dark) {
   [data-cards][data-card-tone="mist"] {
-    --cards-bg: #171b22;
     --cards-surface: #202630;
     --cards-surface-2: #303a49;
     --cards-text: #e7ebf2;
