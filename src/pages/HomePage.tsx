@@ -1,7 +1,8 @@
 import { FormulaColors } from '../components/FormulaColors';
 import { browsePalette } from '../lib/colorScheme';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { homeCards } from '../lib/homeCards';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
@@ -21,13 +22,15 @@ const COVER: Record<SetId, string> = {
 
 export function HomePage() {
   const [q, setQ] = useState('');
+  const [params] = useSearchParams();
+  const cards = homeCards(params.get('cards') ?? (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('cards')));
   const user = useUserData();
   const query = q.trim();
   const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   return (
-    <div className="page">
+    <div className="page" data-cards={cards}>
       <header className="home-head">
         <h1 className="page-title">魔方公式</h1>
         <p className="muted small">
