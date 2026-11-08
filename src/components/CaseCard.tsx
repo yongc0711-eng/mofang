@@ -1,3 +1,4 @@
+import { browsePalette } from '../lib/colorScheme';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getSet } from '../data';
@@ -32,6 +33,7 @@ export function practiceViewFor(c: AlgCase, alg: string, rand?: () => number): {
 export function CaseCard({ c }: { c: AlgCase }) {
   const user = useUserData();
   const prefs = useDevicePrefs();
+  const palette = useMemo(() => browsePalette(c, prefs), [c, prefs]);
   const set = getSet(c.set)!;
   const primary = primaryAlgOf(c, user);
   const view = useMemo(() => viewForPrimary(c, primary), [c, primary]);
@@ -39,7 +41,7 @@ export function CaseCard({ c }: { c: AlgCase }) {
   const favorite = user.cases[c.id]?.favorite;
   return (
     <Link to={`/case/${c.id}`} className="case-card">
-      <CaseDiagram c={view} view={set.view} bottom={prefs.bottomColor} />
+      <CaseDiagram c={view} view={set.view} palette={palette} />
       <div className="case-card-body">
         <div className="case-card-title">
           <span className="case-name">{c.name}</span>

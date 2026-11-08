@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ALL_CASES } from '../data';
 import { clearReloadWarning, CURRENT_BUILD_ID, forceReload, hasReloadWarning, RELOAD_WARNING_MESSAGE, versionChecker } from '../lib/version';
-import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
-import { BOTTOM_COLORS, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
+import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
 
 /** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
@@ -84,23 +83,6 @@ export function MePage() {
         </button>
       </div>
       <p className="muted small setting-note">只对这台设备生效。手机卡顿或发热时可以选普通面。</p>
-
-      <h2>底面颜色</h2>
-      <div className="swatches" role="group" aria-label="底面颜色">
-        {BOTTOM_COLORS.map((color) => (
-          <button
-            key={color}
-            className={`swatch ${prefs.bottomColor === color ? 'swatch-on' : ''}`}
-            aria-pressed={prefs.bottomColor === color}
-            aria-label={`底面${COLOR_LABEL[color]}色`}
-            onClick={() => setDevicePrefs({ bottomColor: color })}
-          >
-            <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />
-            {COLOR_LABEL[color]}
-          </button>
-        ))}
-      </div>
-      <p className="muted small setting-note">只对这台设备生效。公式页的图解和 3D 魔方按这个颜色做底面换配色，默认白色。</p>
 
       <h2>应用更新</h2>
       {reloadWarning && <p className="small setting-note" role="status">{RELOAD_WARNING_MESSAGE}</p>}

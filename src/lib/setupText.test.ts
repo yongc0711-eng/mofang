@@ -71,12 +71,13 @@ describe('setupText：练习页 setup 的朝向说明', () => {
 });
 
 describe('练习页、卡片、首页都接上了底色', () => {
-  const diagramWithBottom = /<CaseDiagram\b[^>]*\bbottom=\{prefs\.bottomColor\}/;
+  const diagramWithPalette = /<CaseDiagram\b[^>]*\bpalette=\{(?:palette|browsePalette\(cover, prefs\))\}/;
 
-  it('CaseCard/HomePage 使用设备底色，PracticePage 使用本题底色', () => {
+  it('CaseCard/HomePage 使用方法 palette，PracticePage 使用本题底色', () => {
     for (const [name, src] of [['CaseCard', cardSource], ['HomePage', homeSource]] as const) {
-      expect(src, name).toMatch(diagramWithBottom);
+      expect(src, name).toMatch(diagramWithPalette);
       expect(src, name).toContain('useDevicePrefs()');
+      expect(src, name).toContain(name === 'CaseCard' ? 'browsePalette(c, prefs)' : 'browsePalette(cover, prefs)');
     }
     expect(practiceSource).toMatch(/<CaseDiagram\b[^>]*\bbottom=\{bottom\}/);
     expect(practiceSource).toContain('useDevicePrefs()');

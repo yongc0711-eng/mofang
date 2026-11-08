@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import practiceSource from './PracticePage.tsx?raw';
-import meSource from './MePage.tsx?raw';
+import formulaSource from '../components/FormulaColors.tsx?raw';
 import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
 import { BOTTOM_COLORS } from '../store/devicePrefs';
 
@@ -64,8 +64,8 @@ it('T52 diagrams and fallback setup text share the question color and legacy war
   expect(practiceSource).not.toContain('bottom={prefs.bottomColor}');
   expect(practiceSource).toContain('旧版会话：原底色未知');
 });
-it('T52 MePage and PracticePage reuse one complete label/color-variable definition', () => {
-  for (const source of [practiceSource, meSource]) {
+it('T52 FormulaColors and PracticePage reuse one complete label/color-variable definition', () => {
+  for (const source of [practiceSource, formulaSource]) {
     expect(source).toContain("import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames'");
     expect(source).not.toMatch(/const COLOR_(?:LABEL|VAR)\s*:/);
   }

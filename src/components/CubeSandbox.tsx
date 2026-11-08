@@ -1,3 +1,4 @@
+import { SANDBOX_PALETTE } from '../lib/colorScheme';
 import { useEffect, useRef, useState } from 'react';
 import { Sandbox, MAIN_KEYS, MORE_KEYS, type Suffix } from '../lib/cubeSandbox';
 import { easeMove } from '../lib/timeline';
@@ -26,11 +27,11 @@ export function CubeSandbox() {
     import('./CubeScene').then(({ CubeScene }) => {
       if (disposed || !host.current) return;
       created = new CubeScene(host.current, prefsRef.current.finish);
+      created.setPalette(SANDBOX_PALETTE);
       scene.current = created; setReady(true); draw();
     }).catch(() => { if (!disposed) setError(true); });
     return () => { disposed = true; cancelAnimationFrame(raf.current); created?.dispose(); scene.current = null; };
   }, []);
-  useEffect(() => { draw(); }, [prefs.bottomColor]);
   useEffect(() => { scene.current?.setFinish(prefs.finish); }, [prefs.finish]);
   const run = () => {
     refresh(n => n + 1);

@@ -1,3 +1,5 @@
+import { FormulaColors } from '../components/FormulaColors';
+import { browsePalette } from '../lib/colorScheme';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
@@ -31,11 +33,11 @@ export function HomePage() {
         <p className="muted small">
           共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
         </p>
-        {/* 只是提示，切换控件在「我的」里；底色逻辑不在这里（T50） */}
+        {/* 配色入口在下方两个方法标题旁。 */}
         <p className="home-hint">
-          <Link to="/me" className="home-hint-link">
-            想换魔方底色？到「我的」里切换 <span aria-hidden="true">›</span>
-          </Link>
+          <button type="button" className="home-hint-link" onClick={() => document.getElementById('colors-cfop')?.click()}>
+            想换魔方底色？点方法标题旁的「配色」 <span aria-hidden="true">›</span>
+          </button>
         </p>
         <input
           className="search-input"
@@ -63,6 +65,7 @@ export function HomePage() {
           <div className="method-head">
             <h2>{m.name}</h2>
             <span className="muted small">{m.hint}</span>
+            <FormulaColors method={m.id} />
           </div>
           <div className="set-list">
             {SETS.filter((s) => s.method === m.id).map((s) => {
@@ -71,7 +74,7 @@ export function HomePage() {
               const cover = getCase(COVER[s.id]) ?? s.cases[0];
               return (
                 <Link key={s.id} to={`/set/${s.id}`} className="set-card">
-                  <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} bottom={prefs.bottomColor} />
+                  <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />
                   <div className="set-body">
                     <div className="set-title">
                       <strong>{s.name}</strong>

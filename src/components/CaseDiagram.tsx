@@ -1,3 +1,4 @@
+import { paletteFace, type Palette } from '../lib/colorScheme';
 import { memo } from 'react';
 import { caseState, displayColors, displayMask, type Mask } from '../lib/cases';
 import { STICKERS, stickerAt, type Face, type Vec, type State } from '../lib/cube';
@@ -116,6 +117,7 @@ interface Props {
   bottom?: BottomColor;
   /** Practice only: validated actual terminal state, in observation coordinates. */
   state?: Readonly<State>;
+  palette?: Palette;
 }
 
 /**
@@ -128,16 +130,17 @@ export function diagramColors(
   mask?: Mask | null,
   bottom: BottomColor = 'white',
   state?: Readonly<State>,
+  palette?: Palette,
 ): (Face | null)[] {
   const chosen = mask ?? (c.set === 'oll' ? ollTopMask : null);
-  if (!state && !chosen && bottom === 'white') return displayColors(c);
+  if (!palette && !state && !chosen && bottom === 'white') return displayColors(c);
   const m = chosen ?? displayMask(c);
-  return (state ?? caseState(c)).map((id) => (m(id) ? displayFace(id, bottom) : null));
+  return (state ?? caseState(c)).map((id) => (m(id) ? (palette ? paletteFace(id, palette) : displayFace(id, bottom)) : null));
 }
 
 /** 情形图解。纯由公式推导，不需要任何图片素材 */
-export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom, state }: Props) {
-  const colors = diagramColors(c, mask, bottom, state);
+export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom, state, palette }: Props) {
+  const colors = diagramColors(c, mask, bottom, state, palette);
   const View = view === 'top' ? TopView : view === 'iso' ? IsoView : LseView;
   return (
     <div className="diagram">

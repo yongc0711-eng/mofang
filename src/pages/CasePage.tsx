@@ -1,5 +1,6 @@
+import { browsePalette, FACE_COLOR } from '../lib/colorScheme';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { diagramMask, playerMask, setDevicePrefs, topColor, useDevicePrefs } from '../store/devicePrefs';
+import { diagramMask, playerMask, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
 import { setUi } from '../lib/uiState';
 import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
@@ -42,6 +43,7 @@ export function CasePage() {
     refreshSelection((version) => version + 1);
   };
   const prefs = useDevicePrefs();
+  const palette = useMemo(() => browsePalette(c ?? { set: '' }, prefs), [c, prefs]);
   const caseSet = c?.set;
   const caseGroup = c?.group;
   // 2D 和 3D 的掩码分开算：2D 里 OLL 固定只显示顶层的 9 张，其他组看“只看相关的块”；
@@ -182,7 +184,7 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} bottom={prefs.bottomColor} />
+        <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />
         <div>
           <h1 className="page-title">{c.name}</h1>
           <p className="muted">
@@ -211,7 +213,7 @@ export function CasePage() {
 
       <div className="case-layout">
         <div className="case-player">
-          <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} />
+          <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />
           <button
             className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
             aria-pressed={prefs.focusRelevant}
@@ -235,7 +237,7 @@ export function CasePage() {
             <p className="recognition">
               <strong>识别：</strong>
               {/* OLL 的“黄”指顶面颜色，选了别的底色要跟着换；其他组原样 */}
-              {recognitionFor(c, topColor(prefs.bottomColor))}
+              {recognitionFor(c, FACE_COLOR[palette.U])}
             </p>
           )}
 

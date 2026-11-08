@@ -603,3 +603,15 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
   .sandbox-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
   .sandbox-stage { height: 380px; }
 }
+
+/* 方法配色入口与内联面板；不改变详情播放器的高度预算。 */
+.method-head:has(.formula-colors) { flex-wrap: wrap; }
+.formula-colors { min-width: 0; }
+.formula-colors:has(.formula-colors-panel) { flex-basis: 100%; }
+.formula-colors-panel { background: var(--surface); padding: 12px; margin-top: 8px; border-radius: 8px; }
+.formula-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.formula-pairs { display: flex; gap: 8px; flex-wrap: wrap; }
+.formula-colors button { min-height: 44px; }
+.formula-color-grid button { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.formula-colors button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
+button.home-hint-link { background: none; border: 0; padding: 0; text-align: left; min-height: 44px; }

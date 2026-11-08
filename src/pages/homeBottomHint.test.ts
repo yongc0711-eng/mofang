@@ -10,13 +10,15 @@ const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const rule = (sel: string) => css.match(new RegExp(`^${sel.replace(/[.]/g, '\\.')} \\{([^}]*)\\}`, 'm'))?.[1] ?? '';
 
 describe('T50 首页的“底色可切换”提示', () => {
-  it('文案存在：想换魔方底色？到「我的」里切换', () => {
-    expect(homeSource).toContain('想换魔方底色？到「我的」里切换');
+  it('文案存在：想换魔方底色？点方法标题旁的「配色」', () => {
+    expect(homeSource).toContain('想换魔方底色？点方法标题旁的「配色」');
   });
 
-  it('是一个 <Link>，指向 /me，不是不可点的灰字', () => {
-    expect(homeSource).toMatch(/<Link to="\/me" className="home-hint-link">\s*想换魔方底色？到「我的」里切换/);
-    expect(homeSource.match(/to="\/me"/g)).toHaveLength(1);
+  it('精确指向首页 CFOP 配色入口，且两方法标题都接共享入口', () => {
+    expect(homeSource).toContain("document.getElementById('colors-cfop')?.click()");
+    expect(homeSource).toMatch(/<button type="button" className="home-hint-link"/);
+    expect(homeSource).toContain('<FormulaColors method={m.id} />');
+    expect(homeSource).not.toContain('to="/me"');
   });
 
   it('位置：在标题和公式计数之后、方法/课程卡之前，且在 header 里', () => {
@@ -32,10 +34,10 @@ describe('T50 首页的“底色可切换”提示', () => {
     expect(headEnd).toBeLessThan(cards);
   });
 
-  it('只是提示：首页没有切换控件，也没碰底色逻辑', () => {
+  it('首页只接共享入口，封面按所属方法配色且主公式视图不变', () => {
     expect(homeSource).not.toMatch(/setDevicePrefs|swatch|BOTTOM_COLORS|bottomColor: /);
-    expect(homeSource).toContain('bottom={prefs.bottomColor}'); // T30：卡片和封面仍跟随底色
-    expect(homeSource).toContain('viewForPrimary(cover, primaryAlgOf(cover, user))'); // T33
+    expect(homeSource).toContain('palette={browsePalette(cover, prefs)}');
+    expect(homeSource).toContain('viewForPrimary(cover, primaryAlgOf(cover, user))');
   });
 
   it('触控目标 ≥ 32px，颜色用变量，不写死宽度（320 宽不横向撑开）', () => {

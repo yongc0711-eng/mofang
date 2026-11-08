@@ -1,3 +1,4 @@
+import type { Palette } from '../lib/colorScheme';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Timeline, easeMove } from '../lib/timeline';
 import type { CubeFinish, CubeScene } from './CubeScene';
@@ -16,6 +17,7 @@ function loadSpeed(): number {
 
 interface Props {
   alg: string;
+  palette?: Palette;
   /**
    * alg 变化时是否自动从头播放，默认 true。
    * 传 false 时只回到起手并停住，播放交给播放器自己的按钮。
@@ -32,7 +34,7 @@ interface Props {
  * 自己画的 3D 播放器：Three.js 只负责渲染（动态加载），播放逻辑全在 Timeline 里。
  * 配色和 2D 图解共用 CSS 变量。
  */
-export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv' }: Props) {
+export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv', palette }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const scrubber = useRef<HTMLInputElement>(null);
   const scene = useRef<CubeScene | null>(null);
@@ -133,6 +135,7 @@ export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv' }:
         if (cancelled || !host.current) return;
         created = new Scene(host.current, finishRef.current);
         created.setMask(maskRef.current);
+        created.setPalette(paletteRef.current);
         scene.current = created;
         setReady(true);
         draw();
@@ -150,6 +153,10 @@ export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv' }:
     // 场景只创建一次
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const paletteRef = useRef(palette);
+  paletteRef.current = palette;
+  useEffect(() => { scene.current?.setPalette(palette); }, [palette]);
 
   const maskRef = useRef(mask);
   maskRef.current = mask;

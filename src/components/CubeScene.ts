@@ -1,3 +1,4 @@
+import { paletteFace, type Palette } from '../lib/colorScheme';
 import {
   AmbientLight,
   Color,
@@ -68,6 +69,7 @@ export class CubeScene {
   private readonly keyLight = new DirectionalLight(0xffffff, 1.7);
   private readonly resizeObserver: ResizeObserver;
   private readonly disposables: { dispose(): void }[] = [];
+  private palette: Palette | undefined;
   private mask: ((id: number) => boolean) | null = null;
   private last: { state: State; move: Move | null; eased: number } | null = null;
   private yaw = DEFAULT_YAW;
@@ -182,6 +184,11 @@ export class CubeScene {
     if (this.last) this.render(this.last.state, this.last.move, this.last.eased);
   }
 
+  setPalette(palette?: Palette) {
+    this.palette = palette;
+    if (this.last) this.render(this.last.state, this.last.move, this.last.eased);
+  }
+
   /** 哪些贴纸显示颜色；传 null 显示全部 */
   setMask(mask: ((id: number) => boolean) | null) {
     this.mask = mask;
@@ -192,12 +199,12 @@ export class CubeScene {
   render(state: State, move: Move | null, eased: number) {
     this.last = { state, move, eased };
     // 底面颜色决定配色，和 2D 图解共用 displayFace；每帧读一次，设置一改下一帧就变
-    const bottom = getDevicePrefs().bottomColor;
+    const bottom = this.palette ? 'white' : getDevicePrefs().bottomColor;
     for (let loc = 0; loc < 54; loc++) {
       const id = state[loc];
       const visible = !this.mask || this.mask(id);
       const { cubie, slot } = this.faceSlots[loc];
-      cubie.materials[slot] = visible ? this.faceMats.get(displayFace(id, bottom))! : this.maskMat;
+      cubie.materials[slot] = visible ? this.faceMats.get(this.palette ? paletteFace(id, this.palette) : displayFace(id, bottom))! : this.maskMat;
     }
     const geo = move ? moveGeometry(move) : null;
     const q = new Quaternion();
