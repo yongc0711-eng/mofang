@@ -7,19 +7,14 @@
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
 - **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 3409 项全过，`npm run check:data` 393 项全过，`npm run build` 通过。
+- **基线：** `npm test` 3422 项全过，`npm run check:data` 393 项全过，`npm run build` 通过。
 - **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、CMLL、LSE 还没有 recognition。
 
-任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T59 已用过（T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补；T57 待合、T58 未开始）。
+任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T59 已用过（T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补；T58 未开始）。
 
 ## 未完成
 
 下面的任务还没完成。
-
-### T57 首页搜索（已完成，待合并）
-
-- **分支：** `codex/t57-home-search`，提交 `7520459`，基于 `043782e`；`npm test` 3409 / 40 文件、`check:data` 393、`build` 通过。
-- **状态：** 首页顶部搜索框和结果区已完成，未合并；文档里 `case-grid` 的 240 应改为 280，320 宽还没实测。
 
 ### T58 搜索页 3D 魔方（未开始）
 
@@ -53,6 +48,7 @@
 - [T56-fix](tasks/T56.md) 更新提示条不再出现在详情页和练习页（文档流里的提示条会改变 T48 的首屏预算）：新增 `shouldShowUpdateNotice`，版本检查仍全局运行。**已复核，已合并**（fast-forward，main `86215df`；分支 `claude/t56-notice-layout`，提交 `40c12f8`，`npm test` 3389 / `check:data` 393 / `build` 通过）。
 
 - [UI-home](tasks/UI-home.md) 首页 UI 重做试点：用户看过方向 A 后选定方向 C（分组面板），实现提交 `a8ac4e8`，fast-forward 合并。只改首页样式，底栏和其他页没动。`npm test` 3396 / `check:data` 393 / `build` 通过。
+- [T57](tasks/T57.md) 首页顶部搜索框与结果区：复用 SearchPage 的匹配逻辑抽到 `src/lib/search.ts`，首页显示结果计数、CaseCard 或无结果提示；旧 `/search` 与底栏搜索 tab 未动。收尾 rebase 到 `ae03af8`，补 320×640 无头 Edge 实测（scrollWidth 320 = clientWidth，结果卡宽 288 单列），3422/393/build 通过，合并 `c4ea962`。
 - [T59](tasks/T59.md) 练习完成后的 2D 图改用主公式的 canonical view，与公式详情页同向；训练中仍显示本题实际目标，未改 `sampleTarget`/`scrambleFor`/`prepareSetup`/求解/3D。fast-forward 合并 main `830fb1c`，3409/393/build 通过。
 
 ## 待确认（不建任务）
