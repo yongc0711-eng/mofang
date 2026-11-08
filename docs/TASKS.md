@@ -53,7 +53,7 @@
 - [T60b](tasks/T60b.md) 练习配色完整接入：CFOP 六底、Roux 六底 / 每底合法桥对 / 两个左右方向；两池独立，每题按方法均匀抽完整配色并冻结；`PreparedSetupV2` 保存完整 colors，24 个整体转体反查观察持法（不拼旧 `OBSERVATION`），`verifySetup` 做 54/54 校验；旧 v1 与计时恢复原样。Codex 实现，Lead 核过 24 配色、135×24 真实求解、迁移与 320/390 无头布局；3644/50、393、build 通过，fast-forward 合并 main `1ba3a13`。页内网格后来被 T61 收进单入口弹窗。
 - [T61](tasks/T61.md) 配色单入口弹窗：首页 `FormulaColors` 与练习页顶部各只留一个入口，点开是共用 `ColorDialog` 外壳 + CFOP/Roux 两个 tab；关闭支持 ×/遮罩/Esc、焦点陷阱与回入口；320/390 不横滚、控件 44px、不占 T48 首屏。浏览写 devicePrefs，练习仍写本地 pools、刷新重置，不改 T58/T60b 的 setup/求解/计时。Codex 实现，Lead 核过焦点、tab、状态隔离与 320/390 无头布局；3654/52、393、build 通过，fast-forward 合并 main `74772fb`。
 - [T62](tasks/T62.md) 首页配色入口从独立的「配色」chip 改为标题行右侧的调色盘 + 文案动作：标题/计数在左，入口 80×44px 在右，搜索仍独占下一行；header 高从 152.5 降到 120.5px（320/390），不横滚；保留唯一入口、`browse-colors` id、aria 契约、点击聚焦与 T61 弹窗/焦点返回。Codex 实现并查了 Notion/Spotify/Linear/Material 3 的官方做法，Lead 核过 320/390 浅深色与焦点；3658/53、393、build 通过，fast-forward 合并 main `eec85be`。入口后被 T63 移到搜索行右侧并改为圆形。
-- [T63](tasks/T63.md) 首页配色入口改为搜索框右侧的圆形按钮：`HomePage` 去掉标题行包裹，搜索与入口同排；搜索框 44px 高、胶囊圆角、320 下 236px，入口 44×44 正圆、仅调色盘图标（`FormulaColors iconOnly`），练习页仍保留「配色」文字；placeholder 缩短。浏览器用 CDP 设备视口实测 320/390 均 `scrollWidth=clientWidth`；3658/53、393、build 通过。
+- [T63](tasks/T63.md) 首页配色入口改为搜索框右侧的圆形按钮：`HomePage` 去掉标题行包裹，搜索与入口同排；搜索框 44px 高、胶囊圆角、320 下 236px，入口 44×44 正圆、仅调色盘图标（`FormulaColors iconOnly`），练习页仍保留「配色」文字；placeholder 缩短。浏览器用 CDP 设备视口实测 320/390 均 `scrollWidth=clientWidth`；3658/53、393、build 通过，main `9659e05`。
 
 ## 待确认（不建任务）
 
