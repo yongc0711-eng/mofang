@@ -35,7 +35,7 @@ import {
   timeStats,
   useUserData,
 } from '../store/userStore';
-import { type AlgCase, type LearnStatus, type SetId } from '../types';
+import { type AlgCase, type CaseSet, type LearnStatus, type SetId } from '../types';
 
 type StatusFilter = 'all' | 'favorite' | LearnStatus;
 const FILTERS: { id: StatusFilter; label: string }[] = [
@@ -63,6 +63,16 @@ interface Question {
   bottom?: BottomColor;
   prepared?: PreparedSetup;
   fromSession?: boolean;
+}
+
+/** done 对照主公式；训练期间保留本题采样终态。仅选择图解输入，不变更目标。 */
+export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase }: {
+  c: AlgCase; set: Pick<CaseSet, 'view'>; bottom: BottomColor;
+  prepared: Pick<PreparedSetup, 'state'> | null | undefined; phase: string;
+}) {
+  return prepared && phase !== 'done'
+    ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} />
+    : <CaseDiagram c={c} view={set.view} bottom={bottom} />;
 }
 
 export function PracticePage() {
@@ -528,9 +538,7 @@ function Session({
         }}
       >
         <div className="practice-case">
-          {prepared
-            ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} />
-            : <CaseDiagram c={c} view={set.view} bottom={bottom} />}
+          <PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} />
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
             <p className="muted small">{set.name} · {c.group}</p>
