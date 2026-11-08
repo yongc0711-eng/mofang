@@ -1,8 +1,7 @@
 import { FormulaColors } from '../components/FormulaColors';
 import { browsePalette } from '../lib/colorScheme';
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { homeCards } from '../lib/homeCards';
+import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
@@ -22,16 +21,13 @@ const COVER: Record<SetId, string> = {
 
 export function HomePage() {
   const [q, setQ] = useState('');
-  const [params] = useSearchParams();
-  const cards = homeCards(params.get('cards') ?? (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('cards')));
-  const cardTone = cards && (params.get('tone') ?? (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('tone'))) === 'mist' ? 'mist' : undefined;
   const user = useUserData();
   const query = q.trim();
   const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   return (
-    <div className="page" data-cards={cards} data-card-tone={cardTone}>
+    <div className="page">
       <header className="home-head">
         <h1 className="page-title">魔方公式</h1>
         <p className="muted small">
@@ -65,7 +61,6 @@ export function HomePage() {
         <section key={m.id} className="method">
           <div className="method-head">
             <h2>{m.name}</h2>
-            <span className="muted small">{m.hint}</span>
           </div>
           <div className="set-list">
             {SETS.filter((s) => s.method === m.id).map((s) => {

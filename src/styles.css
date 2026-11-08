@@ -249,18 +249,17 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .method-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 24px; margin-bottom: 6px; }
 .method h2 { margin: 0; font-size: var(--fs-meta); font-weight: 600; }
 .method-head .small { font-size: var(--fs-meta); }
-/* overflow 裁切按下的底色，让它贴合面板圆角 */
-.set-list { display: grid; grid-template-columns: minmax(0, 1fr); background: var(--surface); border-radius: 12px; overflow: hidden; }
+/* 每张卡独立成块，用 6px 间隔代替组内分隔线 */
+.set-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
 .set-card {
-  position: relative; display: flex; align-items: center; gap: 12px; min-height: 68px;
-  padding: 12px; transition: background-color 0.15s ease;
+  position: relative; display: flex; align-items: center; gap: 12px; height: 64px; min-height: 64px;
+  padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  transition: background-color 0.15s ease;
 }
+.set-card::after { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 2px; border-radius: 2px; background: var(--accent); }
 .set-card:active { background: var(--surface-2); }
-/* 面板会裁切外侧焦点框，改画在内侧 */
-.set-card:focus-visible { outline-offset: -2px; }
-/* 细线从文字列开始（内边距 12 + 图解 44 + 间距 12），不穿过图解 */
-.set-card + .set-card::before { content: ''; position: absolute; top: 0; right: 0; left: 68px; border-top: 1px solid var(--border); }
-.set-card .diagram { width: 44px; flex: none; }
+.set-card:focus-visible { outline-offset: 2px; }
+.set-card .diagram { width: 40px; flex: none; }
 /* 第一列留够“已掌握 93 / 93”的宽度，各行的进度条才能左对齐 */
 .set-body { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(5.75rem, auto) minmax(0, 1fr); align-items: center; gap: 2px 10px; }
 .set-title { grid-column: 1 / -1; display: flex; align-items: baseline; gap: 8px; }
@@ -268,13 +267,12 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .set-body .small { font-size: var(--fs-meta); font-variant-numeric: tabular-nums; }
 /* 进度条排在“已掌握”右边，和它同一行 */
 .progress { order: 1; height: 3px; border-radius: 2px; background: var(--border); overflow: hidden; }
-.progress > div { height: 100%; background: var(--ok); border-radius: inherit; transition: width 0.2s ease; }
-.chevron { color: var(--muted); font-size: 1.1rem; line-height: 1; }
+.progress > div { height: 100%; background: var(--accent); border-radius: inherit; transition: width 0.2s ease; }
+.chevron { width: 24px; height: 24px; flex: none; display: grid; place-items: center; padding-left: 1px; border-radius: 50%; color: var(--accent); background: var(--accent-soft); font-size: 1rem; line-height: 1; }
 @media (min-height: 720px) {
   .home-head { margin: 8px 0 28px; }
   .method { margin-bottom: 28px; }
   .method-head { margin-bottom: 8px; }
-  .set-card { padding-block: 14px; }
 }
 
 /* 卡片和按钮的按压反馈 */
@@ -638,72 +636,4 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .home-color-action:active, .home-color-action[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
 @media (hover: hover) {
   .home-color-action:hover { background: var(--surface-2); color: var(--text); }
-}
-
-/* T64 review-only directions, enabled explicitly by ?cards=a|b|c. */
-/* A: separate tiles with a quiet learning accent, without spending more row height. */
-[data-cards="a"] .method .set-list { background: transparent; border-radius: 0; overflow: visible; gap: 6px; }
-[data-cards="a"] .method .set-card { height: 64px; min-height: 64px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
-[data-cards="a"] .method .set-card::after { content: ''; position: absolute; left: 0; top: 12px; bottom: 12px; width: 2px; border-radius: 2px; background: var(--accent); }
-[data-cards="a"] .method .set-card + .set-card::before { display: none; }
-[data-cards="a"] .method .set-card .diagram { width: 40px; }
-[data-cards="a"] .method .progress > div { background: var(--accent); }
-[data-cards="a"] .method .set-card:focus-visible { outline-offset: 2px; }
-[data-cards="a"] .method .set-card:active { background: var(--surface-2); }
-/* B: an editorial directory, with a small diagram tile and long alignment lines. */
-[data-cards="b"] .method .set-list { background: transparent; border-radius: 0; overflow: visible; }
-[data-cards="b"] .method .set-card { height: 64px; min-height: 64px; padding: 8px 0; border-radius: 8px; }
-[data-cards="b"] .method .set-card .diagram { padding: 4px; border-radius: 10px; background: var(--surface-2); }
-[data-cards="b"] .method .set-card + .set-card::before { left: 56px; }
-[data-cards="b"] .method .method-head::after { content: ''; height: 1px; min-width: 12px; flex: 1; background: var(--border); }
-[data-cards="b"] .method .method-head { gap: 8px; }
-[data-cards="b"] .method .progress { height: 4px; }
-/* C: a compact course panel with full-width progress and a quiet navigation cue. */
-[data-cards="c"] .method .set-list { outline: 1px solid var(--border); }
-[data-cards="c"] .method .set-card { height: 66px; min-height: 66px; padding: 6px 10px; }
-[data-cards="c"] .method .set-body { grid-template-columns: minmax(0, 1fr); gap: 2px; }
-[data-cards="c"] .method .set-title { grid-row: 1; }
-[data-cards="c"] .method .set-body > .small { grid-row: 2; }
-[data-cards="c"] .method .progress { grid-row: 3; grid-column: 1 / -1; height: 4px; background: var(--surface-2); }
-[data-cards="c"] .method .chevron { width: 24px; height: 24px; flex: none; border-radius: 50%; display: grid; place-items: center; color: var(--accent); background: var(--accent-soft); }
-@media (hover: hover) {
-  [data-cards="a"] .method .set-card:hover { background: var(--surface-2); }
-  [data-cards="b"] .method .set-card:hover { background: var(--surface); }
-}
-
-/* T64 follow-up: method names stand alone in all opt-in directions. */
-[data-cards] .method .method-head > .small { display: none; }
-
-/* T64 opt-in color study: ?cards=a|b|c&tone=mist. No cube or global tokens change. */
-[data-cards][data-card-tone="mist"] {
-  --cards-surface: #ffffff;
-  --cards-surface-2: #e9edf3;
-  --cards-text: #252b35;
-  --cards-muted: #626d7e;
-  --cards-border: #dce2ea;
-  --cards-accent: #596b91;
-  --cards-accent-soft: #e7ecf5;
-}
-[data-card-tone="mist"] .method {
-  --surface: var(--cards-surface);
-  --surface-2: var(--cards-surface-2);
-  --text: var(--cards-text);
-  --muted: var(--cards-muted);
-  --border: var(--cards-border);
-  --accent: var(--cards-accent);
-  --accent-soft: var(--cards-accent-soft);
-  color: var(--text);
-}
-[data-card-tone="mist"] .method .progress { background: var(--surface-2); }
-[data-card-tone="mist"] .method .progress > div { background: var(--accent); }
-@media (prefers-color-scheme: dark) {
-  [data-cards][data-card-tone="mist"] {
-    --cards-surface: #202630;
-    --cards-surface-2: #303a49;
-    --cards-text: #e7ebf2;
-    --cards-muted: #a5b1c4;
-    --cards-border: #354051;
-    --cards-accent: #a0b4df;
-    --cards-accent-soft: #2b3851;
-  }
 }
