@@ -24,13 +24,14 @@ export function HomePage() {
   const [q, setQ] = useState('');
   const [params] = useSearchParams();
   const cards = homeCards(params.get('cards') ?? (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('cards')));
+  const cardTone = cards && (params.get('tone') ?? (typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('tone'))) === 'mist' ? 'mist' : undefined;
   const user = useUserData();
   const query = q.trim();
   const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   return (
-    <div className="page" data-cards={cards}>
+    <div className="page" data-cards={cards} data-card-tone={cardTone}>
       <header className="home-head">
         <h1 className="page-title">魔方公式</h1>
         <p className="muted small">

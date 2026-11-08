@@ -673,3 +673,40 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* T64 follow-up: method names stand alone in all opt-in directions. */
 [data-cards] .method .method-head > .small { display: none; }
+
+/* T64 opt-in color study: ?cards=a|b|c&tone=mist. No cube or global tokens change. */
+[data-cards][data-card-tone="mist"] {
+  --cards-bg: #f3f5f8;
+  --cards-surface: #ffffff;
+  --cards-surface-2: #e9edf3;
+  --cards-text: #252b35;
+  --cards-muted: #626d7e;
+  --cards-border: #dce2ea;
+  --cards-accent: #596b91;
+  --cards-accent-soft: #e7ecf5;
+  background: var(--cards-bg);
+}
+[data-card-tone="mist"] .method {
+  --surface: var(--cards-surface);
+  --surface-2: var(--cards-surface-2);
+  --text: var(--cards-text);
+  --muted: var(--cards-muted);
+  --border: var(--cards-border);
+  --accent: var(--cards-accent);
+  --accent-soft: var(--cards-accent-soft);
+  color: var(--text);
+}
+[data-card-tone="mist"] .method .progress { background: var(--surface-2); }
+[data-card-tone="mist"] .method .progress > div { background: var(--accent); }
+@media (prefers-color-scheme: dark) {
+  [data-cards][data-card-tone="mist"] {
+    --cards-bg: #171b22;
+    --cards-surface: #202630;
+    --cards-surface-2: #303a49;
+    --cards-text: #e7ebf2;
+    --cards-muted: #a5b1c4;
+    --cards-border: #354051;
+    --cards-accent: #a0b4df;
+    --cards-accent-soft: #2b3851;
+  }
+}

@@ -21,3 +21,13 @@ it.each(['a','b','c'] as const)('%s keeps every method Link, diagram, descriptio
   for(const set of SETS) { expect(html).toContain(set.name); expect(html).toContain(set.description); }
   expect(html.replace(` data-cards="${variant}"`,'')).toBe(render());
 });
+
+it.each(['a','b','c'] as const)('%s opts into mist without changing card content or structure',variant=>{
+  const html=render('?cards='+variant+'&tone=mist');
+  expect(html).toContain('data-card-tone="mist"');
+  expect(html.replace(' data-card-tone="mist"','')).toBe(render('?cards='+variant));
+});
+it('mist is opt-in and cannot affect the default home without a card direction',()=>{
+  expect(render('?tone=mist')).toBe(render());
+  expect(render('?cards=a&tone=unknown')).toBe(render('?cards=a'));
+});
