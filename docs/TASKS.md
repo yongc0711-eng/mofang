@@ -55,7 +55,7 @@
 - [T62](tasks/T62.md) 首页配色入口从独立的「配色」chip 改为标题行右侧的调色盘 + 文案动作：标题/计数在左，入口 80×44px 在右，搜索仍独占下一行；header 高从 152.5 降到 120.5px（320/390），不横滚；保留唯一入口、`browse-colors` id、aria 契约、点击聚焦与 T61 弹窗/焦点返回。Codex 实现并查了 Notion/Spotify/Linear/Material 3 的官方做法，Lead 核过 320/390 浅深色与焦点；3658/53、393、build 通过，fast-forward 合并 main `eec85be`。入口后被 T63 移到搜索行右侧并改为圆形。
 - [T63](tasks/T63.md) 首页配色入口改为搜索框右侧的圆形按钮：`HomePage` 去掉标题行包裹，搜索与入口同排；搜索框 44px 高、胶囊圆角、320 下 236px，入口 44×44 正圆、仅调色盘图标（`FormulaColors iconOnly`），练习页仍保留「配色」文字；placeholder 缩短。浏览器用 CDP 设备视口实测 320/390 均 `scrollWidth=clientWidth`；3658/53、393、build 通过，main `9659e05`。
 - [T64](tasks/T64.md) 首页五张方法卡改成 A 独立学习卡，并并入 C 的 24px 圆形箭头：64px 高、6px 间距、细边圆角、2px 橙色侧标、40px 图解、accent 进度；方法标题只留名称。删除 `?cards`/`?tone` 预览、B/C 和雾蓝实验；`homeCards` 与旧面板断言等强改写为固定 A，记录 D16。320×640 LSE 底 552.5、底栏顶 568；3662/54、393、build 通过，main `157ed2f`。
-- [T65](tasks/T65.md) 首页卡片纵向比例与全站大圆角：矮屏 68px、高屏 78px，320×640 通过收紧 header/方法间距保住五卡全在底栏上方（LSE 底 554.5、底栏顶 568）；新增 `--radius-card:20px`、`--radius-panel:24px`、`--radius-control:14px`、`--radius-small:10px`，覆盖卡片、播放器、练习面板、弹窗、输入、按钮、公式行、分段控件、统计块、键盘与更新提示，保留胶囊/圆点/进度条原形。`homeStyle` 等强更新高度与圆角断言，记录 D17；3662/54、393、build 通过，main `15e7a40`。
+- [T65](tasks/T65.md) 首页卡片纵向比例与全站大圆角：矮屏 68px、高屏 78px，320×640 通过收紧 header/方法间距保住五卡全在底栏上方（LSE 底 554.5、底栏顶 568）；新增 `--radius-card:20px`、`--radius-panel:24px`、`--radius-control:14px`、`--radius-small:10px`，覆盖卡片、播放器、练习面板、弹窗、输入、按钮、公式行、分段控件、统计块、键盘与更新提示，保留胶囊/圆点/进度条原形。`homeStyle` 等强更新高度与圆角断言，记录 D17；3662/54、393、build 通过，main `de6dcdb`。
 
 ## 待确认（不建任务）
 
