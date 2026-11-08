@@ -45,5 +45,5 @@ for (const id of ['oll-27', 'pll-t']) {
   });
 }
 it('Session passes its existing c, phase, bottom and prepared directly to the diagram boundary', () => {
-  expect(source).toContain('<PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} />');
+  expect(source).toContain('<PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} palette={palette} />');
 });

@@ -3,62 +3,67 @@ import practiceSource from './PracticePage.tsx?raw';
 import formulaSource from '../components/FormulaColors.tsx?raw';
 import { COLOR_LABEL, COLOR_VAR } from '../lib/colorNames';
 import { BOTTOM_COLORS } from '../store/devicePrefs';
+import { initializeColorPools, togglePoolBottom } from '../lib/practiceColors';
+const prefs = { cfop: { bottomColor: 'blue' as const }, roux: { bottomColor: 'red' as const, bridgePair: 'white-yellow' as const, leftColor: 'white' as const } };
 
-it('T52 renders six shared-color multiselect swatches and the requested explanation', () => {
-  expect(practiceSource).toContain('<h2>练习底色</h2>');
-  expect(practiceSource).toMatch(/className="swatches" role="group" aria-label="练习底色"/);
-  expect(practiceSource).toMatch(/BOTTOM_COLORS\.map\(\(color\)/);
-  expect(practiceSource).toContain('aria-pressed={bottoms.includes(color)}');
-  expect(practiceSource).toContain('onClick={() => toggleBottom(color)}');
-  expect(practiceSource).toContain('可多选；每题随机一个；只换观察配色，setup 和打乱逻辑不变。');
+it('T60b renders both method six-color multiselects and explicit complete-color explanation', () => {
+  expect(practiceSource).toContain("{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}");
+  expect(practiceSource).toContain('className="practice-color-grid" role="group" aria-label={`${method} 练习底色`}');
+  expect(practiceSource).toContain('BOTTOM_COLORS.map(color =>');
+  expect(practiceSource).toContain("aria-pressed={(method === 'cfop' ? cfopBottoms : rouxBottoms).includes(color)}");
+  expect(practiceSource).toContain('togglePoolBottom(current, method, color)');
+  expect(practiceSource).toContain('每题按所属方法随机一个已选完整配色');
+  expect(practiceSource).toContain('validPairs(bottom).map(pair =>');
+  expect(practiceSource).toContain('aria-pressed={rouxPairsByBottom[bottom]!.includes(pair)}');
 });
-it('T52 actual toggle implementation supports adding/removing but always retains one', () => {
-  const body = practiceSource.match(/const toggleBottom = \(color: BottomColor\) => setBottoms\(\(current\) => \{([\s\S]*?)\n  \}\);/)?.[1];
-  expect(body).toBeDefined();
-  const toggle = new Function('color', 'current', body!) as (color: string, current: string[]) => string[];
-  const original = ['white'];
-  expect(toggle('white', original)).toBe(original);
-  const added = toggle('green', original);
-  expect(added).toEqual(['white', 'green']);
-  expect(original).toEqual(['white']);
-  expect(toggle('white', added)).toEqual(['green']);
-  expect(toggle('green', ['green'])).toEqual(['green']);
+it('T60b actual toggle implementation adds/removes each method independently and always retains one', () => {
+  const original = initializeColorPools({}, prefs);
+  expect(togglePoolBottom(original, 'cfop', 'blue')).toEqual(original);
+  const added = togglePoolBottom(original, 'cfop', 'green');
+  expect(added.cfopBottoms).toEqual(['blue', 'green']);
+  expect(original.cfopBottoms).toEqual(['blue']);
+  expect(togglePoolBottom(added, 'cfop', 'blue').cfopBottoms).toEqual(['green']);
+  expect(togglePoolBottom(original, 'roux', 'red')).toEqual(original);
+  expect(added.rouxBottoms).toEqual(['red']);
 });
-it('T52 old scope defaults to device color and an existing scope is copied', () => {
-  const expression = practiceSource.match(/const \[bottoms, setBottoms\] = useState<BottomColor\[\]>\(\(\) => ([^\n]+)\);/)?.[1];
-  expect(expression).toBeDefined();
-  const initialize = new Function('saved', 'prefs', `return (${expression});`);
-  expect(initialize({}, { bottomColor: 'blue' })).toEqual(['blue']);
-  expect(initialize({ bottoms: [] }, { bottomColor: 'red' })).toEqual(['red']);
-  const saved = { bottoms: ['white', 'green'] };
-  expect(initialize(saved, { bottomColor: 'blue' })).toEqual(saved.bottoms);
-  expect(initialize(saved, { bottomColor: 'blue' })).not.toBe(saved.bottoms);
+it('T60b old scope migrates bottoms to both methods and an existing two-pool scope is copied', () => {
+  expect(initializeColorPools({},prefs)).toEqual({cfopBottoms:['blue'],rouxBottoms:['red'],rouxPairsByBottom:{red:['white-yellow']}});
+  expect(initializeColorPools({bottoms:[]},prefs)).toEqual(initializeColorPools({},prefs));
+  const saved = { bottoms: ['white','green'] as ('white'|'green')[] };
+  const migrated=initializeColorPools(saved,prefs);
+  expect(migrated).toEqual({cfopBottoms:['white','green'],rouxBottoms:['white','green'],rouxPairsByBottom:{white:['red-orange'],green:['red-orange']}});
+  expect(migrated.cfopBottoms).not.toBe(saved.bottoms);
+  expect(migrated.cfopBottoms).not.toBe(migrated.rouxBottoms);
+  expect(initializeColorPools(migrated,prefs)).toEqual(migrated);
 });
-it('T52 scope including bottoms is kept in uiState without writing device preferences or storage', () => {
-  expect(practiceSource).toMatch(/bottoms: BottomColor\[\]/);
-  expect(practiceSource).toContain("setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, bottoms })");
-  expect(practiceSource).toContain('[sets, group, filter, picked, showPicker, bottoms]');
+it('T60b both pools and per-bottom bridge pairs live in uiState without device preferences or storage writes', () => {
+  expect(practiceSource).toContain('interface PracticeScope extends PracticeColorPools');
+  expect(practiceSource).toContain("setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom })");
+  expect(practiceSource).toContain('[sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom]');
   expect(practiceSource).not.toMatch(/\b(?:localStorage|setDevicePrefs)\b/);
 });
-it('T52 session snapshots the colors and seeds lastBottom only from restored prepared data', () => {
-  expect(practiceSource).toContain('bottoms={bottoms}');
-  expect(practiceSource).toContain('bottoms: initialBottoms');
-  expect(practiceSource).toContain('const [bottoms] = useState(() => [...initialBottoms])');
-  expect(practiceSource).toContain('useRef<BottomColor | null>(restore?.question.prepared?.bottom ?? null)');
+it('T60b session snapshots the pools and seeds lastColors only from restored v2 prepared data', () => {
+  expect(practiceSource).toContain('colorPools={colorPools}');
+  expect(practiceSource).toContain('colorPools: initialColorPools');
+  expect(practiceSource).toContain('const [colorPools] = useState(() => snapshotPools(initialColorPools))');
+  expect(practiceSource).toContain('useRef<PracticeColors | null>(restore?.question.prepared?.version === 2 ? restore.question.prepared.colors : null)');
 });
-it('T52 each next request selects its color before keeping the existing generation chain', () => {
-  expect(practiceSource).toContain('const bottom = pickBottom(bottoms, lastBottom.current)');
-  expect(practiceSource).toContain('lastBottom.current = bottom');
-  expect(practiceSource).toContain('setQuestion({ c: view, alg, scramble, bottom })');
-  expect(practiceSource).toContain('const bottom = requested.bottom ?? prefs.bottomColor');
+it('T60b each next request selects complete colors after case selection and keeps the generation chain', () => {
+  expect(practiceSource).toContain('const colors = pickPracticeColors(c, colorPools, lastColors.current)');
+  expect(practiceSource).toContain('lastColors.current = colors');
+  expect(practiceSource).toContain('setQuestion({ c: view, alg, scramble, colors })');
+  expect(practiceSource).toContain('const colors = requested.colors');
   expect(practiceSource).toContain('const { view, scramble } = practiceViewFor(c, alg)');
   expect(practiceSource).toContain('const sample = sampleTarget(requested.c, requested.scramble)');
-  expect(practiceSource).toContain('prepareSetup(sample.state, bottom, controller.signal)');
+  expect(practiceSource).toContain('prepareSetup(sample.state, colors, controller.signal)');
+  expect(practiceSource.indexOf('const c = pickCase(pool, userRef.current, lastId.current)')).toBeLessThan(practiceSource.indexOf('const colors = pickPracticeColors(c, colorPools, lastColors.current)'));
 });
-it('T52 diagrams and fallback setup text share the question color and legacy warning stays', () => {
-  expect(practiceSource).toContain('const bottom = prepared?.bottom ?? question.bottom ?? prefs.bottomColor');
-  expect(practiceSource).toMatch(/<CaseDiagram c=\{c\} view=\{set.view\} bottom=\{bottom\} state=\{prepared.state\}/);
-  expect(practiceSource).toMatch(/<CaseDiagram c=\{c\} view=\{set.view\} bottom=\{bottom\} \/>/);
+it('T60b diagrams use the frozen complete palette while v1/fallback bottom and warning stay', () => {
+  expect(practiceSource).toContain('const colors = prepared?.version === 2 ? prepared.colors : question.colors');
+  expect(practiceSource).toContain('const palette = colors ? paletteFor(colors) : undefined');
+  expect(practiceSource).toContain('const bottom = prepared?.version === 1 ? prepared.bottom : colors ? colorBottom(colors) : question.bottom ?? prefs.bottomColor');
+  expect(practiceSource).toContain('<CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} palette={palette} />');
+  expect(practiceSource).toContain('<CaseDiagram c={c} view={set.view} bottom={bottom} palette={palette} />');
   expect(practiceSource).toContain('setupText(bottom)');
   expect(practiceSource).toContain('practiceInstructions(prepared)');
   expect(practiceSource).not.toContain('bottom={prefs.bottomColor}');

@@ -1,10 +1,12 @@
+import { initializeColorPools, snapshotPools, togglePoolBottom, togglePoolPair, pickPracticeColors, colorBottom, paletteFor, type PracticeColors, type PracticeColorPools } from '../lib/practiceColors';
+import { PAIRS, validPairs, type Palette } from '../lib/colorScheme';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
 import { getUi, setUi } from '../lib/uiState';
-import { pickBottom, pickCase } from '../lib/practice';
+import { pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
 import {
   DOC_ID,
@@ -46,13 +48,13 @@ const FILTERS: { id: StatusFilter; label: string }[] = [
   { id: 'mastered', label: STATUS_LABEL.mastered },
 ];
 
-interface PracticeScope {
+interface PracticeScope extends PracticeColorPools {
   sets: SetId[];
   group: string;
   filter: StatusFilter;
   picked: string[];
   showPicker: boolean;
-  bottoms: BottomColor[];
+  bottoms?: BottomColor[];
 }
 
 const IDLE: Timer = { phase: 'ready', elapsedMs: 0, runningSince: null };
@@ -61,34 +63,36 @@ interface Question {
   alg: string;
   scramble: string;
   bottom?: BottomColor;
+  colors?: PracticeColors;
   prepared?: PreparedSetup;
   fromSession?: boolean;
 }
 
 /** done 对照主公式；训练期间保留本题采样终态。仅选择图解输入，不变更目标。 */
-export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase }: {
+export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palette }: {
   c: AlgCase; set: Pick<CaseSet, 'view'>; bottom: BottomColor;
-  prepared: Pick<PreparedSetup, 'state'> | null | undefined; phase: string;
+  prepared: Pick<PreparedSetup, 'state'> | null | undefined; phase: string; palette?: Palette;
 }) {
   return prepared && phase !== 'done'
-    ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} />
-    : <CaseDiagram c={c} view={set.view} bottom={bottom} />;
+    ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} palette={palette} />
+    : <CaseDiagram c={c} view={set.view} bottom={bottom} palette={palette} />;
 }
 
 export function PracticePage() {
   const user = useUserData();
   const prefs = useDevicePrefs();
   // 范围和筛选放在内存里，从“查看详情”返回时还在
-  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, bottoms: [prefs.bottomColor] });
+  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
   const [sets, setSets] = useState<SetId[]>(saved.sets);
   const [group, setGroup] = useState(saved.group);
   const [filter, setFilter] = useState<StatusFilter>(saved.filter);
   const [picked, setPicked] = useState<string[]>(saved.picked);
   const [showPicker, setShowPicker] = useState(saved.showPicker);
-  const [bottoms, setBottoms] = useState<BottomColor[]>(() => saved.bottoms?.length ? [...saved.bottoms] : [prefs.bottomColor]);
+  const [colorPools, setColorPools] = useState(() => initializeColorPools(saved, prefs));
+  const { cfopBottoms, rouxBottoms, rouxPairsByBottom } = colorPools;
   useEffect(() => {
-    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, bottoms });
-  }, [sets, group, filter, picked, showPicker, bottoms]);
+    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom });
+  }, [sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom]);
   // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
   // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
   const [restored, setRestored] = useState<PracticeSession | null>(() =>
@@ -111,10 +115,6 @@ export function PracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sets, group, filter, picked, user]);
 
-  const toggleBottom = (color: BottomColor) => setBottoms((current) => {
-    if (current.includes(color)) return current.length > 1 ? current.filter((item) => item !== color) : current;
-    return [...current, color];
-  });
   const toggleSet = (id: SetId) => {
     setSets((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
     setGroup('全部');
@@ -127,7 +127,7 @@ export function PracticePage() {
     return (
       <Session
         pool={sessionPool}
-        bottoms={bottoms}
+        colorPools={colorPools}
         restore={restored}
         onExit={() => {
           setRestored(null);
@@ -151,22 +151,32 @@ export function PracticePage() {
       </div>
       <p className="muted small">不选就是全部公式组</p>
 
-      <h2>练习底色</h2>
-      <div className="swatches" role="group" aria-label="练习底色">
-        {BOTTOM_COLORS.map((color) => (
-          <button
-            key={color}
-            className={`swatch ${bottoms.includes(color) ? 'swatch-on' : ''}`}
-            aria-pressed={bottoms.includes(color)}
-            aria-label={`练习底色${COLOR_LABEL[color]}色`}
-            onClick={() => toggleBottom(color)}
-          >
-            <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />
-            {COLOR_LABEL[color]}
-          </button>
-        ))}
+      {(['cfop', 'roux'] as const).map(method => (
+        <section className="practice-colors" key={method}>
+          <h2>{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}</h2>
+          <div className="practice-color-grid" role="group" aria-label={`${method} 练习底色`}>
+            {BOTTOM_COLORS.map(color => <button type="button" key={color}
+              className="chip" aria-pressed={(method === 'cfop' ? cfopBottoms : rouxBottoms).includes(color)}
+              aria-label={`${method} 练习底色${COLOR_LABEL[color]}色`}
+              onClick={() => setColorPools(current => togglePoolBottom(current, method, color))}>
+              <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />{COLOR_LABEL[color]}
+            </button>)}
+          </div>
+        </section>
+      ))}
+      <div className="practice-bridge-pools">
+        {rouxBottoms.map(bottom => <section key={bottom}>
+          <h3>{COLOR_LABEL[bottom]}底桥色</h3>
+          <div className="practice-pair-grid" role="group" aria-label={`${COLOR_LABEL[bottom]}底桥色`}>
+            {validPairs(bottom).map(pair => <button type="button" className="chip" key={pair}
+              aria-pressed={rouxPairsByBottom[bottom]!.includes(pair)}
+              onClick={() => setColorPools(current => togglePoolPair(current, bottom, pair))}>
+              {PAIRS[pair].map(c => COLOR_LABEL[c]).join(' / ')}桥
+            </button>)}
+          </div>
+        </section>)}
       </div>
-      <p className="muted small">可多选；每题随机一个；只换观察配色，setup 和打乱逻辑不变。</p>
+      <p className="muted small">可多选；每题按所属方法随机一个已选完整配色。Roux 两个左右方向都包含；新增底色会带入上方显示的默认桥对，每底至少一对。</p>
 
       <div className={picked.length ? 'scope-off' : ''}>
         {/* 分组只有在单个公式组里才有意义，多个组混在一起时标签太多 */}
@@ -227,18 +237,18 @@ export function PracticePage() {
 
 function Session({
   pool: initialPool,
-  bottoms: initialBottoms,
+  colorPools: initialColorPools,
   restore,
   onExit,
 }: {
   pool: AlgCase[];
-  bottoms: BottomColor[];
+  colorPools: PracticeColorPools;
   restore: PracticeSession | null;
   onExit: () => void;
 }) {
   // 练习中记录用时会让用户数据变化，范围要在开始时固定，否则会中途换题
   const [pool] = useState(initialPool);
-  const [bottoms] = useState(() => [...initialBottoms]);
+  const [colorPools] = useState(() => snapshotPools(initialColorPools));
   const user = useUserData();
   const prefs = useDevicePrefs();
   const userRef = useRef(user);
@@ -261,11 +271,12 @@ function Session({
     const controller = new AbortController();
     setReadyQuestion(null);
     setPreparationError('');
-    // Snapshot bottom per request. A settings change never recolors an already generated setup.
-    const bottom = requested.bottom ?? prefs.bottomColor;
+    // Complete colors were frozen when this request was drawn; store updates never recolor it.
+    const colors = requested.colors;
+    if (!colors) { setPreparationError('题目缺少配色快照'); return; }
     try {
       const sample = sampleTarget(requested.c, requested.scramble);
-      void prepareSetup(sample.state, bottom, controller.signal).then((prepared) => {
+      void prepareSetup(sample.state, colors, controller.signal).then((prepared) => {
         if (!controller.signal.aborted) setReadyQuestion({ ...requested, scramble: prepared.scramble, prepared });
       }).catch((error: unknown) => {
         if (!controller.signal.aborted) setPreparationError(error instanceof Error ? error.message : '准备失败');
@@ -287,7 +298,7 @@ function Session({
   const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
-  const lastBottom = useRef<BottomColor | null>(restore?.question.prepared?.bottom ?? null);
+  const lastColors = useRef<PracticeColors | null>(restore?.question.prepared?.version === 2 ? restore.question.prepared.colors : null);
   const [pressing, setPressing] = useState(false);
   const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement; armed: boolean } | null>(null);
   const heldSpace = useRef<SpaceHold | null>(null);
@@ -322,13 +333,13 @@ function Session({
     if (!c) return;
     lastId.current = c.id;
     const alg = primaryAlgOf(c, userRef.current);
-    const bottom = pickBottom(bottoms, lastBottom.current);
-    lastBottom.current = bottom;
+    const colors = pickPracticeColors(c, colorPools, lastColors.current);
+    lastColors.current = colors;
     const { view, scramble } = practiceViewFor(c, alg);
     setReadyQuestion(null);
-    setQuestion({ c: view, alg, scramble, bottom });
+    setQuestion({ c: view, alg, scramble, colors });
     setTimer(IDLE);
-  }, [pool, bottoms]);
+  }, [pool, colorPools]);
 
   useEffect(() => {
     if (!restore) next();
@@ -472,7 +483,9 @@ function Session({
     </div>
   );
   const { c, alg, scramble, prepared } = question;
-  const bottom = prepared?.bottom ?? question.bottom ?? prefs.bottomColor;
+  const colors = prepared?.version === 2 ? prepared.colors : question.colors;
+  const palette = colors ? paletteFor(colors) : undefined;
+  const bottom = prepared?.version === 1 ? prepared.bottom : colors ? colorBottom(colors) : question.bottom ?? prefs.bottomColor;
   const set = getSet(c.set)!;
   const stats = timeStats(c.id, user);
   const hint =
@@ -538,7 +551,7 @@ function Session({
         }}
       >
         <div className="practice-case">
-          <PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} />
+          <PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} palette={palette} />
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
             <p className="muted small">{set.name} · {c.group}</p>

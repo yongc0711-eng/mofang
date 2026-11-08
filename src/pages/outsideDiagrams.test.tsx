@@ -137,7 +137,7 @@ describe('T33 外面的图解跟主公式对齐', () => {
     expect(cardSource).toMatch(/<CaseDiagram c=\{view\}/);
     expect(homeSource).toMatch(/viewForPrimary\(cover, primaryAlgOf\(cover, user\)\)/);
     expect(practiceSource).toMatch(/const \{ view, scramble \} = practiceViewFor\(c, alg\)/);
-    expect(practiceSource).toMatch(/setQuestion\(\{ c: view, alg, scramble, bottom \}\)/);
+    expect(practiceSource).toMatch(/setQuestion\(\{ c: view, alg, scramble, colors \}\)/);
     expect(practiceSource).not.toMatch(/scrambleFor\(/);
     // 恢复：从 id + alg 重建 view；alg 不是 algs[0] 时重算 scramble
     expect(practiceSource).toMatch(/practiceViewFor\(base, alg\)/);

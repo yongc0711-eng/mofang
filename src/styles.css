@@ -615,3 +615,10 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .formula-color-grid button { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; }
 .formula-colors button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 button.home-hint-link { background: none; border: 0; padding: 0; text-align: left; min-height: 44px; }
+
+/* T60b settings only; no change to the timer pad or detail player budgets. */
+.practice-color-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.practice-pair-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.practice-colors button, .practice-bridge-pools button { min-height: 44px; min-width: 0; }
+.practice-color-grid button { display: flex; justify-content: center; align-items: center; gap: 4px; }
+.practice-colors button[aria-pressed="true"], .practice-bridge-pools button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }

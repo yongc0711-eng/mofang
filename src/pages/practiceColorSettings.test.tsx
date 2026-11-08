@@ -1,0 +1,21 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router-dom';
+import { expect, it, vi } from 'vitest';
+import { PracticePage } from './PracticePage';
+import { setUi } from '../lib/uiState';
+vi.mock('../store/userStore',async original=>({...await original<typeof import('../store/userStore')>(),useUserData:()=>({version:1,cases:{}})}));
+vi.mock('../store/devicePrefs',async original=>({...await original<typeof import('../store/devicePrefs')>(),useDevicePrefs:()=>({finish:'uv',focusRelevant:false,bottomColor:'white',cfop:{bottomColor:'green'},roux:{bottomColor:'white',bridgePair:'green-blue',leftColor:'green'}})}));
+it('settings render two independent six-bottom grids and only legal bridge pairs for every selected bottom',()=>{
+  setUi('practice:scope',{sets:[],group:'全部',filter:'all',picked:[],showPicker:false,cfopBottoms:['red'],rouxBottoms:['white','green'],rouxPairsByBottom:{white:['green-blue'],green:['white-yellow','red-orange']}});
+  const html=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(PracticePage)));
+  expect(html).toContain('<h2>CFOP 练习底色</h2>');expect(html).toContain('<h2>Roux 练习底色</h2>');
+  expect(html.match(/aria-label="cfop 练习底色/g)).toHaveLength(7);
+  expect(html.match(/aria-label="roux 练习底色/g)).toHaveLength(7);
+  expect(html).toContain('<h3>白底桥色</h3>');expect(html).toContain('<h3>绿底桥色</h3>');
+  expect(html.match(/桥<\/button>/g)).toHaveLength(4);
+  expect(html).toContain('新增底色会带入上方显示的默认桥对，每底至少一对');
+  expect(html).toContain('aria-label="cfop 练习底色红色"');
+  expect(html).toContain('aria-label="roux 练习底色白色"');
+  expect(html).not.toContain('交换左右');
+});
