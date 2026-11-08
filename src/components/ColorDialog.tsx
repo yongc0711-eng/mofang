@@ -36,7 +36,11 @@ export function ColorDialog({ open, title, onClose, children }: {
     <div className="color-dialog" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`} ref={dialog}>
       <header className="color-dialog-head">
         <h2 id={`${id}-title`}>{title}</h2>
-        <button type="button" className="link-btn" aria-label="关闭配色" onClick={onClose}>×</button>
+        <button type="button" className="color-dialog-close" aria-label="关闭配色" onClick={onClose}>
+          <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true" focusable="false">
+            <path d="M5 5l10 10M15 5L5 15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
       </header>
       <div className="color-dialog-tabs" role="tablist" aria-label="配色方法">
         {(['cfop', 'roux'] as const).map((m, index) => <button type="button" className="chip" role="tab" key={m}
