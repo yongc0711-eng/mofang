@@ -33,7 +33,13 @@ export function BrowseColorPanel({ method }: { method: MethodId }) {
 export function FormulaColors() {
   const [open, setOpen] = useState(false);
   return <>
-    <button type="button" className="chip color-dialog-entry" id="browse-colors" aria-label="浏览配色" aria-haspopup="dialog" aria-expanded={open} onClick={e => { e.currentTarget.focus(); setOpen(true); }}>配色</button>
+    <button type="button" className="home-color-action color-dialog-entry" id="browse-colors" title="浏览配色" aria-label="浏览配色" aria-haspopup="dialog" aria-expanded={open} onClick={e => { e.currentTarget.focus(); setOpen(true); }}>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true" focusable="false">
+        <path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.5-3.3 1.6 1.6 0 0 1 1.2-2.7H18a3 3 0 0 0 3-3 9 9 0 0 0-9-9Z" />
+        <circle cx="7.5" cy="10" r="1" /><circle cx="11" cy="7" r="1" /><circle cx="15.5" cy="8" r="1" />
+      </svg>
+      <span>配色</span>
+    </button>
     <ColorDialog open={open} title="浏览配色" onClose={() => setOpen(false)}>{method => <BrowseColorPanel method={method} />}</ColorDialog>
   </>;
 }

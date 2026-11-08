@@ -21,7 +21,8 @@ describe('T50 首页“底色可切换”提示已在 2026-11-08 按用户要求
     expect(homeSource).not.toContain('to="/me"');
   });
 
-  it('位置：标题、计数、配色入口、搜索框依次在 header 内，之后才是方法/课程卡', () => {
+  it('位置：标题计数和右侧配色组成标题行，随后是搜索和方法课程卡', () => {
+    expect(homeSource).toMatch(/<div className="home-title-row">\s*<div className="home-identity">[\s\S]*?<h1 className="page-title">魔方公式<\/h1>[\s\S]*?<\/div>\s*<FormulaColors \/>\s*<\/div>\s*<input/);
     const title = homeSource.indexOf('魔方公式</h1>');
     const count = homeSource.indexOf('已掌握 {mastered} 条');
     const entry = homeSource.indexOf('<FormulaColors />');

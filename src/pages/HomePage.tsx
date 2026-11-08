@@ -29,11 +29,15 @@ export function HomePage() {
   return (
     <div className="page">
       <header className="home-head">
-        <h1 className="page-title">魔方公式</h1>
-        <p className="muted small">
-          共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
-        </p>
-        <FormulaColors />
+        <div className="home-title-row">
+          <div className="home-identity">
+            <h1 className="page-title">魔方公式</h1>
+            <p className="muted small">
+              共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
+            </p>
+          </div>
+          <FormulaColors />
+        </div>
         <input
           className="search-input"
           type="search"

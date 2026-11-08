@@ -627,3 +627,13 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .color-dialog-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
 .color-dialog-tabs [aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 .color-dialog .formula-colors-panel { padding: 0; margin: 0; }
+
+/* T62: browsing appearance is a trailing title action, separate from search. */
+.home-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.home-identity { min-width: 0; }
+.home-color-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; min-width: 80px; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: var(--fs-meta); }
+.home-color-action svg { flex: none; }
+.home-color-action:active, .home-color-action[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
+@media (hover: hover) {
+  .home-color-action:hover { background: var(--surface-2); color: var(--text); }
+}
