@@ -9,7 +9,7 @@ import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
 import { MePage } from './pages/MePage';
 import { PracticePage } from './pages/PracticePage';
-import { SearchPage } from './pages/SearchPage';
+import { PlayPage } from './pages/PlayPage';
 import { SetPage } from './pages/SetPage';
 
 const icon = (path: ReactNode) => (
@@ -48,7 +48,7 @@ const ICONS = {
 };
 
 const NAV = [
-  { to: '/search', label: '搜索', icon: ICONS.search },
+  { to: '/search', label: '试转', icon: ICONS.search },
   { to: '/practice', label: '练习', icon: ICONS.practice },
   { to: '/me', label: '我的', icon: ICONS.me },
 ];
@@ -118,7 +118,7 @@ function AnimatedRoutes() {
         <Route path="/" element={<HomePage />} />
         <Route path="/set/:setId" element={<SetPage />} />
         <Route path="/case/:caseId" element={<CasePage />} />
-        <Route path="/search" element={<SearchPage />} />
+        <Route path="/search" element={<PlayPage />} />
         <Route path="/practice" element={<PracticePage />} />
         <Route path="/me" element={<MePage />} />
         <Route path="*" element={<HomePage />} />

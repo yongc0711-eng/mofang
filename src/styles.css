@@ -588,3 +588,16 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 首页搜索结果横跨宽屏两列，窄屏仍收在正文内。 */
 .home-results { grid-column: 1 / -1; min-width: 0; margin-bottom: 16px; }
+
+/* 试转页：紧凑的三行按键；不影响公式播放器的高度预算。 */
+.sandbox-layout { display: grid; gap: 12px; min-width: 0; }
+.sandbox-stage { width: 100%; height: 220px; min-width: 0; }
+.sandbox-controls { min-width: 0; }
+.sandbox-suffix, .sandbox-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.sandbox-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.sandbox-controls button { min-height: 44px; min-width: 44px; }
+.sandbox-controls button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+@media (min-width: 800px) {
+  .sandbox-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+  .sandbox-stage { height: 380px; }
+}
