@@ -23,15 +23,16 @@ describe('UI-home 首页样式', () => {
     const card = rules('.set-card');
     expect(card).toContain('background: var(--surface)');
     expect(card).toContain('border: 1px solid var(--border)');
-    expect(card).toContain('border-radius: 12px');
+    expect(card).toContain('border-radius: var(--radius-card)');
     expect(card).not.toMatch(/box-shadow/);
     expect(rules('.set-card:active')).toContain('background: var(--surface-2)');
   });
 
-  it('卡片高度固定 64px，触控目标是整行且不低于 32px', () => {
+  it('矮屏卡片 68px、高屏 78px，触控目标是整行且不低于 32px', () => {
     const card = rules('.set-card');
-    expect(Number(card.match(/height:\s*(\d+)px/)?.[1])).toBe(64);
+    expect(Number(card.match(/height:\s*(\d+)px/)?.[1])).toBe(68);
     expect(Number(card.match(/min-height:\s*(\d+)px/)?.[1])).toBeGreaterThanOrEqual(32);
+    expect(css).toMatch(/@media \(min-height: 720px\)[\s\S]*?\.set-card \{ height: 78px; min-height: 78px;/);
   });
 
   it('320 宽不撑开：列宽不超过容器', () => {
