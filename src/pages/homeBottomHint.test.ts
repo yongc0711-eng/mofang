@@ -15,25 +15,25 @@ describe('T50 首页“底色可切换”提示已在 2026-11-08 按用户要求
   });
 
   it('顶部唯一入口仍是首页共用的 FormulaColors，没有旧提示按钮或“我的”链接', () => {
-    expect(homeSource.match(/<FormulaColors \/>/g)).toHaveLength(1);
+    expect(homeSource.match(/<FormulaColors iconOnly \/>/g)).toHaveLength(1);
     expect(homeSource).not.toContain('<FormulaColors method={m.id} />');
     expect(homeSource).not.toContain('document.getElementById');
     expect(homeSource).not.toContain('to="/me"');
   });
 
-  it('位置：标题计数和右侧配色组成标题行，随后是搜索和方法课程卡', () => {
-    expect(homeSource).toMatch(/<div className="home-title-row">\s*<div className="home-identity">[\s\S]*?<h1 className="page-title">魔方公式<\/h1>[\s\S]*?<\/div>\s*<FormulaColors \/>\s*<\/div>\s*<input/);
+  it('位置：标题计数、搜索行、右侧圆形配色，随后是方法课程卡', () => {
+    expect(homeSource).toMatch(/<h1 className="page-title">魔方公式<\/h1>[\s\S]*?<div className="home-search-row">\s*<input[\s\S]*?aria-label="搜索公式"[\s\S]*?<FormulaColors iconOnly \/>\s*<\/div>/);
     const title = homeSource.indexOf('魔方公式</h1>');
     const count = homeSource.indexOf('已掌握 {mastered} 条');
-    const entry = homeSource.indexOf('<FormulaColors />');
     const search = homeSource.indexOf('aria-label="搜索公式"');
+    const entry = homeSource.indexOf('<FormulaColors iconOnly />');
     const headEnd = homeSource.indexOf('</header>');
     const cards = homeSource.indexOf('METHODS.map');
     expect(title).toBeGreaterThan(0);
     expect(title).toBeLessThan(count);
-    expect(count).toBeLessThan(entry);
-    expect(entry).toBeLessThan(search);
-    expect(search).toBeLessThan(headEnd);
+    expect(count).toBeLessThan(search);
+    expect(search).toBeLessThan(entry);
+    expect(entry).toBeLessThan(headEnd);
     expect(headEnd).toBeLessThan(cards);
   });
 

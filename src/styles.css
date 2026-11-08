@@ -628,10 +628,12 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .color-dialog-tabs [aria-selected="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); }
 .color-dialog .formula-colors-panel { padding: 0; margin: 0; }
 
-/* T62: browsing appearance is a trailing title action, separate from search. */
-.home-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.home-identity { min-width: 0; }
+/* T63: the search field owns the row; color entry is a round trailing action. */
+.home-head .small { margin-bottom: 10px; }
+.home-search-row { display: flex; align-items: center; gap: 8px; }
+.home-search-row .search-input { flex: 1; min-width: 0; height: 44px; margin-bottom: 0; padding: 0 16px; border-radius: 999px; }
 .home-color-action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: none; min-width: 80px; min-height: 44px; padding: 8px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: var(--fs-meta); }
+.home-color-action.icon-only { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--surface); }
 .home-color-action svg { flex: none; }
 .home-color-action:active, .home-color-action[aria-expanded="true"] { background: var(--surface-2); color: var(--text); }
 @media (hover: hover) {

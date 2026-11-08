@@ -29,26 +29,24 @@ export function HomePage() {
   return (
     <div className="page">
       <header className="home-head">
-        <div className="home-title-row">
-          <div className="home-identity">
-            <h1 className="page-title">魔方公式</h1>
-            <p className="muted small">
-              共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
-            </p>
-          </div>
-          <FormulaColors />
+        <h1 className="page-title">魔方公式</h1>
+        <p className="muted small">
+          共 {ALL_CASES.length} 条公式，已掌握 {mastered} 条
+        </p>
+        <div className="home-search-row">
+          <input
+            className="search-input"
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="搜索公式、别名或片段"
+            aria-label="搜索公式"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+          <FormulaColors iconOnly />
         </div>
-        <input
-          className="search-input"
-          type="search"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="名称、别名或公式片段，如 T、小鱼、R U R'"
-          aria-label="搜索公式"
-          autoCapitalize="off"
-          autoCorrect="off"
-          spellCheck={false}
-        />
       </header>
       {query && (
         <section className="home-results" aria-label="搜索结果">
