@@ -22,7 +22,6 @@ export class Sandbox {
   press(key: string): boolean {
     if (this.pending >= 16) return false;
     this.queue.push({ move: keyMove(key, this.suffix), record: true });
-    this.suffix = '';
     return true;
   }
   undo(): boolean {

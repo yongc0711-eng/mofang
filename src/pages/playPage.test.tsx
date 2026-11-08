@@ -2,7 +2,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it, vi } from 'vitest';
 import { PlayPage } from './PlayPage';
-vi.mock('../store/devicePrefs', () => ({ useDevicePrefs: () => ({ bottomColor: 'white' }) }));
+vi.mock('../store/devicePrefs', () => ({ useDevicePrefs: () => ({ bottomColor: 'white', finish: 'uv' }) }));
 it('SSR has title, nine main keys, suffixes and actions without loading WebGL', () => {
   const html=renderToStaticMarkup(createElement(PlayPage));
   expect(html).toContain('试转</h1>');expect(html).toContain('拖动魔方换视角，双击回正');

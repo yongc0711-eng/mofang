@@ -7,10 +7,17 @@ it.each([...MAIN_KEYS, ...MORE_KEYS])('key %s produces recognized moves with eve
   for (const suffix of ['', "'", '2'] as const) expect(keyMove(key, suffix)).toEqual(parseAlg(key + suffix)[0]);
 });
 it('rejects unknown keys', () => { expect(() => keyMove('Q', '')).toThrow(); });
-it('suffix applies only to the next accepted key', () => {
+it('suffix stays locked until explicitly changed or reset', () => {
   const s = new Sandbox(); s.suffix = "'"; s.press('R'); s.press('U');
-  expect(s.suffix).toBe(''); s.tick(320);
-  expect(s.state).toEqual(applyMoves(solved(), parseAlg("R' U")));
+  expect(s.suffix).toBe("'"); s.tick(320);
+  expect(s.state).toEqual(applyMoves(solved(), parseAlg("R' U'")));
+  s.suffix = '2'; s.press('F'); s.tick(240);
+  expect(s.suffix).toBe('2');
+  expect(s.state).toEqual(applyMoves(solved(), parseAlg("R' U' F2")));
+  expect(s.undo()).toBe(true); s.tick(240); expect(s.suffix).toBe('2');
+  expect(s.state).toEqual(applyMoves(solved(), parseAlg("R' U'")));
+  s.suffix = ''; s.press('B'); s.tick(160);
+  expect(s.state).toEqual(applyMoves(solved(), parseAlg("R' U' B")));
 });
 it('90 and 180 degree turns commit only after 160 and 240ms', () => {
   const s = new Sandbox(); s.press('R');
