@@ -1,9 +1,11 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
-import { viewForPrimary } from '../components/CaseCard';
+import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
 import { useDevicePrefs } from '../store/devicePrefs';
 import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
+import { matches } from '../lib/search';
 import { type SetId } from '../types';
 
 /** 每组用一个有代表性的情形做缩略图 */
@@ -16,7 +18,10 @@ const COVER: Record<SetId, string> = {
 };
 
 export function HomePage() {
+  const [q, setQ] = useState('');
   const user = useUserData();
+  const query = q.trim();
+  const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   return (
@@ -32,7 +37,27 @@ export function HomePage() {
             想换魔方底色？到「我的」里切换 <span aria-hidden="true">›</span>
           </Link>
         </p>
+        <input
+          className="search-input"
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="名称、别名或公式片段，如 T、小鱼、R U R'"
+          aria-label="搜索公式"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+        />
       </header>
+      {query && (
+        <section className="home-results" aria-label="搜索结果">
+          <p className="muted small" role="status">找到 {results.length} 条</p>
+          {!results.length && <p className="empty">没有匹配的公式</p>}
+          <div className="case-grid">
+            {results.map((c) => <CaseCard key={c.id} c={c} />)}
+          </div>
+        </section>
+      )}
       {METHODS.map((m) => (
         <section key={m.id} className="method">
           <div className="method-head">
