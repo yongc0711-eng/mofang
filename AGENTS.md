@@ -46,5 +46,9 @@ git 报 dubious ownership 时，用 `git -c safe.directory=D:/allwork/mofang ...
 
 ## 分工
 
-- **Lead**：架构、魔方引擎、校验规则、部署、审查与合并，维护 `docs/TASKS.md`。
-- **Codex**：按任务实现、跑门禁、写 `docs/tasks/<id>.md`；交付时不合并、不 push。
+Claude 账号目前不可用，不再担任 Lead；新会话按下面的分工执行。
+
+- **Lead**：Gemini 4 / Antigravity。负责架构、魔方引擎、校验规则、任务拆分与规格、审查实现，维护 `docs/TASKS.md`；合并前必须经过 Auditor 的独立门禁。
+- **Executor**：Codex。按任务实现、跑门禁、写 `docs/tasks/<id>.md`；交付时不合并、不 push。
+- **Auditor / Release**：独立复核实现与测试，确认没有放宽 `SET_RULES` 或测试，跑门禁；通过后合并、push。不得和 Lead 在同一轮里自写自审。
+- **Router**：用户。定方向、优先级和最终发布批准。

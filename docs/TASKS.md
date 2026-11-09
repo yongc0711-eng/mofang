@@ -2,6 +2,7 @@
 
 ## 当前状态（2026-11-09）
 
+- **分工：** Lead = Gemini 4 / Antigravity；Executor = Codex；Auditor / Release = 独立复核者；Router = 用户。Claude 账号不可用，旧分工不再适用；细则见 `AGENTS.md`。
 - **公式数据：** 254 条已录完：F2L 41、OLL 57、PLL 21、CMLL 42、LSE 93。来源见 `docs/decisions.md` 和各数据文件开头。
 - **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
