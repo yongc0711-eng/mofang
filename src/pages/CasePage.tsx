@@ -1,3 +1,4 @@
+import { displayAlg } from '../lib/algDisplay';
 import { browsePalette, FACE_COLOR } from '../lib/colorScheme';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
@@ -148,7 +149,7 @@ export function CasePage() {
         onClick={() => setSelected(alg)}
         aria-label={`查看这条公式的起手 ${alg}`}
       >
-        <code className="alg">{alg}</code>
+        <code className="alg">{displayAlg(c.id, alg)}</code>
         <span className="muted small">
           {moveCount(alg)} 步{isCustom && ' · 我的公式'}
         </span>
