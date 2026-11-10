@@ -30,13 +30,19 @@ test('公式列表：筛选都可点、分类与状态组合、返回保留选�
   await expect(page.locator('.case-card')).toHaveCount(21);
   await expect(page.getByLabel('按分组筛选')).toHaveValue('全部');
   await expect(filters.getByRole('button', { name: '全部', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('.case-card').first().click();
+  await page.getByRole('group', { name: '学习状态', exact: true }).getByRole('button', { name: '已掌握' }).click();
+  await page.getByRole('button', { name: '‹ 返回', exact: true }).click();
+  const mastered = page.locator('.case-state-mastered');
+  await expect(mastered).toHaveText('已掌握');
+  expect(await mastered.evaluate((el) => getComputedStyle(el).color)).toBe(await page.locator('body').evaluate((el) => getComputedStyle(el).color));
 });
 
 test('浅深色：列表和长公式不溢出，首屏播放器与提示条避开底栏', async ({ page }) => {
   const width = page.viewportSize()!.width;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
-    for (const path of ['/set/pll', '/case/pll-ga', '/case/oll-4', '/case/cmll-s-1', '/case/lse-eo-7']) {
+    for (const path of ['/set/f2l', '/set/oll', '/set/pll', '/set/cmll', '/set/lse', '/case/pll-ga', '/case/oll-4', '/case/cmll-s-1', '/case/lse-eo-7']) {
       await page.goto('/#' + path);
       await expect(page.locator(path.startsWith('/set') ? '.set-page' : '.case-page')).toBeVisible();
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -52,6 +58,15 @@ test('浅深色：列表和长公式不溢出，首屏播放器与提示条避�
         expect(cue.y + cue.height, `${path} ${colorScheme} 提示条被底栏盖住`).toBeLessThanOrEqual(nav.y);
         const stage = (await page.locator('.player-stage').boundingBox())!;
         expect(stage.height).toBe(width === 320 ? 164 : 190);
+        if (path === '/case/lse-eo-7') {
+          const views = page.locator('.case-head .diagram svg');
+          await expect(views).toHaveCount(2);
+          const top = (await views.nth(0).boundingBox())!;
+          const bottom = (await views.nth(1).boundingBox())!;
+          expect(top.y + top.height).toBeLessThanOrEqual(bottom.y);
+          expect(top.height).toBeGreaterThan(20);
+          expect(bottom.height).toBeGreaterThan(20);
+        }
       }
       if (path === '/set/pll' || path === '/case/oll-4') {
         if (path.startsWith('/case')) await expect(page.locator('.player-stage canvas')).toBeVisible();
