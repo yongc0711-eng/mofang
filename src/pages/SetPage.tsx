@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseCard } from '../components/CaseCard';
-import { getSet } from '../data';
+import { getSet, METHODS } from '../data';
 import { getUi, setUi } from '../lib/uiState';
 import { STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
 import { type LearnStatus } from '../types';
@@ -41,26 +41,34 @@ export function SetPage() {
   });
 
   return (
-    <div className="page">
-      <h1 className="page-title">
-        {set.name} <span className="muted title-note">{set.description}</span>
-      </h1>
-      <div className="chips" role="group" aria-label="按学习状态筛选">
+    <div className="page set-page">
+      <header className="set-head">
+        <div className="set-topline">
+          <Link to="/" className="set-back">‹ 公式库</Link>
+          <span className="set-method">{METHODS.find((m) => m.id === set.method)?.name}</span>
+        </div>
+        <h1 className="page-title">
+          {set.name} <span className="muted title-note">{set.description}</span>
+        </h1>
+      </header>
+      <div className="chips set-status-filter" role="group" aria-label="按学习状态筛选">
         {FILTERS.map((f) => (
-          <button key={f.id} className={`chip ${filter === f.id ? 'chip-on' : ''}`} onClick={() => setFilter(f.id)}>
+          <button key={f.id} className={`chip ${filter === f.id ? 'chip-on' : ''}`} aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
             {f.label}
           </button>
         ))}
       </div>
-      {groups.length > 2 && (
-        <div className="chips" role="group" aria-label="按分组筛选">
-          {groups.map((g) => (
-            <button key={g} className={`chip ${group === g ? 'chip-on' : ''}`} onClick={() => setGroup(g)}>
-              {g}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="set-toolbar">
+        {groups.length > 2 && (
+          <label className="set-category">
+            <span>分类</span>
+            <select aria-label="按分组筛选" value={group} onChange={(e) => setGroup(e.target.value)}>
+              {groups.map((g) => <option key={g} value={g}>{g === '全部' ? '全部分类' : g}</option>)}
+            </select>
+          </label>
+        )}
+        <p className="set-count" role="status">{cases.length} 个情形</p>
+      </div>
       {cases.length ? (
         <div className="case-grid">
           {cases.map((c) => (
@@ -68,7 +76,11 @@ export function SetPage() {
           ))}
         </div>
       ) : (
-        <p className="empty">这里还没有公式</p>
+        <div className="set-empty">
+          <p>没有符合条件的情形</p>
+          <p className="muted small">试试其他分类或学习状态。</p>
+          <button className="link-btn" onClick={() => { setFilter('all'); setGroup('全部'); }}>查看全部情形</button>
+        </div>
       )}
     </div>
   );

@@ -5,7 +5,7 @@ import { getSet } from '../data';
 import { viewCaseFor } from '../lib/cases';
 import { scrambleFor } from '../lib/practice';
 import { useDevicePrefs } from '../store/devicePrefs';
-import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
+import { primaryAlgOf, STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
 import { type AlgCase } from '../types';
 import { CaseDiagram } from './CaseDiagram';
 
@@ -46,10 +46,11 @@ export function CaseCard({ c }: { c: AlgCase }) {
         <div className="case-card-title">
           <span className="case-name">{c.name}</span>
           {favorite && <span className="fav-mark" aria-label="已收藏">★</span>}
-          {status !== 'none' && <span className={`status-dot status-${status}`} aria-hidden="true" />}
+          {status !== 'none' && <span className={`case-state case-state-${status}`}>{STATUS_LABEL[status]}</span>}
         </div>
         <code className="alg alg-small">{primary}</code>
       </div>
+      <span className="case-card-arrow" aria-hidden="true">›</span>
     </Link>
   );
 }

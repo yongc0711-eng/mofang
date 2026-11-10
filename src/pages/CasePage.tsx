@@ -186,18 +186,20 @@ export function CasePage() {
       </button>
       <header className="case-head">
         <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />
-        <div>
-          <h1 className="page-title">{c.name}</h1>
+        <div className="case-identity">
+          <div className="case-title-row" data-long-name={c.name.length > 12}>
+            <h1 className="page-title">{c.name}</h1>
+            <button
+              className={`fav-btn ${favorite ? 'fav-on' : ''}`}
+              aria-pressed={favorite}
+              onClick={() => toggleFavorite(c.id)}
+            >
+              {favorite ? '★ 已收藏' : '☆ 收藏'}
+            </button>
+          </div>
           <p className="muted">
             {set.name} · {c.group}
           </p>
-          <button
-            className={`fav-btn ${favorite ? 'fav-on' : ''}`}
-            aria-pressed={favorite}
-            onClick={() => toggleFavorite(c.id)}
-          >
-            {favorite ? '★ 已收藏' : '☆ 收藏'}
-          </button>
         </div>
         <div className="case-status">
           <h2 className="case-status-title">学习状态</h2>
