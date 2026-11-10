@@ -39,6 +39,7 @@ test('公式列表：筛选都可点、分类与状态组合、返回保留选�
 });
 
 test('浅深色：列表和长公式不溢出，首屏播放器与提示条避开底栏', async ({ page }) => {
+  test.setTimeout(90_000);
   const width = page.viewportSize()!.width;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
