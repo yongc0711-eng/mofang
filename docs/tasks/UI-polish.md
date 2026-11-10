@@ -3,7 +3,7 @@
 ## 背景与目标
 
 2026-11-11，用户希望前端更好看，授权先打磨公式列表和详情页。
-基线 main `a3b7d39`，实现分支 `codex/ui-polish`；已合并 main `a7116eb`，随合并提交发布。
+基线 main `a3b7d39`，实现分支 `codex/ui-polish`；已合并 main `cb29b7c`，GitHub Actions 部署成功。
 
 沿用用户此前选定的圆角卡片、暖灰背景和橙色品牌色，统一字重、间距、信息层级。
 
@@ -54,11 +54,12 @@
 两张 SVG 左边分别为 x=16、84，顶部相同；不存在重叠或横向滚动，收藏完整可见。`lse-eo-7` 的双图在两种视口、浅深色下也通过 ≥56px 与不重叠断言。
 
 门禁结果：`npm test` 3748/56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 16 条全部通过。
-截图：`ui-review.local/lse-fix/320x640.png`、`ui-review.local/lse-fix/390x844.png`（本地忽略文件）。已合并 main `a7116eb` 并 push。
+截图：`ui-review.local/lse-fix/320x640.png`、`ui-review.local/lse-fix/390x844.png`（本地忽略文件）。已合并 main `cb29b7c` 并 push。
 
 ## 顺手收尾（2026-11-11）
 
 - 详情页 `.case-page .peek-cue` 从透明灰字改为 `accent-soft` 底、accent 文字的胶囊按钮，保留原有 32px 高与布局位置，不改变 T48 的首屏预算。
 - 320 宽下列表卡片 padding 16→12、卡片间距 12→10；390 及以上不变。列表仍是三张一屏，但单卡更紧凑、滚动更短。
 - 复核：`npm test` 3748/56、`check:data` 393、`build`、`test:visual` 16 条通过；320/390 均无横滚，`lse-ulur-24` 双图仍各 64×64。
-- 已合并 main `a7116eb`。320 列表卡片实测高 90px（原 100px 左右），`lse-ulur-24` 的 `peek-cue` 底 549.89，距底栏顶 568 还有 18px。
+- 已合并 main `cb29b7c`。320 列表卡片实测高 90px（原 100px 左右），`lse-ulur-24` 的 `peek-cue` 底 549.89，距底栏顶 568 还有 18px。
+- CI 首次运行在 `test:visual` 超时失败，把浅深色长循环用例的超时提高到 90s；重跑 success，线上 `index-C5GbAZlP.css` 与本地产物一致。

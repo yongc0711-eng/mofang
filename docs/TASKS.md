@@ -53,7 +53,7 @@
 - [T68](tasks/T68.md) 主公式括号显示：新增 displayAlg，78 条映射（A 41 + B 37），仅 raw 全等且 algs[0] 生效；其他等价公式不套括号；oll-22 无顺手组不括。3746/55、393、build；main 76f6ba0。
 - [T69](tasks/T69.md) 关闭长按文字选择：`body` 禁用 `-webkit-touch-callout` / `user-select`，只给 `input`、`textarea`、`code`、`[contenteditable="true"]` 恢复；新增两条样式契约测试。3748/56、393、build；main 850992f。
 - [T70](tasks/T70.md) 视觉冒烟：Playwright 在 320×640 / 390×844 跑 5 条布局检查（首页、公式详情、练习设置、配色弹窗、试转），只做溢出/遮挡/焦点断言，不做像素快照；`test:visual` 接进部署 CI，失败时上传截图与 trace。10 条全过。
-- [UI-polish](tasks/UI-polish.md) 公式列表与详情页视觉打磨：列表筛选/分类/空结果、卡片 64px 图解与状态文字、详情单图 64px 与收藏上移；LSE 双图改为 132×64 并排、各 64×64，320 收藏放到返回行右侧；`peek-cue` 改为 accent-soft 按钮感，320 列表卡片 padding 12 / 间距 10。3748/56、393、build、visual 16 条通过；已合并 main `a7116eb`。
+- [UI-polish](tasks/UI-polish.md) 公式列表与详情页视觉打磨：列表筛选/分类/空结果、卡片 64px 图解与状态文字、详情单图 64px 与收藏上移；LSE 双图改为 132×64 并排、各 64×64，320 收藏放到返回行右侧；`peek-cue` 改为 accent-soft 按钮感，320 列表卡片 padding 12 / 间距 10。3748/56、393、build、visual 16 条通过；已合并 main `cb29b7c`，GitHub Actions 部署成功。
 
 ## 待确认（不建任务）
 
