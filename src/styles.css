@@ -680,6 +680,12 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .case-page .case-head { gap: 16px 12px; margin-bottom: 16px; }
 .case-page .case-head .diagram { width: 64px; height: 64px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
 .case-page .case-head .diagram svg { min-height: 0; max-height: 64px; flex: 0 1 auto; }
+/* LSE 有顶面和底面两张图：并排显示，避免在 64px 高度中各缩成半张。 */
+.case-page .case-head .diagram:has(svg + svg) { width: 132px; flex-direction: row; gap: 4px; }
+.case-page .case-head .diagram:has(svg + svg) > svg { width: 64px; height: 64px; flex: 0 0 64px; }
+/* 窄屏时把 LSE 收藏放到返回行右侧，让长名称用满剩余宽度。 */
+.case-page .case-head:has(> .diagram svg + svg) { position: relative; }
+.case-page .case-head:has(> .diagram svg + svg) .fav-btn { position: absolute; top: -44px; right: 0; }
 .case-identity { flex: 1; min-width: 0; }
 .case-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .case-title-row .page-title { min-width: 0; overflow-wrap: anywhere; font-size: 1.75rem; font-weight: 600; line-height: 1.25; }

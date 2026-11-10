@@ -63,9 +63,19 @@ test('浅深色：列表和长公式不溢出，首屏播放器与提示条避�
           await expect(views).toHaveCount(2);
           const top = (await views.nth(0).boundingBox())!;
           const bottom = (await views.nth(1).boundingBox())!;
-          expect(top.y + top.height).toBeLessThanOrEqual(bottom.y);
+          expect(top.x + top.width).toBeLessThanOrEqual(bottom.x);
           expect(top.height).toBeGreaterThan(20);
           expect(bottom.height).toBeGreaterThan(20);
+          for (const box of [top, bottom]) {
+            expect(box.width).toBeGreaterThanOrEqual(56);
+            expect(box.height).toBeGreaterThanOrEqual(56);
+          }
+        } else {
+          const view = page.locator('.case-head .diagram svg');
+          await expect(view).toHaveCount(1);
+          const box = (await view.boundingBox())!;
+          expect(box.width).toBe(64);
+          expect(box.height).toBe(64);
         }
       }
       if (path === '/set/pll' || path === '/case/oll-4') {
@@ -74,4 +84,33 @@ test('浅深色：列表和长公式不溢出，首屏播放器与提示条避�
       }
     }
   }
+});
+
+test('LSE 长名称详情：双图清晰并排、收藏不溢出、播放器和提示条在底栏上方', async ({ page }, testInfo) => {
+  await page.goto('/#/case/lse-ulur-24');
+  await expect(page.locator('.case-page')).toBeVisible();
+  const views = page.locator('.case-head .diagram svg');
+  await expect(views).toHaveCount(2);
+  const first = (await views.nth(0).boundingBox())!;
+  const second = (await views.nth(1).boundingBox())!;
+  for (const box of [first, second]) {
+    expect(box.width).toBeGreaterThanOrEqual(56);
+    expect(box.height).toBeGreaterThanOrEqual(56);
+  }
+  expect(first.x + first.width).toBeLessThanOrEqual(second.x);
+  const favorite = (await page.locator('.case-head .fav-btn').boundingBox())!;
+  expect(favorite.x).toBeGreaterThanOrEqual(0);
+  expect(favorite.y).toBeGreaterThanOrEqual(0);
+  expect(favorite.x + favorite.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  expect(favorite.height).toBeGreaterThanOrEqual(32);
+  const nav = (await page.locator('.nav').boundingBox())!;
+  const player = (await page.locator('.player').boundingBox())!;
+  const cue = (await page.locator('.peek-cue').boundingBox())!;
+  expect(player.y + player.height).toBeLessThanOrEqual(nav.y);
+  expect(cue.y + cue.height).toBeLessThanOrEqual(nav.y);
+  const widths = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
+  expect(widths.scroll).toBe(widths.client);
+  console.log('UI-polish-fix', testInfo.project.name, JSON.stringify({ first, second, favorite, playerBottom: player.y + player.height, peekBottom: cue.y + cue.height, navTop: nav.y, ...widths }));
+  await expect(page.locator('.player-stage canvas')).toBeVisible();
+  await page.screenshot({ path: `test-results/ui-polish/lse-fix-${testInfo.project.name}.png` });
 });
