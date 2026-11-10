@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CaseCard } from '../components/CaseCard';
+import { CategoryPicker } from '../components/CategoryPicker';
 import { getSet, METHODS } from '../data';
 import { getUi, setUi } from '../lib/uiState';
 import { STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
@@ -60,12 +61,7 @@ export function SetPage() {
       </div>
       <div className="set-toolbar">
         {groups.length > 2 && (
-          <label className="set-category">
-            <span>分类</span>
-            <select aria-label="按分组筛选" value={group} onChange={(e) => setGroup(e.target.value)}>
-              {groups.map((g) => <option key={g} value={g}>{g === '全部' ? '全部分类' : g}</option>)}
-            </select>
-          </label>
+          <CategoryPicker groups={groups.map((name) => ({ name, count: name === '全部' ? set.cases.length : set.cases.filter((c) => c.group === name).length }))} value={group} onChange={setGroup} />
         )}
         <p className="set-count" role="status">{cases.length} 个情形</p>
       </div>
