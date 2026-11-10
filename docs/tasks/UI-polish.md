@@ -55,3 +55,10 @@
 
 门禁结果：`npm test` 3748/56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 16 条全部通过。
 截图：`ui-review.local/lse-fix/320x640.png`、`ui-review.local/lse-fix/390x844.png`（本地忽略文件）。未合并、未 push。
+
+## 顺手收尾（2026-11-11）
+
+- 详情页 `.case-page .peek-cue` 从透明灰字改为 `accent-soft` 底、accent 文字的胶囊按钮，保留原有 32px 高与布局位置，不改变 T48 的首屏预算。
+- 320 宽下列表卡片 padding 16→12、卡片间距 12→10；390 及以上不变。列表仍是三张一屏，但单卡更紧凑、滚动更短。
+- 复核：`npm test` 3748/56、`check:data` 393、`build`、`test:visual` 16 条通过；320/390 均无横滚，`lse-ulur-24` 双图仍各 64×64。
+- 分支 `codex/ui-polish`，待合并 main。
