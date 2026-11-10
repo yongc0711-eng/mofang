@@ -70,7 +70,7 @@
 - 入口改为带筛选图标的小胶囊；选择后自动收起，重新打开聚焦当前分类。原生 dialog 管理焦点范围，支持关闭按钮、Esc、点击遮罩关闭，关闭后回到入口，打开期间锁定页面滚动。
 - 保持原来的分类数据、组合筛选和返回恢复；按 D19 精确更新直接依赖原 select 的测试，原有结果数量等断言保留。新增五组分类、320/390、浅深色、关闭、选中和焦点检查。
 - 门禁：`npm test` 3748/56，`check:data` 393，`build` 通过，`test:visual -- --workers=2` 18 条通过。面板在两个手机视口内，无横向溢出。
-- 截图：`ui-review.local/category-picker/`。仍在 `codex/ui-polish` 本地交付，未合并、未 push。
+- 截图：`ui-review.local/category-picker/`。已合并 main `fa65b50`。
 
 ## CategoryPicker 边缘与无障碍名称修正（2026-11-11）
 
@@ -85,4 +85,4 @@
 
 - 新增两侧几何覆盖断言、无障碍名称与关闭按钮尺寸检查；五个组在两个视口的浅深色中均检查面板在视口内且不横滚。选中态、组合筛选、结果数量、返回恢复、Esc/遮罩/关闭按钮及焦点返回均通过。分类数据、筛选与 SetPage 返回逻辑未改。
 - 门禁：`npm test` 3748/56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 18 条全部通过。
-- 截图：`ui-review.local/category-picker-fix/320x640-light.png`、`320x640-dark.png`；逐张确认 320 左侧入口橙边消失。未合并、未 push。
+- 截图：`ui-review.local/category-picker-fix/320x640-light.png`、`320x640-dark.png`；逐张确认 320 左侧入口橙边消失。已合并 main `c6101cb`。
