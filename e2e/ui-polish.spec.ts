@@ -12,14 +12,14 @@ test('公式列表：筛选都可点、分类与状态组合、返回保留选�
     expect(box.height).toBeGreaterThanOrEqual(32);
   }
 
-  await page.getByRole('button', { name: '按分组筛选', exact: true }).click();
-  await page.getByRole('dialog', { name: '选择分类' }).getByRole('button', { name: 'G 系列', exact: true }).click();
+  await page.getByRole('button', { name: /^按分组筛选/ }).click();
+  await page.getByRole('dialog', { name: '选择分类' }).getByRole('button', { name: /^G 系列/ }).click();
   await expect(page.locator('.case-card')).toHaveCount(4);
   await page.locator('.case-card').first().click();
   await page.getByRole('group', { name: '学习状态', exact: true }).getByRole('button', { name: '学习中' }).click();
   await page.getByRole('button', { name: '☆ 收藏', exact: true }).click();
   await page.getByRole('button', { name: '‹ 返回', exact: true }).click();
-  await expect(page.getByRole('button', { name: '按分组筛选', exact: true })).toHaveText('G 系列');
+  await expect(page.getByRole('button', { name: /^按分组筛选/ })).toHaveText('G 系列');
   await filters.getByRole('button', { name: '学习中', exact: true }).click();
   await expect(page.locator('.case-card')).toHaveCount(1);
   await expect(page.locator('.case-card')).toContainText('学习中');
@@ -29,7 +29,7 @@ test('公式列表：筛选都可点、分类与状态组合、返回保留选�
   await expect(page.getByText('没有符合条件的情形')).toBeVisible();
   await page.getByRole('button', { name: '查看全部情形' }).click();
   await expect(page.locator('.case-card')).toHaveCount(21);
-  await expect(page.getByRole('button', { name: '按分组筛选', exact: true })).toHaveText('全部分类');
+  await expect(page.getByRole('button', { name: /^按分组筛选/ })).toHaveText('全部分类');
   await expect(filters.getByRole('button', { name: '全部', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await page.locator('.case-card').first().click();
   await page.getByRole('group', { name: '学习状态', exact: true }).getByRole('button', { name: '已掌握' }).click();

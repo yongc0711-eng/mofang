@@ -672,12 +672,12 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .category-trigger { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; min-height: 40px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font-size: 0.8125rem; text-align: left; }
 .category-trigger svg { flex: none; color: var(--muted); }
 .category-trigger[aria-expanded="true"] { border-color: var(--accent); }
-.category-dialog { box-sizing: border-box; width: min(400px, calc(100% - 32px)); max-height: calc(100dvh - 48px); margin: auto; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); color: var(--text); }
+.category-dialog { box-sizing: border-box; width: min(400px, calc(100% - 24px)); max-width: calc(100% - 24px); max-height: calc(100dvh - 48px); margin: auto; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius-panel); background: var(--surface); color: var(--text); box-shadow: var(--shadow-md); }
 .category-dialog::backdrop { background: var(--category-backdrop); }
 .category-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
 .category-dialog-head h2 { margin: 0 0 4px; font-size: 1.125rem; font-weight: 600; }
 .category-dialog-head p { color: var(--muted); font-size: 0.75rem; }
-.category-close { display: grid; place-items: center; flex: none; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
+.category-close { display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
 .category-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .category-options button { display: flex; align-items: center; gap: 6px; min-width: 0; min-height: 48px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); color: var(--text); text-align: left; font-size: 0.875rem; }
 .category-options button:first-child { grid-column: 1 / -1; }

@@ -24,7 +24,7 @@ export function CategoryPicker({ groups, value, onChange }: {
   }, [open]);
   return (
     <>
-      <button ref={trigger} className="category-trigger" aria-label="按分组筛选" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
+      <button ref={trigger} className="category-trigger" aria-label={value === '全部' ? '按分组筛选：全部分类' : `按分组筛选：${value}`} aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(true)}>
         <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 5h14M6 10h8M8 15h4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
         {value === '全部' ? '全部分类' : value}
         <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -42,7 +42,7 @@ export function CategoryPicker({ groups, value, onChange }: {
         </header>
         <div className="category-options" role="group" aria-label="情形分类">
           {groups.map(({ name, count }) => (
-            <button key={name} aria-label={name === '全部' ? '全部分类' : name} aria-pressed={value === name} onClick={() => { onChange(name); setOpen(false); }}>
+            <button key={name} aria-label={`${name === '全部' ? '全部分类' : name}，${count} 个情形`} aria-pressed={value === name} onClick={() => { onChange(name); setOpen(false); }}>
               <span className="category-option-name">{name === '全部' ? '全部分类' : name}</span>
               <span className="category-option-count">{count}</span>
               <span className="category-check" aria-hidden="true">{value === name ? '✓' : ''}</span>
