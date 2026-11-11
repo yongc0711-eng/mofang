@@ -13,9 +13,6 @@ export default defineConfig({
     reducedMotion: 'reduce',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
-    // CI 用 runner 自带的 Chrome；--with-deps 在 Actions 上装浏览器曾超时，
-    // 导致部署被卡住。本地仍用 Playwright 自带 Chromium。
-    ...(process.env.CI ? { channel: 'chrome' as const } : {}),
   },
   projects: [
     {

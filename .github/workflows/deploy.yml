@@ -25,6 +25,15 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
+      # 发布后再跑视觉冒烟：浏览器安装失败不能把已经构建好的 Pages 卡住。
+      - run: npx playwright install --with-deps chromium
+        timeout-minutes: 5
       - run: npm run test:visual
       - uses: actions/upload-artifact@v4
         if: always()
@@ -34,9 +43,3 @@ jobs:
             test-results
             playwright-report
           retention-days: 7
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - id: deployment
-        uses: actions/deploy-pages@v4
