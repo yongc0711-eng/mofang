@@ -1,4 +1,4 @@
-import { BOTTOM_COLORS, PAIRS, bottomPalette, legacyRoux, rouxPalette, validPairs, type BottomColor, type BridgePair, type BrowseColors, type Palette, type RouxColors } from './colorScheme';
+import { BOTTOM_COLORS, PAIRS, bottomPalette, isRouxSet, legacyRoux, rouxPalette, validPairs, type BottomColor, type BridgePair, type BrowseColors, type Palette, type RouxColors } from './colorScheme';
 
 export type PracticeColors = { method: 'cfop'; bottom: BottomColor } | ({ method: 'roux' } & RouxColors);
 const palettes = new Map<string, Palette>();
@@ -82,7 +82,7 @@ export function colorCandidates(method: 'cfop' | 'roux', pools: PracticeColorPoo
   return candidates;
 }
 export function pickPracticeColors(c: { set: string }, pools: PracticeColorPools, last: PracticeColors | null, rand = Math.random): PracticeColors {
-  const method = c.set === 'cmll' || c.set === 'lse' ? 'roux' : 'cfop';
+  const method = isRouxSet(c.set) ? 'roux' : 'cfop';
   let candidates = colorCandidates(method, pools);
   if (candidates.length > 1 && last) candidates = candidates.filter(c=>!sameColors(c,last));
   const value = rand(), index = Number.isFinite(value) ? Math.min(candidates.length-1, Math.max(0, Math.floor(value*candidates.length))) : 0;

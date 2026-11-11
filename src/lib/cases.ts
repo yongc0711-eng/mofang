@@ -42,10 +42,70 @@ interface SetRule {
   normalize: boolean;
   /** 备选公式允许先做的整体 y 转动次数 */
   preY: number[];
+  /** 起手 U 调整；未指定时沿用原组规则 */
+  preUs?: number[];
   /** PLL 额外要求：不改变顶面朝向 */
   keepsUFace?: boolean;
   /** 只允许这些转动（LSE 只能 M/U） */
   allowedBases?: string;
+}
+
+/** COLL 只忽略顶层四棱的侧色，仍要求完整 F2L、顶角与顶棱朝向。 */
+export const isCollMask: Mask = (id) => isF2LPiece(id) || isCorner(id) || uFace(id);
+export const COLL_U_EDGE_TOP_LOCS: readonly number[] = S.filter(
+  (s) => s.face === 'U' && !isCorner(s.id) && (s.p[0] !== 0 || s.p[2] !== 0),
+).map((s) => s.id);
+export const COLL_U_CORNER_TOP_LOCS: readonly number[] = S.filter(
+  (s) => s.face === 'U' && isCorner(s.id),
+).map((s) => s.id);
+
+/** 左桥 13 张 + 右桥后半 8 张；只放开右前槽的 5 张贴纸。 */
+export const isSblsPreserve: Mask = (id) => isRouxBlock(id) && !isFRPair(id);
+export const SBLS_FR_PAIR_LOCS: readonly number[] = S.filter((s) => isFRPair(s.id)).map((s) => s.id);
+
+export const COLL_RULE: SetRule = {
+  display: isCollMask,
+  solve: isCollMask,
+  preserve: isF2LPiece,
+  preUs: [0, 1, 2, 3],
+  preY: [0, 1, 2, 3],
+  normalize: true,
+};
+
+export const SBLS_RULE: SetRule = {
+  display: isRouxBlock,
+  solve: isRouxBlock,
+  preserve: isSblsPreserve,
+  preUs: [0],
+  preY: [0],
+  normalize: false,
+};
+
+export function lintCollState(caseId: string, after: State, primaryAlg: string): string[] {
+  const errors: string[] = [];
+  if (!COLL_U_EDGE_TOP_LOCS.every((loc) => S[after[loc]].face === 'U')) {
+    errors.push(`${caseId}: COLL prerequisite violated — U-layer edges are not oriented`);
+  }
+  if (COLL_U_CORNER_TOP_LOCS.every((loc) => S[after[loc]].face === 'U')) {
+    errors.push(`${caseId}: COLL state has all 4 U-corners already oriented (PLL/O case)`);
+  }
+  if (parseAlg(primaryAlg).some((m) => 'xyz'.includes(m.base))) {
+    errors.push(`${caseId}: COLL algs[0] must not contain whole-cube rotations`);
+  }
+  return errors;
+}
+
+export function lintSblsState(caseId: string, after: State, algs: readonly string[]): string[] {
+  const errors: string[] = [];
+  if (SBLS_FR_PAIR_LOCS.every((loc) => after[loc] === loc)) {
+    errors.push(`${caseId}: SBLS FR pair is already solved`);
+  }
+  for (const alg of algs) {
+    if (parseAlg(alg).some((m) => 'xyz'.includes(m.base))) {
+      errors.push(`${caseId}: SBLS alg (${alg}) must not contain whole-cube rotations`);
+    }
+  }
+  return errors;
 }
 
 export const SET_RULES: Record<SetId, SetRule> = {

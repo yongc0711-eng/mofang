@@ -114,9 +114,12 @@ export function cleanBrowse(value: unknown, legacy: BottomColor): BrowseColors {
     !('roux' in raw) ? old.leftColor : defaultLeft(bridgePair);
   return { cfop: { bottomColor: colorOr(cfop.bottomColor, legacy) }, roux: { bottomColor, bridgePair, leftColor } };
 }
+export function isRouxSet(setId: string): boolean {
+  return setId === 'cmll' || setId === 'lse' || setId === 'sbls';
+}
 export function browsePalette(c: { set: string }, prefs: Partial<BrowseColors> & { bottomColor: BottomColor }): Palette {
   const colors = cleanBrowse(prefs, prefs.bottomColor);
-  return c.set === 'cmll' || c.set === 'lse' ? rouxPalette(colors.roux) : bottomPalette(colors.cfop.bottomColor);
+  return isRouxSet(c.set) ? rouxPalette(colors.roux) : bottomPalette(colors.cfop.bottomColor);
 }
 /** Physical white-up, green-front sandbox frame, independent of browsing/legacy prefs. */
 export const SANDBOX_PALETTE: Palette = Object.freeze({ U: 'D', D: 'U', F: 'F', B: 'B', R: 'L', L: 'R' });

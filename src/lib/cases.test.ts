@@ -1,11 +1,95 @@
 import { describe, expect, it } from 'vitest';
 import { getSet } from '../data';
 import { OLL_CASES } from '../data/oll';
-import { stickerAt } from './cube';
+import { STICKERS, applyMoves, invertMoves, solved, stickerAt, type State } from './cube';
+import { parseAlg } from './alg';
 import { type AlgCase } from '../types';
-import { algSolvesCase, caseFingerprint, caseState, displayColors, lintCase, lintCaseAlg, viewCaseFor } from './cases';
+import { COLL_RULE, COLL_U_CORNER_TOP_LOCS, COLL_U_EDGE_TOP_LOCS, SBLS_FR_PAIR_LOCS, SBLS_RULE, algSolvesCase, caseFingerprint, caseState, displayColors, isCollMask, isSblsPreserve, lintCase, lintCaseAlg, lintCollState, lintSblsState, viewCaseFor } from './cases';
 
 const lse = (group: string, alg: string): AlgCase => ({ id: 'lse-x', set: 'lse', name: 'x', group, algs: [alg] });
+
+describe('T71 COLL / SBLS 公共规则', () => {
+  const setup = (alg: string) => applyMoves(solved(), invertMoves(parseAlg(alg)));
+  const preserves = (st: State, mask: (id: number) => boolean) => st.every((id, loc) => !mask(loc) || id === loc);
+  const colors = (st: State, mask: (id: number) => boolean) => st.map((id) => mask(id) ? STICKERS[id].face : null);
+
+  it('COLL 精确显示 50 张，仅忽略顶层四棱侧面', () => {
+    const hidden = STICKERS.filter((s) => !isCollMask(s.id));
+    expect(STICKERS.filter((s) => isCollMask(s.id))).toHaveLength(50);
+    expect(hidden.map((s) => s.face).sort()).toEqual(['B', 'F', 'L', 'R']);
+    for (const s of hidden) {
+      expect(s.p[1]).toBe(1);
+      expect(s.p.filter((v) => v !== 0)).toHaveLength(2);
+    }
+    expect(COLL_U_EDGE_TOP_LOCS).toHaveLength(4);
+    expect(COLL_U_CORNER_TOP_LOCS).toHaveLength(4);
+    expect(COLL_RULE.preUs).toEqual([0, 1, 2, 3]);
+    expect(COLL_RULE.preY).toEqual([0, 1, 2, 3]);
+    expect(COLL_RULE.normalize).toBe(true);
+  });
+
+  it('SBLS 精确保留左桥 13 张与右后桥 8 张，目标槽 5 张', () => {
+    const kept = STICKERS.filter((s) => isSblsPreserve(s.id));
+    expect(kept).toHaveLength(21);
+    expect(kept.filter((s) => s.p[0] === -1)).toHaveLength(13);
+    expect(kept.filter((s) => s.p[0] === 1)).toHaveLength(8);
+    expect(SBLS_FR_PAIR_LOCS).toHaveLength(5);
+    expect(STICKERS.filter((s) => SBLS_RULE.solve(s.id))).toHaveLength(26);
+    for (const s of STICKERS) {
+      expect(isSblsPreserve(s.id)).toBe(s.p[0] !== 0 && s.p[1] !== 1 && !(s.p[0] === 1 && s.p[2] === 1 && s.p[1] <= 0));
+    }
+    expect(SBLS_RULE.preUs).toEqual([0]);
+    expect(SBLS_RULE.preY).toEqual([0]);
+    expect(SBLS_RULE.normalize).toBe(false);
+  });
+
+  it('COLL 合法起手保留 F2L，目标允许剩余 EPLL', () => {
+    const alg = "R' U' R U' R' U2 R";
+    const st = setup(alg);
+    expect(lintCollState('coll-as-1', st, alg)).toEqual([]);
+    expect(preserves(st, COLL_RULE.preserve)).toBe(true);
+    const ua = getSet('pll')!.cases.find((c) => c.name === 'Ua')!;
+    const epll = applyMoves(applyMoves(st, parseAlg(alg)), parseAlg(ua.algs[0]));
+    expect(epll).not.toEqual(solved());
+    expect(colors(epll, COLL_RULE.solve)).toEqual(colors(solved(), COLL_RULE.solve));
+  });
+
+  it.each(["F R U R' U' F'", "U' R' F R F' r U r'"])(
+    'COLL 拦截翻转顶棱的 CMLL：%s', (alg) => {
+      expect(lintCollState('bad-eo', setup(alg), alg)).toContain('bad-eo: COLL prerequisite violated — U-layer edges are not oriented');
+    },
+  );
+
+  it('COLL 拦截破坏 DF/DB 的 CMLL', () => {
+    expect(preserves(setup("r U' r' F R' F' R"), COLL_RULE.preserve)).toBe(false);
+  });
+
+  it('COLL 排除四角已朝上的 PLL，并拒绝主公式转体', () => {
+    const t = "R U R' U' R' F R2 U' R' U' R U R' F'";
+    expect(lintCollState('pll', setup(t), t)).toContain('pll: COLL state has all 4 U-corners already oriented (PLL/O case)');
+    for (const axis of ['x', 'y', 'z']) {
+      expect(lintCollState('rotation', setup("R' U' R U' R' U2 R"), `${axis} R`)).toContain('rotation: COLL algs[0] must not contain whole-cube rotations');
+    }
+  });
+
+  it.each(["U R U2 R' U R U' R'", "M' r U' r' U2 r U r'"])(
+    'SBLS 合法公式保持 21 张贴纸，允许 M 层中心偏移：%s', (alg) => {
+      const st = setup(alg);
+      expect(lintSblsState('sbls', st, [alg])).toEqual([]);
+      expect(preserves(st, SBLS_RULE.preserve)).toBe(true);
+      expect(colors(applyMoves(st, parseAlg(alg)), SBLS_RULE.solve)).toEqual(colors(solved(), SBLS_RULE.solve));
+    },
+  );
+
+  it('SBLS 拦截破坏右后桥、已解决前槽和任意备选转体', () => {
+    expect(preserves(setup("R' U R"), SBLS_RULE.preserve)).toBe(false);
+    expect(lintSblsState('solved', solved(), ['U'])).toContain('solved: SBLS FR pair is already solved');
+    const st = setup("R U R'");
+    for (const alg of ['x', "y'", 'z2']) {
+      expect(lintSblsState('rotation', st, ["R U R'", alg])).toContain(`rotation: SBLS alg (${alg}) must not contain whole-cube rotations`);
+    }
+  });
+});
 
 describe('LSE 校验', () => {
   it('EO：只要求朝向全对，其他公式解决不了', () => {

@@ -2,6 +2,14 @@ import { expect, it } from 'vitest';
 import { initializeColorPools, snapshotPools, togglePoolBottom, togglePoolPair, colorCandidates, pickPracticeColors, colorKey, type PracticeColorPools } from './practiceColors';
 import { BOTTOM_COLORS, PAIRS, validPairs } from './colorScheme';
 const prefs={cfop:{bottomColor:'green' as const},roux:{bottomColor:'white' as const,bridgePair:'green-blue' as const,leftColor:'green' as const}};
+it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll'])('%s samples its independent method pool (T71)', set => {
+  const pools = initializeColorPools({}, prefs);
+  expect(pickPracticeColors({ set }, pools, null, () => 0)).toEqual(
+    ['cmll', 'lse', 'sbls'].includes(set)
+      ? { method: 'roux', bottomColor: 'white', bridgePair: 'green-blue', leftColor: 'green' }
+      : { method: 'cfop', bottom: 'green' },
+  );
+});
 it('defaults use independent browsing prefs once; subsequent preference edits do not overwrite pools',()=>{
   const pools=initializeColorPools({},prefs);
   expect(pools).toEqual({cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['green-blue']}});
