@@ -13,7 +13,7 @@ export interface TargetSample { state: State; auf: string; variation: number }
  * This finite sampler is intentionally NOT a uniform random-state generator.
  */
 export function sampleTarget(c: AlgCase, reference: string, rand = Math.random): TargetSample {
-  const options = ['oll', 'pll', 'cmll'].includes(c.set) ? ['', 'U', "U'", 'U2'] : [''];
+  const options = ['oll', 'pll', 'cmll', 'coll'].includes(c.set) ? ['', 'U', "U'", 'U2'] : [''];
   const index = options.findIndex((_, i) => scrambleFor(c, () => (i + 0.01) / 4) === reference);
   if (index < 0) throw new Error('目标参考与情形不一致');
   const auf = options[index];

@@ -3,7 +3,7 @@ import { movesToString, parseAlg } from './alg';
 import { type AlgCase, type LearnStatus, type SetId, type UserData } from '../types';
 
 /** 只有顶层整体转动不改变情形的公式组才加随机 AUF；F2L 和 LSE 的起始状态对 U 敏感 */
-const AUF_SETS: SetId[] = ['oll', 'pll', 'cmll'];
+const AUF_SETS: SetId[] = ['oll', 'pll', 'cmll', 'coll'];
 const AUFS = ['', 'U', "U'", 'U2'];
 
 const isRotation = (m: Move) => 'xyz'.includes(m.base);

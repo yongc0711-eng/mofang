@@ -23,15 +23,15 @@ async function swipe(page: Page, method: Locator, direction = 1, distance = 58, 
   await idle(method);
 }
 
-test('双卡堆：浅深色纯文字封面、卡内展开、五入口与搜索行配色', async ({ page }) => {
+test('双卡堆：浅深色纯文字封面、卡内展开、六入口与搜索行配色', async ({ page }) => {
   const width = page.viewportSize()!.width;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });await page.goto('/');
     await expect(page.getByRole('heading', { name: '三阶', exact: true })).toHaveCount(1);
     await expect(page.locator('.home-method-deck')).toHaveCount(2);
     await expect(page.locator('.home-deck-cover .diagram')).toHaveCount(0);
-    await expect(page.locator('.set-card')).toHaveCount(5);
-    await expect(page.locator('.set-card .diagram')).toHaveCount(5);
+    await expect(page.locator('.set-card')).toHaveCount(6);
+    await expect(page.locator('.set-card .diagram')).toHaveCount(6);
     const nav = (await page.locator('.nav').boundingBox())!;
     for (const method of [deck(page, 'cfop'), deck(page, 'roux')]) {
       await expect(method).toHaveAttribute('data-index', '0');
@@ -50,8 +50,8 @@ test('双卡堆：浅深色纯文字封面、卡内展开、五入口与搜索�
     await noOverflow(page);
     await page.screenshot({ path: `ui-review.local/home-decks/after-${width}-${colorScheme}.png` });
     for (const method of [deck(page, 'cfop'), deck(page, 'roux')]) await expand(method).click();
-    await expect(page.locator('.set-card').filter({ visible: true })).toHaveCount(5);
-    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/f2l', '#/set/oll', '#/set/pll', '#/set/cmll', '#/set/lse']);
+    await expect(page.locator('.set-card').filter({ visible: true })).toHaveCount(6);
+    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/f2l', '#/set/oll', '#/set/pll', '#/set/coll', '#/set/cmll', '#/set/lse']);
     for (const link of await page.locator('.set-card').all()) {
       await link.evaluate(el => el.scrollIntoView({ block: 'center' }));
       const box = (await link.boundingBox())!,bottomNav = (await page.locator('.nav').boundingBox())!;
@@ -79,7 +79,7 @@ test('展开与进入独立：直达原列表、返回保留位置和展开状�
   await expect(cfop).toHaveAttribute('data-index', '1');await expect(cfop).toHaveAttribute('data-expanded', 'false');
   await expect(roux).toHaveAttribute('data-index', '0');
   await expand(cfop).focus();await page.keyboard.press('ArrowDown');await expect(cfop).toHaveAttribute('data-index', '0');
-  await expect(expand(cfop)).toBeFocused();await page.keyboard.press('ArrowDown');await expect(cfop).toHaveAttribute('data-index', '3');
+  await expect(expand(cfop)).toBeFocused();await page.keyboard.press('ArrowDown');await expect(cfop).toHaveAttribute('data-index', '4');
   await expect(front(cfop).locator('.set-card')).toBeFocused();await page.keyboard.press('ArrowUp');await expect(cfop).toHaveAttribute('data-index', '0');
   expect(await cfop.evaluate(el => el.getAnimations({ subtree: true }).length)).toBe(0);
 });
@@ -140,13 +140,13 @@ test.describe('正常动效与触屏', () => {
       await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 58 }] });
       await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await expect(cfop).toHaveAttribute('data-index', '2');
-      // 故意不等 idle：连续 6 次上滑、再 3 次下滑，每个手势都必须计入。
-      for (let i = 0; i < 6; i += 1) {
-        await rawSwipe(cfop, 1);await expect(cfop).toHaveAttribute('data-index', String((3 + i) % 4));
+      // 故意不等 idle：连续 7 次上滑、再 3 次下滑，每个手势都必须计入。
+      for (let i = 0; i < 7; i += 1) {
+        await rawSwipe(cfop, 1);await expect(cfop).toHaveAttribute('data-index', String((3 + i) % 5));
       }
-      await expect(cfop).toHaveAttribute('data-index', '0');
+      await expect(cfop).toHaveAttribute('data-index', '4');
       for (let i = 0; i < 3; i += 1) {
-        await rawSwipe(cfop, -1);await expect(cfop).toHaveAttribute('data-index', String((3 - i) % 4));
+        await rawSwipe(cfop, -1);await expect(cfop).toHaveAttribute('data-index', String((3 - i) % 5));
       }
       await expect(cfop).toHaveAttribute('data-index', '1');
       for (let i = 0; i < 4; i += 1) {
@@ -169,14 +169,14 @@ test.describe('正常动效与触屏', () => {
 
   test('两堆首尾双向循环，动效不透明且不超过 220ms，无自动导航', async ({ page }) => {
     await page.goto('/');const cfop = deck(page, 'cfop'),roux = deck(page, 'roux');
-    for (const index of [1, 2, 3, 0]) { await swipe(page, cfop);await expect(cfop).toHaveAttribute('data-index', String(index)); }
-    await swipe(page, cfop, -1);await expect(cfop).toHaveAttribute('data-index', '3');
+    for (const index of [1, 2, 3, 4, 0]) { await swipe(page, cfop);await expect(cfop).toHaveAttribute('data-index', String(index)); }
+    await swipe(page, cfop, -1);await expect(cfop).toHaveAttribute('data-index', '4');
     await swipe(page, cfop);await expect(cfop).toHaveAttribute('data-index', '0');
     for (const index of [1, 2, 0]) { await swipe(page, roux);await expect(roux).toHaveAttribute('data-index', String(index)); }
     await swipe(page, roux, -1);await expect(roux).toHaveAttribute('data-index', '2');await expect(cfop).toHaveAttribute('data-index', '0');
     await expand(cfop).focus();await page.keyboard.press('ArrowUp');await expect(cfop).toHaveAttribute('data-motion', 'flip');
     const timings = await cfop.evaluate(el => el.getAnimations({ subtree: true }).map(animation => ({ duration: animation.effect!.getTiming().duration, frames: (animation.effect as KeyframeEffect).getKeyframes() })));
-    expect(timings.length).toBe(4);
+    expect(timings.length).toBe(5);
     for (const timing of timings) { expect(timing.duration).toBe(220);expect(timing.frames.every(frame => !('opacity' in frame))).toBe(true); }
     await idle(cfop);await expect(front(cfop).locator('.set-card')).toBeFocused();await expect(page).toHaveURL(/\/$/);await noOverflow(page);
   });

@@ -12,7 +12,7 @@ describe('T37 solver targets: fixed white U / green F, six bottoms, exact sticke
   for (const bottom of BOTTOM_COLORS) {
     for (const c of ALL_CASES) {
       it(`${c.id} / ${bottom}: every AUF, all 54 stickers and physical colors`, () => {
-        const aufs = ['oll', 'pll', 'cmll'].includes(c.set) ? ['', 'U', "U'", 'U2'] : [''];
+        const aufs = ['oll', 'pll', 'cmll', 'coll'].includes(c.set) ? ['', 'U', "U'", 'U2'] : [''];
         for (const auf of aufs) {
           const target = applyMoves(caseState(c), parseAlg(auf));
           const result = solveTarget(target, bottom, solve);

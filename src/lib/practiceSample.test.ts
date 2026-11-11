@@ -14,6 +14,10 @@ describe('T37 target sampler preserves selected stage and case, independently of
           const sample = sampleTarget(c, scrambleFor(c, () => rand), () => variation);
           const unauf = applyMoves(sample.state, invertMoves(parseAlg(sample.auf)));
           const reference = caseState(c);
+          if (c.set === 'coll') {
+            expect(sample.variation).toBe(0);
+            expect(sample.auf).toBe(['', 'U', "U'", 'U2'][[0, 0.3, 0.6, 0.9].indexOf(rand)]);
+          }
           for (let i = 0; i < 54; i++) {
             if (c.set === 'oll') {
               // Exact U-color orientation category; entire F2L remains untouched.

@@ -26,6 +26,14 @@ describe('练习打乱', () => {
     expect(scrambleFor(pll, () => 0.3).startsWith('U')).toBe(true);
     expect(scrambleFor(f2l, () => 0.3)).toBe(scrambleFor(f2l, () => 0));
   });
+  it('COLL 四种 AUF 均可抽到，保留 EO 的情形定义不变', () => {
+    for (const c of getSet('coll')!.cases) {
+      const base = scrambleFor(c, () => 0);
+      expect([0, 0.3, 0.6, 0.9].map((rand) => scrambleFor(c, () => rand))).toEqual(
+        [base, `U ${base}`, `U' ${base}`, `U2 ${base}`],
+      );
+    }
+  });
 });
 
 describe('出题', () => {

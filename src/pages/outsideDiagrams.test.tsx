@@ -86,8 +86,8 @@ describe('T33 外面的图解跟主公式对齐', () => {
     for (const c of ALL_CASES) expect(viewForPrimary(c, c.algs[0])).toBe(c);
   });
 
-  it('254 条全部：带前置 U 的主公式下 viewForPrimary 和渲染都不抛错', () => {
-    expect(ALL_CASES.length).toBe(254);
+  it('294 条全部：带前置 U 的主公式下 viewForPrimary 和渲染都不抛错', () => {
+    expect(ALL_CASES.length).toBe(294);
     for (const c of ALL_CASES) {
       for (const alg of [withPreU(c), c.algs[c.algs.length - 1], 'not an alg ((']) {
         expect(() => diagram(viewForPrimary(c, alg))).not.toThrow();

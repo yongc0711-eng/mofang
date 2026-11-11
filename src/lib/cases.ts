@@ -131,6 +131,7 @@ export const SET_RULES: Record<SetId, SetRule> = {
     preY: [0, 1, 2, 3],
     keepsUFace: true,
   },
+  coll: COLL_RULE,
   cmll: {
     display: (id) => isRouxBlock(id) || isCorner(id),
     solve: (id) => isRouxBlock(id) || isCorner(id),
@@ -245,7 +246,7 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
   }
   const target = render(solved(), rule.solve);
   const start = caseState(c);
-  const preUs = c.set === 'f2l' ? [0] : [0, 1, 2, 3];
+  const preUs = rule.preUs ?? (c.set === 'f2l' ? [0] : [0, 1, 2, 3]);
   for (const y of rule.preY) {
     for (const pre of preUs) {
       const after = applyMoves(start, [...turn('U', pre), ...turn('y', y), ...moves]);
@@ -284,6 +285,7 @@ export function lintCase(c: AlgCase): string[] {
   if (rule.keepsUFace && !after.every((id, loc) => S[loc].face !== 'U' || S[id].face === 'U')) {
     problems.push('PLL 公式改变了顶面朝向');
   }
+  if (c.set === 'coll') problems.push(...lintCollState(c.id, after, c.algs[0]));
   if (c.set === 'lse') {
     const step = lseStepOf(c);
     if (!step) {

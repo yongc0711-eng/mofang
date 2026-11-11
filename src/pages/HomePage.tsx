@@ -15,6 +15,7 @@ const COVER: Record<SetId, string> = {
   f2l: 'f2l-5',
   oll: 'oll-27',
   pll: 'pll-t',
+  coll: 'coll-as-1',
   cmll: 'cmll-s-1',
   lse: 'lse-eo-7',
 };
