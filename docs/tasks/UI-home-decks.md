@@ -4,7 +4,7 @@
 
 用户在交互预览中确认：三阶是卡片上方的公共分区标题；CFOP / 桥式各一叠紧凑横卡，纯文字方法封面，首尾循环翻动，卡内独立展开，点分组直接进入原公式列表。配色按钮必须保留在搜索框右侧。
 
-工作区 `D:/allwork/mofang-ui`，分支 `codex/ui-polish`，开始提交 `f09a607`。只在当前分支追加提交，不合并、不 push。界面语义替换先记 D20，不改 `docs/TASKS.md`。
+工作区 `D:/allwork/mofang-ui`，分支 `codex/ui-polish`，开始提交 `f09a607`。只在当前分支追加提交；已由 Lead 以 cherry-pick `7ede31c` 合入 `main` 并 push。界面语义替换先记 D20。
 
 ## 范围与验收
 
@@ -63,4 +63,10 @@
 - 全部展开：同目录 `expanded-320-light.png`、`expanded-320-dark.png`、`expanded-390-light.png`、`expanded-390-dark.png`。
 - 实测数据：同目录 `measurements.json`。
 
-只在 `codex/ui-polish` 提交。未改 App 路由、数据/公式/SET_RULES、播放器/3D/练习、CategoryPicker 或 docs/TASKS；无新依赖。尚未合并、push 或发布，实体手机的手感仍需用户实际体验。
+只在 `codex/ui-polish` 提交。实现未改 App 路由、数据/公式/SET_RULES、播放器/3D/练习、CategoryPicker；无新依赖。实体手机的手感仍需用户实际体验；`docs/TASKS.md` 由 Lead 在合并时收尾。
+
+## 合并与后续
+
+- 2026-11-11 用 cherry-pick `7ede31c` 合入 `main` 并 push；合并后 `npm test` 3750/56、`check:data` 393、`build` 通过，分支上的 30 条 visual 全过。
+- 后续新增公式集：在 `src/data/index.ts` 的 `SETS` 里增加带 `method: 'cfop' | 'roux'` 的组，首页会自动进入对应卡堆，封面计数和“展开全部”自动更新；若新增的是新方法（不是三阶），需要同时补 `METHODS` 和公共标题，且不要把非三阶组塞进「三阶」。
+- 某个方法的分组继续增多时，封面到末页的循环会变长；优先用“展开全部”而不是无限堆叠，必要时再评估分段或横向列表。
