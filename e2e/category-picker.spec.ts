@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 
+test.use({ video: 'on' });
+
 test('分类面板：两列、选中、焦点返回、Esc 与遮罩关闭，浅深色无横滚', async ({ page }, testInfo) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });
@@ -63,4 +65,41 @@ test('分类面板：两列、选中、焦点返回、Esc 与遮罩关闭，浅�
       await expect(trigger).toHaveAccessibleName('按分组筛选：全部分类');
     }
   }
+});
+
+test.describe('轻浮层动效', () => {
+  test.use({ reducedMotion: 'no-preference' });
+  test('开合动效可被关闭打断，退出后恢复焦点与滚动，减少动态效果立即关闭', async ({ page }) => {
+    await page.goto('/#/set/pll');
+    const trigger = page.getByRole('button', { name: /^按分组筛选/ });
+    const dialog = page.getByRole('dialog', { name: '选择分类' });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('button', { name: /^全部分类/ })).toBeFocused();
+    await expect.poll(() => dialog.evaluate(el => getComputedStyle(el).animationName)).toBe('category-in');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveAttribute('data-closing', 'true');
+    expect(await dialog.evaluate(el => (el as HTMLDialogElement).open)).toBe(true);
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(await page.locator('body').evaluate(el => el.style.overflow)).toBe('');
+
+    await trigger.click();
+    await dialog.getByRole('button', { name: /^G 系列/ }).click();
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toHaveAccessibleName('按分组筛选：G 系列');
+    await expect(trigger).toBeFocused();
+    await expect(page.locator('.case-card')).toHaveCount(4);
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await trigger.click();
+    await expect(dialog).toBeVisible();
+    expect(await dialog.evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(trigger).toBeFocused();
+  });
 });

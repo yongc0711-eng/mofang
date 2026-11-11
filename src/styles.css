@@ -686,6 +686,26 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .category-option-count { margin-left: auto; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 .category-check { flex: none; width: 12px; font-size: 0.75rem; }
 .category-options button:focus-visible { outline-offset: -3px; }
+/* 轻浮层：位移和缩放不参与布局计算；收起完成前保持原生模态和焦点约束。 */
+.category-dialog[open] { animation: category-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.category-dialog[open]::backdrop { animation: category-veil-in 160ms ease-out both; }
+.category-dialog[open][data-closing="true"] { animation: category-out 150ms cubic-bezier(0.4, 0, 1, 1) both; }
+.category-dialog[open][data-closing="true"]::backdrop { animation: category-veil-out 150ms ease-in both; }
+.category-options button { transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease, transform 100ms ease; }
+.category-options button:active { transform: scale(0.985); }
+.category-options button[aria-pressed="true"] .category-check { animation: category-check-in 100ms ease-out; }
+@keyframes category-in { from { opacity: 0; transform: translateY(8px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes category-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(4px) scale(0.985); } }
+@keyframes category-veil-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes category-veil-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes category-check-in { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .category-dialog[open], .category-dialog[open]::backdrop,
+  .category-dialog[open][data-closing="true"], .category-dialog[open][data-closing="true"]::backdrop,
+  .category-options button[aria-pressed="true"] .category-check { animation: none; }
+  .category-options button { transition: none; }
+  .category-options button:active { transform: none; }
+}
 .set-count { margin-left: auto; color: var(--muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 .set-page .case-grid { margin-top: 0; gap: 12px; }
 @media (max-width: 360px) {

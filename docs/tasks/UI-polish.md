@@ -3,7 +3,7 @@
 ## 背景与目标
 
 2026-11-11，用户希望前端更好看，授权先打磨公式列表和详情页。
-基线 main `a3b7d39`，实现分支 `codex/ui-polish`；已合并 main `cb29b7c`，GitHub Actions 部署成功。
+基线 main `a3b7d39`，实现分支 `codex/ui-polish`。当前为本地待审版本，未合并、未发布。
 
 沿用用户此前选定的圆角卡片、暖灰背景和橙色品牌色，统一字重、间距、信息层级。
 
@@ -54,15 +54,14 @@
 两张 SVG 左边分别为 x=16、84，顶部相同；不存在重叠或横向滚动，收藏完整可见。`lse-eo-7` 的双图在两种视口、浅深色下也通过 ≥56px 与不重叠断言。
 
 门禁结果：`npm test` 3748/56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 16 条全部通过。
-截图：`ui-review.local/lse-fix/320x640.png`、`ui-review.local/lse-fix/390x844.png`（本地忽略文件）。已合并 main `cb29b7c` 并 push。
+截图：`ui-review.local/lse-fix/320x640.png`、`ui-review.local/lse-fix/390x844.png`（本地忽略文件）。未合并、未 push。
 
 ## 顺手收尾（2026-11-11）
 
 - 详情页 `.case-page .peek-cue` 从透明灰字改为 `accent-soft` 底、accent 文字的胶囊按钮，保留原有 32px 高与布局位置，不改变 T48 的首屏预算。
 - 320 宽下列表卡片 padding 16→12、卡片间距 12→10；390 及以上不变。列表仍是三张一屏，但单卡更紧凑、滚动更短。
 - 复核：`npm test` 3748/56、`check:data` 393、`build`、`test:visual` 16 条通过；320/390 均无横滚，`lse-ulur-24` 双图仍各 64×64。
-- 已合并 main `cb29b7c`。320 列表卡片实测高 90px（原 100px 左右），`lse-ulur-24` 的 `peek-cue` 底 549.89，距底栏顶 568 还有 18px。
-- CI 首次运行在 `test:visual` 超时失败，把浅深色长循环用例的超时提高到 90s；重跑 success，线上 `index-C5GbAZlP.css` 与本地产物一致。
+- 分支 `codex/ui-polish`，待合并 main。
 
 ## 分类面板优化（2026-11-11）
 
@@ -70,7 +69,7 @@
 - 入口改为带筛选图标的小胶囊；选择后自动收起，重新打开聚焦当前分类。原生 dialog 管理焦点范围，支持关闭按钮、Esc、点击遮罩关闭，关闭后回到入口，打开期间锁定页面滚动。
 - 保持原来的分类数据、组合筛选和返回恢复；按 D19 精确更新直接依赖原 select 的测试，原有结果数量等断言保留。新增五组分类、320/390、浅深色、关闭、选中和焦点检查。
 - 门禁：`npm test` 3748/56，`check:data` 393，`build` 通过，`test:visual -- --workers=2` 18 条通过。面板在两个手机视口内，无横向溢出。
-- 截图：`ui-review.local/category-picker/`。已合并 main `fa65b50`。
+- 截图：`ui-review.local/category-picker/`。仍在 `codex/ui-polish` 本地交付，未合并、未 push。
 
 ## CategoryPicker 边缘与无障碍名称修正（2026-11-11）
 
@@ -85,4 +84,13 @@
 
 - 新增两侧几何覆盖断言、无障碍名称与关闭按钮尺寸检查；五个组在两个视口的浅深色中均检查面板在视口内且不横滚。选中态、组合筛选、结果数量、返回恢复、Esc/遮罩/关闭按钮及焦点返回均通过。分类数据、筛选与 SetPage 返回逻辑未改。
 - 门禁：`npm test` 3748/56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 18 条全部通过。
-- 截图：`ui-review.local/category-picker-fix/320x640-light.png`、`320x640-dark.png`；逐张确认 320 左侧入口橙边消失。已合并 main `c6101cb`。
+- 截图：`ui-review.local/category-picker-fix/320x640-light.png`、`320x640-dark.png`；逐张确认 320 左侧入口橙边消失。未合并、未 push。
+
+## 分类轻浮层动效（2026-11-11）
+
+- 用户选择方案 1。只在 CategoryPicker 上增加 200ms 淡入、8px 上移和 0.985→1 的轻微缩放；收起 150ms，遮罩淡入 160ms，选项按压/勾选反馈 100ms，与收起并行，不额外等待。
+- 使用 CSS 动画和组件关闭阶段，无新增依赖。退出结束前保留模态状态和滚动锁，结束后恢复入口焦点；重复 Esc 忽略，动画事件缺失时 200ms 兜底，组件卸载时清理监听与计时器。减少动态效果直接关闭且取消变形和过渡。
+- 保留原有所有断言；新增正常动效、展开时 Esc、重复关闭、退出期间仍为 modal、选择后四个结果、焦点和滚动恢复，以及减少动态效果检查。两种手机视口均通过。
+- 静止几何保持不变：320 的弹窗 x=12 / 296×327，390 的 x=12 / 366×327；入口覆盖、40px 关闭按钮、浅深色和无横滚检查继续通过。
+- 门禁：`npm test` 3748/56、`check:data` 393、`build` 通过，`test:visual -- --workers=2` 20 条通过。真实测试录屏保存于 `ui-review.local/category-motion/320x640.webm`、`390x844.webm`。
+- 仍在同一分支本地交付，未合并、未 push；真手机上的主观流畅度待用户体验。
