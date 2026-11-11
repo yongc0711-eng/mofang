@@ -84,3 +84,4 @@
 - 本次开始时已有未跟踪 `tmp/`，不修改、不清理、不纳入提交；不涉及 Gemini 的新公式集规格或现有数据/规则。
 - 最终门禁：`npm test` 3750 / 56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 32 条全部通过。旧测试断言未改，新增 2 条分别覆盖 320/390 的连续输入。
 - 触屏连续快滑演示：`ui-review.local/home-decks/swipe-fixed-320.webm`、`ui-review.local/home-decks/swipe-fixed-390.webm`（本地忽略目录，不提交媒体文件）。
+- 本修复以 `43262cb` cherry-pick 到 `main`。
