@@ -63,10 +63,24 @@
 - 全部展开：同目录 `expanded-320-light.png`、`expanded-320-dark.png`、`expanded-390-light.png`、`expanded-390-dark.png`。
 - 实测数据：同目录 `measurements.json`。
 
-只在 `codex/ui-polish` 提交。实现未改 App 路由、数据/公式/SET_RULES、播放器/3D/练习、CategoryPicker；无新依赖。实体手机的手感仍需用户实际体验；`docs/TASKS.md` 由 Lead 在合并时收尾。
+只在 `codex/ui-polish` 提交。未改 App 路由、数据/公式/SET_RULES、播放器/3D/练习、CategoryPicker 或 docs/TASKS；无新依赖。实体手机的手感仍需用户实际体验。
 
 ## 合并与后续
 
 - 2026-11-11 用 cherry-pick `7ede31c` 合入 `main` 并 push；合并后 `npm test` 3750/56、`check:data` 393、`build` 通过，分支上的 30 条 visual 全过。
 - 后续新增公式集：在 `src/data/index.ts` 的 `SETS` 里增加带 `method: 'cfop' | 'roux'` 的组，首页会自动进入对应卡堆，封面计数和“展开全部”自动更新；若新增的是新方法（不是三阶），需要同时补 `METHODS` 和公共标题，且不要把非三阶组塞进「三阶」。
 - 某个方法的分组继续增多时，封面到末页的循环会变长；优先用“展开全部”而不是无限堆叠，必要时再评估分段或横向列表。
+
+## 2026-11-12 连续滑动手感修复
+
+用户反馈快滑存在“冷却”，卡片不能随滑动速度连续翻动。确认原实现将完整 220ms 翻卡阶段设为 busy，期间 pointerdown / flip 都会被忽略，且拖动只显示输入位移的 65%。
+
+- 翻卡移除输入互斥；只有展开/收起改变布局时保留短暂互斥。下一次手势可以直接接管尚未完成的动画，卡内展开和新的独立轻点也可立即操作。
+- 接管前读取当前屏幕的 transform 并冻结，再取消旧动画；旧回调按 generation 失效，避免跳到终点、旧动画抢回焦点或积压补翻。
+- 手势改为 1:1 位移，每帧最多写一次 transform；松手同步最后一次输入并取消待执行帧。其它卡片在背后短暂归位，已经归位的卡片不创建无效动画。
+- 手势收尾按释放速度在 70–220ms 内调整；较远的上滑沿当前位置收尾，不强行退回固定抬升点。键盘翻卡仍为 220ms，reduced-motion 仍立即完成。
+- 保留原有 30 条视觉检查及全部旧断言，新增 320/390 连续快滑检查：暂停中途动画后触摸接管时位置差 <0.5px，24px 手指位移对应卡片位移误差 <1px；不等 idle 连续前后翻动逐次检查索引、首尾循环和两堆独立；停手后不补翻，新的轻点直接进入，页面无脚本错误。
+- 新测试在旧实现上先失败（24px 输入对应 0px 卡片位移），修复后首页专项 12 条通过。
+- 本次开始时已有未跟踪 `tmp/`，不修改、不清理、不纳入提交；不涉及 Gemini 的新公式集规格或现有数据/规则。
+- 最终门禁：`npm test` 3750 / 56、`npm run check:data` 393、`npm run build`、`npm run test:visual -- --workers=2` 32 条全部通过。旧测试断言未改，新增 2 条分别覆盖 320/390 的连续输入。
+- 触屏连续快滑演示：`ui-review.local/home-decks/swipe-fixed-320.webm`、`ui-review.local/home-decks/swipe-fixed-390.webm`（本地忽略目录，不提交媒体文件）。

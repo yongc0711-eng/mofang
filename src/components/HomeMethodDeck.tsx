@@ -13,13 +13,19 @@ export interface HomeDeckItem {
 }
 
 interface DeckView { index: number; expanded: boolean }
-interface Gesture { id: number; x: number; y: number; dx: number; dy: number; moved: boolean; time: number }
-interface Flip { old: number; direction: number; before: Keyframe[]; token: number; keyboard: boolean }
+interface Gesture { id: number; index: number; base: string; x: number; y: number; dx: number; dy: number; moved: boolean; time: number }
+interface Flip { old: number; direction: number; before: Keyframe[]; token: number; keyboard: boolean; duration: number; lift: number }
 
 const DURATION = 220;
 const easing = 'cubic-bezier(.2,.7,.2,1)';
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stackTransform = (depth: number) => `translateY(${-depth * 6}px) scale(${1 - depth * .03})`;
+const atStackPosition = (transform: string, depth: number) => {
+  const matrix = transform === 'none' ? new DOMMatrixReadOnly() : new DOMMatrixReadOnly(transform);
+  const scale = 1 - depth * .03;
+  return Math.abs(matrix.m11 - scale) < .0001 && Math.abs(matrix.m22 - scale) < .0001
+    && Math.abs(matrix.m41) < .1 && Math.abs(matrix.m42 + depth * 6) < .1;
+};
 
 function Chevron({ up = false }: { up?: boolean }) {
   return <svg className="home-deck-toggle-icon" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d={up ? 'm4 10 4-4 4 4' : 'm4 6 4 4 4-4'} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
@@ -36,7 +42,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
   const current = useRef(view);
   const [motion, setMotion] = useState<'idle' | 'flip' | 'layout'>('idle');
   const [announcement, setAnnouncement] = useState<string | null>(null);
-  const busy = useRef(false);
+  const busy = useRef(false); // 仅展开/收起改变布局时互斥，翻卡不锁输入。
   const cards = useRef<(HTMLElement | null)[]>([]);
   const close = useRef<HTMLButtonElement>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -45,6 +51,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
   const focusAfterRender = useRef<'toggle' | 'flip' | null>(null);
   const animations = useRef<Animation[]>([]);
   const rebound = useRef<Animation | null>(null);
+  const dragFrame = useRef<number | null>(null);
   const generation = useRef(0);
   const fallback = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const pileId = useId();
@@ -68,6 +75,48 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     setMotion('idle');
   }
 
+  function cancelDragFrame() {
+    if (dragFrame.current !== null) cancelAnimationFrame(dragFrame.current);
+    dragFrame.current = null;
+  }
+
+  /** 从屏幕上的当前帧接管，不能 cancel 后跳到旧动画的终点。 */
+  function freezeMotion(): Keyframe[] {
+    const before = cards.current.map(card => {
+      const style = card && getComputedStyle(card);
+      return { transform: style?.transform, zIndex: style?.zIndex };
+    });
+    generation.current += 1;
+    pending.current = null;
+    focusAfterRender.current = null;
+    cancelDragFrame();
+    animations.current.forEach(animation => animation.cancel());
+    rebound.current?.cancel();
+    animations.current = [];
+    rebound.current = null;
+    cards.current.forEach((card, index) => {
+      if (!card) return;
+      card.style.transform = before[index].transform as string;
+      card.style.zIndex = String(20 - (index - current.current.index + count) % count);
+    });
+    setMotion('idle');
+    return before;
+  }
+
+  function settleCard(card: HTMLElement, duration: number) {
+    const from = getComputedStyle(card).transform;
+    card.style.transform = stackTransform(0);
+    if (!reducedMotion() && card.animate && !atStackPosition(from, 0)) {
+      rebound.current = card.animate([{ transform: from }, { transform: stackTransform(0) }], { duration, easing });
+      void rebound.current.finished.catch(() => {});
+    }
+  }
+
+  function paintDrag(drag: Gesture) {
+    const card = cards.current[drag.index];
+    if (card) card.style.transform = `translateY(${drag.dy}px) ${drag.base}`;
+  }
+
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const onChange = () => {
@@ -80,6 +129,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     return () => {
       generation.current += 1;
       clearTimeout(fallback.current);
+      cancelDragFrame();
       animations.current.forEach(animation => animation.cancel());
       rebound.current?.cancel();
       preference.removeEventListener('change', onChange);
@@ -102,11 +152,11 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
       const target: Keyframe = { transform: card.style.transform, zIndex: card.style.zIndex };
       let frames = [flip.before[index], target];
       if (flip.direction === 1 && index === flip.old) frames = [flip.before[index],
-        { transform: 'translateY(-65px) scale(.97)', zIndex: '30', offset: .49 },
-        { transform: 'translateY(-65px) scale(.97)', zIndex: '1', offset: .51 }, { ...target, zIndex: '1' }];
+        { transform: `translateY(${flip.lift}px) scale(.97)`, zIndex: '30', offset: .49 },
+        { transform: `translateY(${flip.lift}px) scale(.97)`, zIndex: '1', offset: .51 }, { ...target, zIndex: '1' }];
       if (flip.direction === -1 && index === view.index) frames = [{ ...flip.before[index], zIndex: '1' },
         { transform: 'translateY(-65px) scale(.97)', zIndex: '30', offset: .5 }, { ...target, zIndex: '30' }];
-      return [card.animate(frames, { duration: DURATION, easing })];
+      return [card.animate(frames, { duration: flip.duration, easing })];
     });
     void Promise.all(animations.current.map(animation => animation.finished.catch(() => {}))).then(() => {
       if (generation.current !== flip.token) return;
@@ -115,16 +165,18 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     });
   }, [view, motion]);
 
-  function flip(direction: number, keyboard = false) {
+  function flip(direction: number, keyboard = false, velocity = 0) {
     if (busy.current || current.current.expanded) return;
-    rebound.current?.cancel();
+    const before = freezeMotion();
     const old = current.current.index;
     const index = (old + direction + count) % count;
     const token = ++generation.current;
     const animate = !reducedMotion() && !!cards.current[0]?.animate;
     if (animate) {
-      busy.current = true;
-      pending.current = { old, direction, token, keyboard, before: cards.current.map(card => ({ transform: card?.style.transform, zIndex: card?.style.zIndex })) };
+      const transform = before[old].transform as string;
+      const y = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m42;
+      const duration = keyboard || !velocity ? DURATION : Math.round(Math.max(70, Math.min(DURATION, 100 / velocity)));
+      pending.current = { old, direction, token, keyboard, before, duration, lift: Math.min(-65, y) };
       setMotion('flip');
     }
     commit({ ...current.current, index });
@@ -135,7 +187,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
 
   function toggle() {
     if (busy.current) return;
-    rebound.current?.cancel();
+    freezeMotion();
     suppressClick.current = false;
     const expanded = !current.current.expanded;
     const token = ++generation.current;
@@ -153,8 +205,21 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     if (busy.current || !event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
     suppressClick.current = false;
     if (current.current.expanded || (event.target as Element).closest('.home-deck-expand')) return;
-    rebound.current?.cancel();
-    gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, dy: 0, moved: false, time: performance.now() };
+    const before = freezeMotion();
+    const index = current.current.index;
+    // 手指抓住的卡保留当前帧；其余卡在背后归位，不挡住下一次操作。
+    cards.current.forEach((card, cardIndex) => {
+      if (!card || cardIndex === index) return;
+      const depth = (cardIndex - index + count) % count;
+      const target = stackTransform(depth);
+      card.style.transform = target;
+      if (!reducedMotion() && card.animate && !atStackPosition(before[cardIndex].transform as string, depth)) {
+        const animation = card.animate([{ transform: before[cardIndex].transform }, { transform: target }], { duration: 100, easing });
+        animations.current.push(animation);
+        void animation.finished.catch(() => {});
+      }
+    });
+    gesture.current = { id: event.pointerId, index, base: before[index].transform as string, x: event.clientX, y: event.clientY, dx: 0, dy: 0, moved: false, time: performance.now() };
   }
 
   function pointerMove(event: PointerEvent<HTMLDivElement>) {
@@ -165,8 +230,10 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     if (Math.hypot(drag.dx, drag.dy) > 9) { drag.moved = true; suppressClick.current = true; }
     if (Math.abs(drag.dy) <= Math.abs(drag.dx) * 1.1 || Math.abs(drag.dy) <= 9) return;
     if (!event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.setPointerCapture(event.pointerId);
-    const card = cards.current[current.current.index];
-    if (card) card.style.transform = `translateY(${Math.max(-90, Math.min(70, drag.dy * .65))}px) scale(.995)`;
+    if (dragFrame.current === null) dragFrame.current = requestAnimationFrame(() => {
+      dragFrame.current = null;
+      if (gesture.current === drag) paintDrag(drag);
+    });
     if (event.cancelable) event.preventDefault();
   }
 
@@ -174,17 +241,21 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     const drag = gesture.current;
     if (!drag || drag.id !== event.pointerId) return;
     gesture.current = null;
+    cancelDragFrame();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    if (!drag.moved) return;
+    if (!drag.moved) {
+      const card = cards.current[drag.index];
+      if (card) settleCard(card, 100);
+      return;
+    }
     suppressClick.current = true;
     const velocity = Math.abs(drag.dy) / Math.max(1, performance.now() - drag.time);
     const enough = Math.abs(drag.dy) > 38 || (Math.abs(drag.dy) > 22 && velocity > .45);
-    if (!cancelled && enough && Math.abs(drag.dy) > Math.abs(drag.dx) * 1.15) { flip(drag.dy < 0 ? 1 : -1); return; }
-    const card = cards.current[current.current.index];
+    paintDrag(drag); // pointerup 可能早于下一帧，保留最后一个输入位置。
+    if (!cancelled && enough && Math.abs(drag.dy) > Math.abs(drag.dx) * 1.15) { flip(drag.dy < 0 ? 1 : -1, false, velocity); return; }
+    const card = cards.current[drag.index];
     if (!card) return;
-    const from = card.style.transform;
-    card.style.transform = stackTransform(0);
-    if (!reducedMotion() && card.animate) rebound.current = card.animate([{ transform: from }, { transform: stackTransform(0) }], { duration: 150, easing });
+    settleCard(card, 150);
   }
 
   function footer() {
@@ -193,7 +264,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
         <span className="home-deck-dots" aria-hidden="true">{Array.from({ length: count }, (_, index) => <span key={index} className={index === view.index ? 'home-deck-dot current' : 'home-deck-dot'} />)}</span>
         <span aria-hidden="true">{view.index + 1} / {count}</span>
       </span>
-      <button className="home-deck-expand" type="button" aria-label={`${name}，展开全部分组`} aria-controls={pileId} aria-expanded={view.expanded} disabled={motion !== 'idle'} onClick={toggle}>展开全部<Chevron /></button>
+      <button className="home-deck-expand" type="button" aria-label={`${name}，展开全部分组`} aria-controls={pileId} aria-expanded={view.expanded} disabled={motion === 'layout'} onClick={toggle}>展开全部<Chevron /></button>
     </div>;
   }
 
@@ -210,8 +281,9 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
       // 触屏的隐式 capture 从子链接转到 pile 时也会冒泡 lost，不能中断新手势。
       if (event.target !== event.currentTarget || event.currentTarget.hasPointerCapture(event.pointerId) || !gesture.current) return;
       gesture.current = null; suppressClick.current = true;
+      cancelDragFrame();
       const card = cards.current[current.current.index];
-      if (card) card.style.transform = stackTransform(0);
+      if (card) settleCard(card, 100);
     }} onClickCapture={event => {
       if (!busy.current && (!suppressClick.current || event.detail === 0)) return;
       event.preventDefault(); event.stopPropagation(); suppressClick.current = false;

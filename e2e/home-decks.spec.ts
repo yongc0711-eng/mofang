@@ -109,6 +109,64 @@ test('首页搜索、真实进度和方法配色继续工作，宽屏无溢出',
 
 test.describe('正常动效与触屏', () => {
   test.use({ reducedMotion: 'no-preference' });
+  test('连续快滑：接管未结束的动画、1:1 跟手、逐次计数且不积压', async ({ page }) => {
+    const errors: string[] = [];page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/');await expect(page.locator('.route')).toHaveCSS('transform', 'none');
+    const cfop = deck(page, 'cfop'),roux = deck(page, 'roux');
+    await expand(cfop).focus();await page.keyboard.press('ArrowUp');
+    await expect(cfop).toHaveAttribute('data-index', '1');await expect(cfop).toHaveAttribute('data-motion', 'flip');
+    // 把动画停在中途，确保这次触摸确实发生在上一张尚未归位时。
+    await cfop.evaluate(el => el.getAnimations({ subtree: true }).forEach(animation => { animation.pause();animation.currentTime = 60; }));
+    const before = (await front(cfop).boundingBox())!;
+    const session = await page.context().newCDPSession(page);
+    async function rawSwipe(method: Locator, direction: number) {
+      const box = (await method.locator('.home-deck-pile').boundingBox())!;
+      const x = box.x + box.width * .36,y = box.y + 52;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - direction * 28 }] });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - direction * 58 }] });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    }
+    try {
+      const pile = (await cfop.locator('.home-deck-pile').boundingBox())!;
+      const x = pile.x + pile.width * .36,y = pile.y + 52;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+      const held = (await front(cfop).boundingBox())!;
+      expect(Math.abs(held.y - before.y)).toBeLessThan(.5);
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 24 }] });
+      await page.evaluate(() => new Promise<void>(resolve => requestAnimationFrame(() => resolve())));
+      const dragged = (await front(cfop).boundingBox())!;
+      expect(Math.abs(dragged.y - (held.y - 24))).toBeLessThan(1);
+      await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 58 }] });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(cfop).toHaveAttribute('data-index', '2');
+      // 故意不等 idle：连续 6 次上滑、再 3 次下滑，每个手势都必须计入。
+      for (let i = 0; i < 6; i += 1) {
+        await rawSwipe(cfop, 1);await expect(cfop).toHaveAttribute('data-index', String((3 + i) % 4));
+      }
+      await expect(cfop).toHaveAttribute('data-index', '0');
+      for (let i = 0; i < 3; i += 1) {
+        await rawSwipe(cfop, -1);await expect(cfop).toHaveAttribute('data-index', String((3 - i) % 4));
+      }
+      await expect(cfop).toHaveAttribute('data-index', '1');
+      for (let i = 0; i < 4; i += 1) {
+        await rawSwipe(roux, 1);await expect(roux).toHaveAttribute('data-index', String((1 + i) % 3));
+      }
+      await expect(roux).toHaveAttribute('data-index', '1');await expect(cfop).toHaveAttribute('data-index', '1');
+      await idle(cfop);await idle(roux);
+      await page.waitForTimeout(260);
+      await expect(cfop).toHaveAttribute('data-index', '1');await expect(roux).toHaveAttribute('data-index', '1');
+      await expect(page).toHaveURL(/\/$/);await noOverflow(page);
+      // 快滑后一个新的轻点立即进入当前分组。
+      await rawSwipe(cfop, 1);await expect(cfop).toHaveAttribute('data-index', '2');
+      const tap = (await cfop.locator('.home-deck-pile').boundingBox())!;
+      await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: tap.x + tap.width * .36, y: tap.y + 52 }] });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(page).toHaveURL(/#\/set\/oll$/);
+      expect(errors).toEqual([]);
+    } finally { await session.detach(); }
+  });
+
   test('两堆首尾双向循环，动效不透明且不超过 220ms，无自动导航', async ({ page }) => {
     await page.goto('/');const cfop = deck(page, 'cfop'),roux = deck(page, 'roux');
     for (const index of [1, 2, 3, 0]) { await swipe(page, cfop);await expect(cfop).toHaveAttribute('data-index', String(index)); }
