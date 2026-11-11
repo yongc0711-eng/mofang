@@ -1,0 +1,66 @@
+# UI-home-decks 首页循环横卡
+
+## 背景与确认
+
+用户在交互预览中确认：三阶是卡片上方的公共分区标题；CFOP / 桥式各一叠紧凑横卡，纯文字方法封面，首尾循环翻动，卡内独立展开，点分组直接进入原公式列表。配色按钮必须保留在搜索框右侧。
+
+工作区 `D:/allwork/mofang-ui`，分支 `codex/ui-polish`，开始提交 `f09a607`。只在当前分支追加提交，不合并、不 push。界面语义替换先记 D20，不改 `docs/TASKS.md`。
+
+## 范围与验收
+
+- 只改首页及其专用组件/样式；保留五组数据、ID、公式、路由、主公式视图、配色和掌握数。
+- CFOP：封面 → F2L → OLL → PLL → 封面；桥式：封面 → CMLL → LSE → 封面。两叠独立、可向前/后循环，退出再返回保留位置。
+- “展开全部”在卡片内，与主入口是独立原生控件；全部分组可直接选择。展开列表和卡堆外保持正常页面滚动，触控目标至少 32px。
+- 320×640 / 390×844，浅/深色，无横向滚动；封面无图解，实际五组图解仍由 CaseDiagram 生成；搜索和唯一 44px 配色入口正常。
+- 鼠标/触屏、方向键、轻微拖动/取消、首尾循环、展开/收起焦点、直接进入与返回恢复均检查；减少动态效果时立即切换。
+- `npm test`、`npm run check:data`、`npm run build`、`npm run test:visual -- --workers=2` 全过。原列表/详情、T48 播放器、T56 提示条、练习/试转门禁保留。
+
+## 非目标
+
+不新增依赖、图片、字体或全局 reset；不改分类弹窗动效、3D、播放器、练习、求解/打乱、数据/SET_RULES；不合并或发布。
+
+## 进展
+
+- 已读取 AGENTS、CLAUDE、任务/决定和首页/应用/样式/测试；初始工作区干净。
+- 修改前截图：`ui-review.local/home-decks/before-{320,390}-{light,dark}.png`。
+- 新增首页专用 `HomeMethodDeck`，只持有翻卡、展开和动效状态；HomePage 继续从 SETS/用户进度/主公式和 browsePalette 生成五组入口，不复制数据或图解。
+- 正常翻卡 220ms，不做面板透明度变化；展开通过专用 CSS 高度/位置过渡摊开，卡堆下方无按钮。原生 Link 与“展开全部”按钮互为相邻控件，无嵌套交互。
+- 手势移动超过 9px 后取消本次点击；达到垂直距离或速度阈值才换卡，取消/轻微拖动回到原位；处理触屏从子链接隐式 capture 转为卡堆 capture 的 lost 冒泡。
+- `home-deck:cfop` / `home-deck:roux` 仅使用现有 uiState 内存保存，直接进入、浏览器返回和列表“公式库”返回均恢复。
+- 系统 reduced-motion 时完全取消本组件 CSS transition 和 WAAPI 动效，修正全站 0.01ms 降速仍创建瞬时 transition 的情况；动效中切换此偏好也立即结束。
+- D20 先记录再更新旧界面断言；保留原入口、图解、说明、掌握数、进度、搜索/配色断言，新增两项静态结构检查和 10 条浏览器检查。homeSearch 的 useState 测试替身补上惰性初始化，保留其余测试内容。
+
+## 门禁结果
+
+2026-11-11，在本分支最终代码上完成：
+
+| 命令 | 结果 |
+| --- | --- |
+| `npm test` | 3750 条 / 56 文件通过（原 3748 + 2 条新结构检查） |
+| `npm run check:data` | 393 条 / 5 文件通过 |
+| `npm run build` | TypeScript、Vite、PWA 打包通过 |
+| `npm run test:visual -- --workers=2` | 30 条通过（原 20 + 首页 10），无 skip |
+
+全站视觉回归保留原有分类、列表、详情、播放器/peek、练习、配色弹窗和试转断言；LSE 详情仍为两张 64×64 SVG，320/390 的播放器/peek 均在底栏上方。补充本地浏览器检查通过：鼠标拖动、动效中切换 reduced-motion、动效期间离开并返回，未出现页面脚本错误。
+
+## 320 / 390 实测
+
+以下均是实际应用页面，浅/深色分别检查，尺寸单位 px：
+
+| 视口 | 方法封面 | 展开分组卡 | 卡内展开按钮 | 搜索框 | 配色按钮 | scrollWidth / clientWidth |
+| --- | --- | --- | --- | --- | --- | --- |
+| 320×640 | 288×96 | 288×80 | 80×32 | 236×44 | 44×44 | 320 / 320 |
+| 390×844 | 358×100 | 358×82 | 80×32 | 306×44 | 44×44 | 390 / 390 |
+
+封面分别无图解；五个实际入口图解保持 44px（320）/48px（390），配色变更即时生效且 CFOP/Roux 相互独立。默认两张封面在首屏；展开后使用普通页面滚动，五个入口均可滚到固定底栏上方并直接点击。所有颜色继续使用 styles.css 既有变量，未引入新共享 token。
+
+## 截图与交付
+
+截图和实测 JSON 保存在本地忽略目录，不提交图片素材：
+
+- 修改前：`ui-review.local/home-decks/before-320-light.png`、`before-320-dark.png`、`before-390-light.png`、`before-390-dark.png`。
+- 修改后：同目录 `after-320-light.png`、`after-320-dark.png`、`after-390-light.png`、`after-390-dark.png`。
+- 全部展开：同目录 `expanded-320-light.png`、`expanded-320-dark.png`、`expanded-390-light.png`、`expanded-390-dark.png`。
+- 实测数据：同目录 `measurements.json`。
+
+只在 `codex/ui-polish` 提交。未改 App 路由、数据/公式/SET_RULES、播放器/3D/练习、CategoryPicker 或 docs/TASKS；无新依赖。尚未合并、push 或发布，实体手机的手感仍需用户实际体验。

@@ -9,18 +9,20 @@ const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 
 /** 取某个选择器所有规则的声明，包括写在媒体查询里的 */
 const rules = (sel: string) => {
-  const escaped = sel.replace(/[.>:+]/g, '\\$&');
+  const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   return [...css.matchAll(new RegExp(`^\\s*${escaped} \\{([^}]*)\\}`, 'gm'))].map((m) => m[1]).join(';');
 };
 
 const HOME_SELECTORS = [
-  '.home-head', '.method', '.method-head', '.set-list', '.set-card', '.set-card::after',
-  '.set-card:active', '.set-card:hover', '.set-body', '.set-title', '.progress', '.progress > div', '.chevron',
+  '.home-head', '.home-library > h2', '.home-decks', '.home-method-deck', '.home-deck-card',
+  '.home-deck-pile', '.home-deck-header', '.home-deck-cover-body', '.home-deck-position',
+  '.home-deck-dot.current', '.home-deck-expand, .home-deck-close', '.set-card',
+  '.set-card:active', '.set-card:hover', '.set-body', '.set-title', '.progress', '.progress > div',
 ];
 
 describe('UI-home 首页样式', () => {
   it('每张卡是独立 surface：有细边和圆角，没有阴影，按下有底色反馈', () => {
-    const card = rules('.set-card');
+    const card = rules('.home-deck-card');
     expect(card).toContain('background: var(--surface)');
     expect(card).toContain('border: 1px solid var(--border)');
     expect(card).toContain('border-radius: var(--radius-card)');
@@ -28,32 +30,40 @@ describe('UI-home 首页样式', () => {
     expect(rules('.set-card:active')).toContain('background: var(--surface-2)');
   });
 
-  it('矮屏卡片 68px、高屏 78px，触控目标是整行且不低于 32px', () => {
-    const card = rules('.set-card');
-    expect(Number(card.match(/height:\s*(\d+)px/)?.[1])).toBe(68);
-    expect(Number(card.match(/min-height:\s*(\d+)px/)?.[1])).toBeGreaterThanOrEqual(32);
-    expect(css).toMatch(/@media \(min-height: 720px\)[\s\S]*?\.set-card \{ height: 78px; min-height: 78px;/);
+  it('横卡为 96/100px、展开后 80/82px，主入口和独立展开控件均不低于 32px', () => {
+    const deck = rules('.home-method-deck');
+    expect(Number(deck.match(/--home-deck-height:\s*(\d+)px/)?.[1])).toBe(96);
+    expect(Number(deck.match(/--home-deck-expanded-height:\s*(\d+)px/)?.[1])).toBe(80);
+    expect(css).toMatch(/@media \(min-width: 360px\)[\s\S]*?--home-deck-height: 100px; --home-deck-expanded-height: 82px;/);
+    expect(rules('.home-deck-card')).toContain('height: var(--home-deck-height)');
+    expect(rules('.home-method-deck[data-expanded="true"] .home-deck-card')).toContain('height: var(--home-deck-expanded-height)');
+    expect(Number(rules('.set-card').match(/min-height:\s*(\d+)px/)?.[1])).toBeGreaterThanOrEqual(32);
+    expect(Number(rules('.home-deck-expand, .home-deck-close').match(/min-height:\s*(\d+)px/)?.[1])).toBeGreaterThanOrEqual(32);
   });
 
   it('320 宽不撑开：列宽不超过容器', () => {
-    expect(rules('.set-list')).toContain('grid-template-columns: minmax(0, 1fr)');
+    expect(rules('.home-decks')).toContain('grid-template-columns: minmax(0, 1fr)');
     expect(rules('.set-body')).toContain('min-width: 0');
+    expect(rules('.set-card')).toContain('grid-template-columns: minmax(0, 1fr) 44px');
   });
 
-  it('独立卡片之间有 6px 间隔，不再用内缩分隔线；焦点框画在卡片外', () => {
-    expect(rules('.set-list')).toContain('gap: 6px');
-    expect(rules('.set-list')).not.toMatch(/background:|border:|box-shadow/);
+  it('两堆间隔 18px，展开行距 8px；堆叠裁切内仍保留清晰焦点框', () => {
+    expect(rules('.home-decks')).toContain('gap: 18px');
+    expect(rules('.home-decks')).not.toMatch(/background:|border:|box-shadow/);
+    expect(rules('.home-method-deck[data-expanded="true"] .home-deck-pile')).toContain('(var(--home-deck-items) - 1) * 8px');
     expect(css).not.toMatch(/\.set-card \+ \.set-card::before/);
-    expect(rules('.set-card:focus-visible')).toContain('outline-offset: 2px');
+    expect(rules('.set-card:focus-visible')).toContain('outline-offset: -3px');
+    expect(rules('.home-deck-expand:focus-visible, .home-deck-close:focus-visible')).toContain('outline-offset: -2px');
   });
 
-  it('强调色侧标和圆形箭头都只引用现有变量', () => {
-    expect(rules('.set-card::after')).toContain('background: var(--accent)');
-    const chevron = rules('.chevron');
-    expect(chevron).toContain('width: 24px');
-    expect(chevron).toContain('border-radius: 50%');
-    expect(chevron).toContain('background: var(--accent-soft)');
-    expect(chevron).toContain('color: var(--accent)');
+  it('移除侧标和圆形箭头，页码点与触控反馈仍只引用现有变量', () => {
+    expect(css).not.toContain('.set-card::after');
+    expect(css).not.toContain('.chevron {');
+    expect(rules('.home-deck-dot.current')).toContain('background: var(--accent)');
+    expect(rules('.home-deck-expand, .home-deck-close')).toContain('color: var(--muted)');
+    const pressed = rules('.home-deck-expand:active, .home-deck-close:active');
+    expect(pressed).toContain('background: var(--accent-soft)');
+    expect(pressed).toContain('color: var(--accent)');
   });
 
   it('首页没有硬编码颜色、模糊、渐变，动画不超过 250ms', () => {
@@ -61,8 +71,8 @@ describe('UI-home 首页样式', () => {
       const body = rules(sel);
       expect(body, sel).not.toBe('');
       expect(body, sel).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgb\(|gradient|backdrop-filter|filter:/);
-      for (const [, sec] of body.matchAll(/(\d*\.?\d+)s\b/g)) {
-        expect(Number(sec), sel).toBeLessThanOrEqual(0.25);
+      for (const [, duration, unit] of body.matchAll(/(\d*\.?\d+)(ms|s)\b/g)) {
+        expect(Number(duration) * (unit === 's' ? 1000 : 1), sel).toBeLessThanOrEqual(250);
       }
     }
   });

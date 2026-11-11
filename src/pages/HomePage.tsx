@@ -1,7 +1,7 @@
 import { FormulaColors } from '../components/FormulaColors';
 import { browsePalette } from '../lib/colorScheme';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { HomeMethodDeck } from '../components/HomeMethodDeck';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
@@ -57,38 +57,20 @@ export function HomePage() {
           </div>
         </section>
       )}
-      {METHODS.map((m) => (
-        <section key={m.id} className="method">
-          <div className="method-head">
-            <h2>{m.name}</h2>
-          </div>
-          <div className="set-list">
-            {SETS.filter((s) => s.method === m.id).map((s) => {
-              const done = s.cases.filter((c) => statusOf(c, user) === 'mastered').length;
-              const total = s.cases.length;
-              const cover = getCase(COVER[s.id]) ?? s.cases[0];
-              return (
-                <Link key={s.id} to={`/set/${s.id}`} className="set-card">
-                  <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />
-                  <div className="set-body">
-                    <div className="set-title">
-                      <strong>{s.name}</strong>
-                      <span className="muted small">{s.description}</span>
-                    </div>
-                    <div className="progress" aria-hidden="true">
-                      <div style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
-                    </div>
-                    <span className="muted small">
-                      已掌握 {done} / {total}
-                    </span>
-                  </div>
-                  <span className="chevron" aria-hidden="true">›</span>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-      ))}
+      <section className="home-library" aria-labelledby="home-three-title">
+        <h2 id="home-three-title">三阶</h2>
+        <div className="home-decks">
+          {METHODS.map((m) => <HomeMethodDeck key={m.id} method={m.id} name={m.id === 'roux' ? '桥式' : m.name} items={SETS.filter((s) => s.method === m.id).map((s) => {
+            const cover = getCase(COVER[s.id]) ?? s.cases[0];
+            return {
+              id: s.id, name: s.name, description: s.description,
+              done: s.cases.filter((c) => statusOf(c, user) === 'mastered').length,
+              total: s.cases.length,
+              diagram: <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />,
+            };
+          })} />)}
+        </div>
+      </section>
     </div>
   );
 }
