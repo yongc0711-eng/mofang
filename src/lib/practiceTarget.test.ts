@@ -7,6 +7,27 @@ import { parseAlg } from './alg';
 import { applyMoves, solved, STICKERS } from './cube';
 import { BOTTOM_COLORS, displayFace } from '../store/devicePrefs';
 import { OBSERVATION, observedColors, physicalTarget, solveTarget, verifySetup } from './practiceTarget';
+import { PAIRS, paletteFace, rouxPalette, validPairs } from './colorScheme';
+import { SBLS_CASES } from '../data/sbls';
+
+describe('SBLS 完整桥式配色池的物理打乱回放', () => {
+  for (const c of SBLS_CASES) {
+    it(`${c.id}: 24 种桥式配色逐一保留全部贴纸与 M 中心偏移`, () => {
+      const state = caseState(c);
+      let count = 0;
+      for (const bottomColor of BOTTOM_COLORS) for (const bridgePair of validPairs(bottomColor)) for (const leftColor of PAIRS[bridgePair]) {
+        const colors = { method: 'roux' as const, bottomColor, bridgePair, leftColor };
+        const setup = solveTarget(state, colors, solve);
+        expect(verifySetup(setup)).toBe(true);
+        expect(setup.state).toEqual(state);
+        const palette = rouxPalette(colors);
+        expect(observedColors(setup.scramble, colors)).toEqual(state.map((id) => paletteFace(id, palette)));
+        count++;
+      }
+      expect(count).toBe(24);
+    });
+  }
+});
 
 describe('T37 solver targets: fixed white U / green F, six bottoms, exact sticker identity', () => {
   for (const bottom of BOTTOM_COLORS) {

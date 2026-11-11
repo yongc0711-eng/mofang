@@ -18,6 +18,7 @@ const COVER: Record<SetId, string> = {
   coll: 'coll-as-1',
   cmll: 'cmll-s-1',
   lse: 'lse-eo-7',
+  sbls: 'sbls-u-ub',
 };
 
 export function HomePage() {

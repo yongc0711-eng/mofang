@@ -20,7 +20,7 @@ describe('练习打乱', () => {
       expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
     }
   });
-  it('只有 OLL/PLL/CMLL 加 AUF', () => {
+  it('原有 OLL/PLL/CMLL 的 AUF 与 F2L 固定起手保持不变', () => {
     const pll = getSet('pll')!.cases[0];
     const f2l = getSet('f2l')!.cases[0];
     expect(scrambleFor(pll, () => 0.3).startsWith('U')).toBe(true);
@@ -32,6 +32,12 @@ describe('练习打乱', () => {
       expect([0, 0.3, 0.6, 0.9].map((rand) => scrambleFor(c, () => rand))).toEqual(
         [base, `U ${base}`, `U' ${base}`, `U2 ${base}`],
       );
+    }
+  });
+  it('SBLS 保留固定起手，四个随机区间都不额外加 AUF', () => {
+    for (const c of getSet('sbls')!.cases) {
+      const base = scrambleFor(c, () => 0);
+      for (const rand of [0, 0.3, 0.6, 0.9]) expect(scrambleFor(c, () => rand)).toBe(base);
     }
   });
 });

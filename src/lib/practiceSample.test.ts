@@ -27,7 +27,7 @@ describe('T37 target sampler preserves selected stage and case, independently of
               if (STICKERS[i].p.every(Boolean) || SET_RULES.cmll.preserve(i)) expect(unauf[i]).toBe(reference[i]);
             } else expect(unauf[i]).toBe(reference[i]);
           }
-          if (c.set === 'f2l' || c.set === 'lse') expect(sample.auf).toBe('');
+          if (c.set === 'f2l' || c.set === 'lse' || c.set === 'sbls') expect(sample.auf).toBe('');
         }
       }
     });

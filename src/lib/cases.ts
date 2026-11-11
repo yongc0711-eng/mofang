@@ -147,6 +147,7 @@ export const SET_RULES: Record<SetId, SetRule> = {
     preY: [0],
     allowedBases: 'MU',
   },
+  sbls: SBLS_RULE,
 };
 
 const turn = (base: string, n: number): Move[] =>
@@ -230,8 +231,8 @@ export function lintCaseAlg(c: Pick<AlgCase, 'set'>, alg: string): string[] {
 
 /**
  * 判断合规公式能否解决该情形，部分组还允许先整体 y 转。
- * U 层调整：OLL/PLL/CMLL 前后都可以（前置 U 就是 AUF）；LSE 走自己的分支；
- * F2L 只允许 post-U（做完后转 U 对齐），不允许 pre-U：F2L 的起始状态对 U 敏感，
+ * U 层调整：OLL/PLL/CMLL/COLL 前后都可以（前置 U 就是 AUF）；LSE 走自己的分支；
+ * F2L/SBLS 只允许 post-U（做完后转 U 对齐），不允许 pre-U：它们的起始状态对 U 敏感，
  * 公式前面多转一下 U 等于换了另一个情形，不能算这个情形的解。
  */
 export function algSolvesCase(c: CaseRef, alg: string): boolean {
@@ -286,6 +287,7 @@ export function lintCase(c: AlgCase): string[] {
     problems.push('PLL 公式改变了顶面朝向');
   }
   if (c.set === 'coll') problems.push(...lintCollState(c.id, after, c.algs[0]));
+  if (c.set === 'sbls') problems.push(...lintSblsState(c.id, after, c.algs));
   if (c.set === 'lse') {
     const step = lseStepOf(c);
     if (!step) {

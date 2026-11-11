@@ -66,8 +66,8 @@ it('CFOP sampling is uniform, singleton works, and multiple colors avoid the las
 it('Roux excludes only the previous complete configuration, and mixed sets use their own method pool',()=>{
   const pools=initializeColorPools({},prefs),last=pickPracticeColors({set:'cmll'},pools,null,()=>0);
   expect(pickPracticeColors({set:'lse'},pools,last,()=>0)).not.toEqual(last);
-  for(const set of ['oll','pll','f2l']) expect(pickPracticeColors({set},pools,last,()=>0)).toEqual({method:'cfop',bottom:'green'});
-  for(const set of ['cmll','lse']) expect(pickPracticeColors({set},pools,null,()=>0).method).toBe('roux');
+  for(const set of ['oll','pll','f2l','coll']) expect(pickPracticeColors({set},pools,last,()=>0)).toEqual({method:'cfop',bottom:'green'});
+  for(const set of ['cmll','lse','sbls']) expect(pickPracticeColors({set},pools,null,()=>0).method).toBe('roux');
 });
 it('invalid candidate pools fail rather than dropping a bottom or guessing a legal scheme',()=>{
   const pools=initializeColorPools({},prefs);pools.rouxPairsByBottom.white=[];

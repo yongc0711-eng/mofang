@@ -5,6 +5,7 @@ import { F2L_CASES } from './f2l';
 import { LSE_CASES } from './lse';
 import { OLL_CASES } from './oll';
 import { PLL_CASES } from './pll';
+import { SBLS_CASES } from './sbls';
 
 export const SETS: CaseSet[] = [
   { id: 'f2l', method: 'cfop', name: 'F2L', description: '前两层', expectedCount: 41, complete: true, view: 'iso', cases: F2L_CASES },
@@ -13,6 +14,7 @@ export const SETS: CaseSet[] = [
   { id: 'coll', method: 'cfop', name: 'COLL', description: '顶棱色相完成时一次还原顶角（40）', expectedCount: 40, complete: true, view: 'top', cases: COLL_CASES },
   { id: 'cmll', method: 'roux', name: 'CMLL', description: '顶层四角', expectedCount: 42, complete: true, view: 'top', cases: CMLL_CASES },
   { id: 'lse', method: 'roux', name: 'LSE', description: '最后六棱', expectedCount: null, complete: true, view: 'lse', cases: LSE_CASES },
+  { id: 'sbls', method: 'roux', name: 'SBLS', description: '右桥最后一槽 FR 成对归位（65）', expectedCount: 65, complete: true, view: 'iso', cases: SBLS_CASES },
 ];
 
 export const METHODS: { id: MethodId; name: string; hint: string }[] = [

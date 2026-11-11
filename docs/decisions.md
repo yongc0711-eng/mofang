@@ -139,7 +139,7 @@
   - **COLL（CFOP，`id: 'coll'`，`view: 'top'`，40 个情形）**：适用前提为 F2L 已完成且顶层四棱朝向正确（EO 已完成）。排除四角已全部朝上的 `O` 组（`O Adjacent`、`O Diagonal` 在 EO 已完成时已是标准 PLL，无需再做 COLL），与 SpeedCubeDB、J Perm、CubeSkills 三家权威表一致，共 7 组 40 情形（`Antisune` 6、`Sune` 6、`L` 6、`U` 6、`T` 6、`Pi` 6、`H` 4）。不得直接复制 CMLL 数据或规则（CMLL 放开 M 层与顶棱朝向，现有 40 条非 O 主公式中有 29 条会翻转顶棱或破坏 DF/DB）。
   - **SBLS（桥式 Roux，`id: 'sbls'`，`view: 'iso'`，65 个情形）**：适用前提为左桥 1×2×3（`x === -1, y <= 0`）与右桥后半（`DR`、`DBR`、`BR`、`R` 中心）已完成，目标是同时还原右桥前槽 `FR`（`DFR` 角块 + `FR` 棱块），M 层与 U 层自由。按角块位置/朝向分 6 组（`Corner on U facing up` 14、`Corner on U oriented` 14、`Corner on U misoriented` 14、`Corner on D solved` 7、`Corner on D facing forward` 8、`Corner on D facing side` 8），共 65 个情形。固定目标槽位为 `FR`，不重复收录左槽、BR 槽或整体转体镜像。
 - **SpeedCubeDB SBLS 7 对（14 条）标签互换冲突的修正**：
-  - 经魔方引擎逐条核验，SpeedCubeDB 的 SBLS 页面因生成器混用 `M`/`M'` 方向，导致 7 对（共 14 条）情形的页面名称与算法实际生成的物理棱块位置（`UF`↔`UL` 或 `DB`↔`DF`）互换：`Up UF`↔`Up UL`、`Up DB`↔`Up DF`、`Um DB`↔`Um DF`、`Um DBm`↔`Um DFm`、`Dp DBm`↔`Dp DFm`、`Dm DB`↔`Dm DF`、`Dm DBm`↔`Dm DFm`。
+  - 经魔方引擎逐条核验，SpeedCubeDB 的 SBLS 页面存在 7 对（共 14 条）情形的页面名称与算法实际生成的物理棱块位置（`UF`↔`UL` 或 `DB`↔`DF`）互换：`Up UF`↔`Up UL`、`Up DB`↔`Up DF`、`Um DB`↔`Um DF`、`Um DBm`↔`Um DFm`、`Dp DBm`↔`Dp DFm`、`Dm DB`↔`Dm DF`、`Dm DBm`↔`Dm DFm`。
   - 按 D1（`algs[0]` 定义情形状态与图解），本项目以 `caseState(c)` 中 `DFR` 角块和 `FR` 棱块的**真实物理位置与朝向**为准命名，将这 7 对算法归位到物理位置匹配的 ID/名称下，并用独立测试逐条锁定 65 个情形的物理块位置与朝向。
 - **首页入口顺序与界面契约**：
   - 保留原五组入口（`f2l`、`oll`、`pll`、`cmll`、`lse`）的相对顺序不变：`COLL` 接在 CFOP 卡堆末尾（`F2L → OLL → PLL → COLL`），`SBLS` 接在桥式卡堆末尾（`CMLL → LSE → SBLS`），`SETS` 总顺序为 `['f2l', 'oll', 'pll', 'coll', 'cmll', 'lse', 'sbls']`。
@@ -148,3 +148,5 @@
   - 原先精确锁住“5 组 / 254 情形”及首页卡堆分组数的测试（`outsideDiagrams.test.tsx`、`homeCards.test.tsx`、`devicePrefs.test.ts`、`practiceSample.test.ts`、`practiceColors.test.ts`、`e2e/home-decks.spec.ts`、`e2e/visual-smoke.spec.ts`），在接入 `COLL`（6 组 / 294 情形：CFOP 4 组 159 情形）与 `SBLS`（7 组 / 359 情形：桥式 3 组 200 情形）时，按对应阶段的真实集合列表、精确数量和卡堆循环下标做**等强更新**，不得使用模糊匹配（如 `toBeGreaterThan`）或跳过任何既有检查。
 
 - **Executor 几何计数勘误（2026-11-12，新增测试之前）**：T71/SBLS 正文将左右桥写成 32 张、SBLS 保持范围写成 27 张。现有 STICKERS 中实际是 26 张（每桥 13），扣除 FR 槽 5 张后保持 21 张（左桥 13 + 右后桥 8）。沿用规格给出的 isRouxBlock / isSblsPreserve 表达式及全部保护块，仅纠正新增断言与说明中的计数；原 SET_RULES、既有断言不变。
+
+- **Executor 来源复核（2026-11-12）**：直接读取 SpeedCubeDB 当前 SBLS 页面，确认上述 14 个标题对应的公式；独立按 DFR / FR 贴纸位置和朝向验证修正后的 65 个名称。可以确认标题与物理状态的差异，不据此推断其网站生成器的具体成因。

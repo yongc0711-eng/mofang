@@ -64,7 +64,7 @@ it('cleans malformed method objects separately and preserves an explicit swapped
 it('full palette affects all 54 stickers in canonical and displaced-center states with masks unchanged',()=>{
   for(const bottomColor of BOTTOM_COLORS) for(const bridgePair of validPairs(bottomColor)) for(const leftColor of PAIRS[bridgePair]) {
     const p=rouxPalette({bottomColor,bridgePair,leftColor});
-    for(const c of ALL_CASES.filter(c=>c.set==='cmll'||c.set==='lse')) {
+    for(const c of ALL_CASES.filter(c=>isRouxSet(c.set))) {
       const state=caseState(c), mask=displayMask(c);
       expect(diagramColors(c,mask,'white',state,p)).toEqual(state.map(id=>mask(id)?paletteFace(id,p):null));
       expect(state).toEqual(caseState(c));
