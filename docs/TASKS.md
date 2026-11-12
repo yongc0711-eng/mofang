@@ -3,21 +3,21 @@
 ## 当前状态（2026-11-12）
 
 - **分工：** Lead = Gemini 4 / Antigravity；Executor = Codex；Auditor / Release = 独立复核者；Router = 用户。Claude 账号不可用，旧分工不再适用；细则见 `AGENTS.md`。
-- **公式数据：** 8 个公式集、386 条已录完：F2L 41、OLL 57、PLL 21、COLL 40、WV 27、CMLL 42、LSE 93、SBLS 65。来源见 `docs/decisions.md` 和各数据文件开头。
+- **公式数据：** 9 个公式集、437 条已录完：F2L 41、OLL 57、PLL 21、COLL 40、WV 27、CMLL 42、LSE 93、SBLS 65、EOLR 51。来源见 `docs/decisions.md` 和各数据文件开头。
 - **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
-- **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）；UI-home-decks 把首页改为 CFOP / 桥式两叠循环横卡；T71、COLL、SBLS 新增 CFOP COLL（40）与桥式 SBLS（65）；WV 新增 CFOP Winter Variation（27），CFOP 卡堆变成五组。
+- **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）；UI-home-decks 把首页改为 CFOP / 桥式两叠循环横卡；T71、COLL、SBLS 新增 CFOP COLL（40）与桥式 SBLS（65）；WV 新增 CFOP Winter Variation（27），CFOP 卡堆变成五组；EOLR 新增桥式 EOLR（51），其中 20 张 BAD CASE 用虚线卡标出，桥式卡堆变成四组，详情页可把短公式接上「接续 4b」播到严格 EOLRb。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 5428/59 项全过，`npm run check:data` 786/8 项全过，`npm run build` 通过；`npm run test:visual` 46 条 Playwright 冒烟全过（main `422902b`）。
-- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、WV、CMLL、LSE、SBLS 还没有 recognition。
+- **基线：** `npm test` 6198/60 项全过，`npm run check:data` 1097/9 项全过，`npm run build` 通过；`npm run test:visual` 54 条 Playwright 冒烟全过（main `972e1c8`）。
+- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、WV、CMLL、LSE、SBLS、EOLR 还没有 recognition。
 
 任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T71 已用过（T67 预留给 T15 UL/UR 文档；T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补）。
 
 ## 未完成
 
-- [EOLR](tasks/EOLR.md) 桥式 LSE 4a+4b 合并（EOLR）技术调研与边界规格：Executor 复核指出原稿 5 项实测问题（`M2` 物理终点停在 `UF/UB` 缺显式后置 `U/U'`、`isRouxBlock` 26 张误写为 24 张、第 5 节样例 2/3/4 存在 `M` 中心偏移、接口名使用伪代码、465/123/93/60 轨道计数与 Bas 49 条缺落库复核脚本），Lead 已在 `EOLR.md` 第 9 节逐项确认勘误。**结论：暂不具备编码条件，暂缓立项，不与 `WV` 绑定**；推进前须先有可独立运行的轨道枚举与 Bas 49 条映射校验脚本，并明确 `M2` 中心相位与显式末尾 `U / U'` 约定。
+- 暂无。EOLR 已按 Lead 的 `ea262a9` 规格实现并合并，调研、勘误与显示口径仍保留在 `tasks/EOLR.md`。
 
-## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、UI-home-deck-tap、T71、COLL、SBLS、WV；T56-fix 已合并）
+## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、UI-home-deck-tap、T71、COLL、SBLS、WV、EOLR；T56-fix 已合并）
 
 每条链接到它的任务记录。
 
@@ -61,6 +61,7 @@
 - **COLL/SBLS 合并记录**：只 cherry-pick 上述三个提交（不整分支 merge，避免旧版 `.github/workflows/deploy.yml` 回退“先 deploy 后 visual”）；合并后 `npm test` 5046/58、`check:data` 653/7、`build`、`visual` 40 条通过，main `fd4ddf1`，Actions deploy → visual 均成功。
 - [WV](tasks/WV.md) CFOP Winter Variation 27 情形（`3 Corners` 1 / `2 Corners` 6 / `1 Corner` 12 / `0 Corners` 8）：`cases.ts` 新增 `isWvMask`（F2L + 顶面 42 张）、`WV_RULE`（保留 FR 对以外的 F2L 块）与 `lintWvState`（中心原位、UFR 与 UR 姿态、UF/UL/UB 三顶棱朝上），公式一律不含 `x/y/z`；`wv.names.test.ts` 104 条（物理块几何 + J Perm 27 + CubeSkills 22）。独立复核：J Perm 27 条逐条一致；SpeedCubeDB 27 条 setup 有 26 条与本项目状态逐张相同，剩下 WV10 是其 PLL 变体，但 SCDB 列出的主公式与 `wv-10` 逐字相同、也能解该状态，编号与公式无误。合并前 .github 无改动，`SBLS_RULE.display` 与既有 SET_RULES 未动；fast-forward 合并 main `3114442`，`npm test` 5428/59、`check:data` 786/8、`build`、`visual` 44 条通过。Lead 复核结论见 `WV.md` 第 8 节。
 - [UI-home-deck-tap](tasks/UI-home-deck-tap.md) 修复安卓翻卡后第一次轻点被吞：原来只在 `pointermove` 上 `preventDefault`，没有取消原生 `touchmove`，浏览器会把下一次轻点当成终止原生手势。现在在卡堆上注册非被动 `touchmove`，仅在已识别纵向翻卡（`|dy| > 9` 且超过横向位移 1.1 倍）时取消默认；轻点、横向循环、展开后的页面滚动和原有 PointerEvent 逻辑都不受影响。反向对照：撤掉 `src` 修复后新用例两个视口都失败，装回即通过。合并 main `422902b`，`npm test` 5428/59、`check:data` 786/8、`build`、`visual` 46 条通过；仅 Chromium 触屏模拟验证，尚未在实体安卓机上复测。
+- [EOLR](tasks/EOLR.md) 桥式 EOLR 51 情形（9 个 EO 行：3/1 8、2a/2 7、4/0 4、2o/2 6、2o/0 6、0/2 4、2a/0 7、1/1 6、4/2 3），其中 20 张 BAD CASE 用虚线卡与标签标出：每条情形显式保存 `setup`、`targetTier`、接续公式和来源映射，`caseState` 从 `setup` 起手（旧 386 条仍走原路径），`algSolvesCase` 用 `eolrGoal`，`caseFingerprint` 用 `inspectEolr(...).key`；`EOLR_RULE` 保护两桥 26 张、`allowedBases: 'MU'`，只在完成 EO 的 Tier 2/3 与完整接续终点要求平面中心。短公式分层 Tier 1 50 / Tier 2 1，全部 51 条接续逐帧保护两桥并到达严格 EOLRb（最长 12 步）；4 条前缀（3/1-5、3/1-7、3/1-8、2o/0-5）明确标为计算补全，3/1-7 保留倾斜中心相位 1 不 normalize。详情页「接续 4b」开关保留当前帧与播放位置，自定义公式时禁用；练习 `/practice?set=eolr` 接 12 种 M 棱置换与 Tier 2 四种 AUF，题目目标标明化归中间态 / 底层双槽 / 归位。图解改为六槽示意（坏棱粗框、LR 可见/背向标记、DF/DB 标注），不新增图片。`eolr.names.test.ts` 134 行逐条对照 Bas 速查表，`build-cases.mjs` 重跑与 `src/data/eolr.ts` 字节一致。独立交叉：Bas 2023-08-04 速查表的 48 条加粗公式在页面文本中逐条命中，9 行分类与 20 张 BAD CASE 对齐，51 条层级用不依赖 `src/lib/eolr.ts` 的独立脚本重算为 50/1、0 问题。fast-forward 合并 main `972e1c8`，`npm test` 6198/60、`check:data` 1097/9、`build`、`visual` 54 条通过；规格见 `EOLR.md`，交付记录见 `EOLR-implementation.md`，决策见 D23。实体安卓机尚未实测。
 
 ## 待确认（不建任务）
 
