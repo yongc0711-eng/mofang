@@ -1,23 +1,24 @@
 # 任务
 
-## 当前状态（2026-11-11）
+## 当前状态（2026-11-12）
 
 - **分工：** Lead = Gemini 4 / Antigravity；Executor = Codex；Auditor / Release = 独立复核者；Router = 用户。Claude 账号不可用，旧分工不再适用；细则见 `AGENTS.md`。
-- **公式数据：** 254 条已录完：F2L 41、OLL 57、PLL 21、CMLL 42、LSE 93。来源见 `docs/decisions.md` 和各数据文件开头。
+- **公式数据：** 7 个公式集、359 条已录完：F2L 41、OLL 57、PLL 21、COLL 40、CMLL 42、LSE 93、SBLS 65。来源见 `docs/decisions.md` 和各数据文件开头。
 - **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
-- **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）。
+- **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）；UI-home-decks 把首页改为 CFOP / 桥式两叠循环横卡；T71、COLL、SBLS 新增 CFOP COLL（40）与桥式 SBLS（65）。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 3750/56 项全过，`npm run check:data` 393 项全过，`npm run build` 通过；`npm run test:visual` 32 条 Playwright 冒烟全过。
-- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、CMLL、LSE 还没有 recognition。
+- **基线：** `npm test` 5046/58 项全过，`npm run check:data` 653/7 项全过，`npm run build` 通过；`npm run test:visual` 40 条 Playwright 冒烟全过（main `fd4ddf1` / `ec07c28`）。
+- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、CMLL、LSE、SBLS 还没有 recognition。
 
-任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T70 已用过（T67 预留给 T15 UL/UR 文档；T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补）。
+任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T71 已用过（T67 预留给 T15 UL/UR 文档；T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补）。
 
 ## 未完成
 
-目前没有未完成任务。
+- [WV](tasks/WV.md) CFOP Winter Variation 公式集接入（27 情形）：当顶棱朝向已完成且 `FR` 槽配成相连对（`UFR + UR`）时，入槽同时还原全部顶角朝向（跳过 OLL）。在 `cases.ts` 新增 `isWvMask`（42 张）、`isWvPreserve`（28 张）、`WV_RULE` 与 `lintWvState`，录入 `src/data/wv.ts` 27 情形（`3 Corners` 1 / `2 Corners` 6 / `1 Corner` 12 / `0 Corners` 8，全部不含 `x/y/z` 且中心块原位），新增 `src/data/wv.names.test.ts`（物理块几何特征 + J Perm 27 情形 + CubeSkills 22 情形交叉核验），接入首页 CFOP 卡堆（`F2L → OLL → PLL → COLL → WV`）并按 D22 等强更新测试（8 组 / 386 情形）。独立可交付，不与 `EOLR` 绑定。
+- [EOLR](tasks/EOLR.md) 桥式 LSE 4a+4b 合并（EOLR）技术调研与边界规格：已完成权威资料核验（Bas 49 / Kian 60 / 区分前后 93 / 仅模 `U4` 123 的群轨道数学拆解）、与现有 LSE（`EO` / `UL/UR` / `4c`）及 `EOLRb` 的边界对比、静态 `SET_RULES` 的 4 项机制冲突分析及两阶段演进方案；待 Router 拍板收录粒度（60 / 49 / 93）、公式终点约定与产品入口位置后再拆编码任务。
 
-## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks；T56-fix 已合并）
+## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、T71、COLL、SBLS；T56-fix 已合并）
 
 每条链接到它的任务记录。
 

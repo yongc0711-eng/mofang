@@ -150,3 +150,13 @@
 - **Executor 几何计数勘误（2026-11-12，新增测试之前）**：T71/SBLS 正文将左右桥写成 32 张、SBLS 保持范围写成 27 张。现有 STICKERS 中实际是 26 张（每桥 13），扣除 FR 槽 5 张后保持 21 张（左桥 13 + 右后桥 8）。沿用规格给出的 isRouxBlock / isSblsPreserve 表达式及全部保护块，仅纠正新增断言与说明中的计数；原 SET_RULES、既有断言不变。
 
 - **Executor 来源复核（2026-11-12）**：直接读取 SpeedCubeDB 当前 SBLS 页面，确认上述 14 个标题对应的公式；独立按 DFR / FR 贴纸位置和朝向验证修正后的 65 个名称。可以确认标题与物理状态的差异，不据此推断其网站生成器的具体成因。
+
+## D22 新增 WV（27）公式集的规则、排序与测试等强更新约定（WV，2026-11-12）
+
+- **收录范围与起手口径**：
+  - **WV（Winter Variation，CFOP，`id: 'wv'`，`view: 'top'`，27 个情形）**：适用前提为前两层除右前槽 `FR` 外已还原（`isWvPreserve` 精确 28 张贴纸：前两层 `isF2LPiece` 33 张减去 `isFRPair` 5 张），`DFR` 角块与 `FR` 棱块已在顶层配成相连对并停在目标槽正上方 `UFR + UR`（与现有 `f2l-1` 起手位置一致，基础入槽 `WV 2` 为 `U R U' R'`），且顶层其余 3 个顶棱朝向已完成。目标是入槽同时还原全部 4 个顶角朝向（`isWvMask` 精确 42 张贴纸：前两层 33 张 + `U` 面 9 张），允许任意 PLL 侧面排列与后置 AUF。
+  - J Perm 与 CubeSkills 的 WV 表将相连对预对齐在 `UFL + UF`（比 `UFR + UR` 多做一步前置 `U`）；左乘一步 `U` 后与 SpeedCubeDB 的 `WV 1`–`WV 27` 27/27（J Perm）及 22/22（CubeSkills 显式公式）完全一致。
+  - 全部 27 个情形的主公式与备选公式均不含 `x / y / z` 整体转体，且执行前后 6 个中心块完全保持原位（`normalize: false`，`preUs: [0]`，`preY: [0]`）。
+- **首页入口顺序与测试等强更新授权（遵循 D6，严禁放宽既有断言）**：
+  - `WV` 接在 CFOP 卡堆末尾（`F2L → OLL → PLL → COLL → WV`），`SETS` 总顺序为 `['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls']`（共 8 个公式集、386 个情形：CFOP 5 组 186 情形，桥式 3 组 200 情形）。
+  - 原先精确锁住“7 组 / 359 情形”及 CFOP 卡堆分组数（4 组 / 159 情形）的测试（`outsideDiagrams.test.tsx`、`homeCards.test.tsx`、`practiceSample.test.ts`、`e2e/home-decks.spec.ts`、`e2e/visual-smoke.spec.ts`、`e2e/formula-expansion.spec.ts`），在接入 `WV` 时按 8 组 / 386 情形（CFOP 5 组 / 186 情形）做**等强精确更新**，不得删除、skip 或放宽任何既有断言。
