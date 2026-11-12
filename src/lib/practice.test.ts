@@ -9,6 +9,12 @@ import { type UserData } from '../types';
 const empty: UserData = { version: 1, cases: {} };
 
 describe('练习打乱', () => {
+  it('WV 固定相连对起手，随机数不增加 AUF', () => {
+    for (const c of getSet('wv')!.cases) {
+      const base = scrambleFor(c, () => 0);
+      for (const rand of [0, 0.3, 0.6, 0.9]) expect(scrambleFor(c, () => rand)).toBe(base);
+    }
+  });
   it('不加 AUF 时为等价无转体公式的逆；无外围转体的定义逐步保持不变', () => {
     for (const c of ALL_CASES) {
       const s = scrambleFor(c, () => 0);

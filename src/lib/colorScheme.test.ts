@@ -11,7 +11,7 @@ const normal = (f: Face) => center(f).n;
 const dot = (a: readonly number[], b: readonly number[]) => a.reduce((sum,n,i)=>sum+n*b[i],0);
 const cross = (a: readonly number[],b: readonly number[]) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
 
-it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll'])('%s routes browsing through the correct method palette (T71)', set => {
+it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll', 'wv'])('%s routes browsing through the correct method palette (T71)', set => {
   const roux = ['cmll', 'lse', 'sbls'].includes(set);
   expect(isRouxSet(set)).toBe(roux);
   const prefs = { bottomColor: 'white' as const, cfop: { bottomColor: 'green' as const }, roux: { bottomColor: 'yellow' as const, bridgePair: 'green-blue' as const, leftColor: 'green' as const } };

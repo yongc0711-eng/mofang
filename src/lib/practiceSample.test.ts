@@ -14,6 +14,7 @@ describe('T37 target sampler preserves selected stage and case, independently of
           const sample = sampleTarget(c, scrambleFor(c, () => rand), () => variation);
           const unauf = applyMoves(sample.state, invertMoves(parseAlg(sample.auf)));
           const reference = caseState(c);
+          if (c.set === 'wv') expect(sample.variation).toBe(0);
           if (c.set === 'coll') {
             expect(sample.variation).toBe(0);
             expect(sample.auf).toBe(['', 'U', "U'", 'U2'][[0, 0.3, 0.6, 0.9].indexOf(rand)]);
@@ -27,7 +28,7 @@ describe('T37 target sampler preserves selected stage and case, independently of
               if (STICKERS[i].p.every(Boolean) || SET_RULES.cmll.preserve(i)) expect(unauf[i]).toBe(reference[i]);
             } else expect(unauf[i]).toBe(reference[i]);
           }
-          if (c.set === 'f2l' || c.set === 'lse' || c.set === 'sbls') expect(sample.auf).toBe('');
+          if (c.set === 'f2l' || c.set === 'lse' || c.set === 'sbls' || c.set === 'wv') expect(sample.auf).toBe('');
         }
       }
     });

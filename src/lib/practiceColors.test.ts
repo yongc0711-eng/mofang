@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { initializeColorPools, snapshotPools, togglePoolBottom, togglePoolPair, colorCandidates, pickPracticeColors, colorKey, type PracticeColorPools } from './practiceColors';
 import { BOTTOM_COLORS, PAIRS, validPairs } from './colorScheme';
 const prefs={cfop:{bottomColor:'green' as const},roux:{bottomColor:'white' as const,bridgePair:'green-blue' as const,leftColor:'green' as const}};
-it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll'])('%s samples its independent method pool (T71)', set => {
+it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll', 'wv'])('%s samples its independent method pool (T71)', set => {
   const pools = initializeColorPools({}, prefs);
   expect(pickPracticeColors({ set }, pools, null, () => 0)).toEqual(
     ['cmll', 'lse', 'sbls'].includes(set)
@@ -66,7 +66,7 @@ it('CFOP sampling is uniform, singleton works, and multiple colors avoid the las
 it('Roux excludes only the previous complete configuration, and mixed sets use their own method pool',()=>{
   const pools=initializeColorPools({},prefs),last=pickPracticeColors({set:'cmll'},pools,null,()=>0);
   expect(pickPracticeColors({set:'lse'},pools,last,()=>0)).not.toEqual(last);
-  for(const set of ['oll','pll','f2l','coll']) expect(pickPracticeColors({set},pools,last,()=>0)).toEqual({method:'cfop',bottom:'green'});
+  for(const set of ['oll','pll','f2l','coll','wv']) expect(pickPracticeColors({set},pools,last,()=>0)).toEqual({method:'cfop',bottom:'green'});
   for(const set of ['cmll','lse','sbls']) expect(pickPracticeColors({set},pools,null,()=>0).method).toBe('roux');
 });
 it('invalid candidate pools fail rather than dropping a bottom or guessing a legal scheme',()=>{

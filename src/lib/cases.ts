@@ -81,6 +81,34 @@ export const SBLS_RULE: SetRule = {
   normalize: false,
 };
 
+const CENTERS = S.filter((s) => s.p.filter(Boolean).length === 1).map((s) => s.id);
+const isWvMask: Mask = (id) => isF2LPiece(id) || uFace(id);
+const WV_RULE: SetRule = {
+  display: isWvMask,
+  solve: isWvMask,
+  preserve: (id) => isF2LPiece(id) && !isFRPair(id),
+  preUs: [0],
+  preY: [0],
+  normalize: false,
+};
+
+function lintWvState(caseId: string, after: State): string[] {
+  const errors: string[] = [];
+  if (!CENTERS.every((id) => after[id] === id)) errors.push(`${caseId}: WV 起手中心块偏移`);
+  const pair = [
+    [stickerAt([1, 1, 1], [0, 1, 0]), stickerAt([1, -1, 1], [0, 0, 1])],
+    [stickerAt([1, 1, 1], [0, 0, 1]), stickerAt([1, -1, 1], [0, -1, 0])],
+    [stickerAt([1, 1, 1], [1, 0, 0]), stickerAt([1, -1, 1], [1, 0, 0])],
+    [stickerAt([1, 1, 0], [0, 1, 0]), stickerAt([1, 0, 1], [0, 0, 1])],
+    [stickerAt([1, 1, 0], [1, 0, 0]), stickerAt([1, 0, 1], [1, 0, 0])],
+  ];
+  if (!pair.slice(0, 3).every(([loc, id]) => after[loc] === id)) errors.push(`${caseId}: WV 起手 UFR 角块不是相连的 DFR 角块姿态`);
+  if (!pair.slice(3).every(([loc, id]) => after[loc] === id)) errors.push(`${caseId}: WV 起手 UR 棱块不是相连的 FR 棱块姿态`);
+  const edgeTops = [[0, 1, -1], [-1, 1, 0], [0, 1, 1]] as const;
+  if (!edgeTops.every((p) => S[after[stickerAt([...p], [0, 1, 0])]].face === 'U')) errors.push(`${caseId}: WV 起手顶层棱块朝向未完成`);
+  return errors;
+}
+
 export function lintCollState(caseId: string, after: State, primaryAlg: string): string[] {
   const errors: string[] = [];
   if (!COLL_U_EDGE_TOP_LOCS.every((loc) => S[after[loc]].face === 'U')) {
@@ -132,6 +160,7 @@ export const SET_RULES: Record<SetId, SetRule> = {
     keepsUFace: true,
   },
   coll: COLL_RULE,
+  wv: WV_RULE,
   cmll: {
     display: (id) => isRouxBlock(id) || isCorner(id),
     solve: (id) => isRouxBlock(id) || isCorner(id),
@@ -224,6 +253,13 @@ const LSE_DISPLAY: Record<LseStep, Mask> = {
 /** 按情形检查单条公式的转动限制；格式错误沿用 parseAlg 的异常 */
 export function lintCaseAlg(c: Pick<AlgCase, 'set'>, alg: string): string[] {
   const moves = parseAlg(alg);
+  if (c.set === 'wv') {
+    const errors: string[] = [];
+    if (moves.some((m) => 'xyz'.includes(m.base))) errors.push('WV 公式不允许包含整体转体 x/y/z');
+    const raw = applyMoves(solved(), invertMoves(moves));
+    if (!CENTERS.every((id) => raw[id] === id)) errors.push('WV 公式导致中心块偏移');
+    return errors;
+  }
   const { allowedBases } = SET_RULES[c.set];
   const bad = allowedBases && moves.find((m) => !allowedBases.includes(m.base));
   return bad ? [`只能使用 ${allowedBases} 转动，出现了 ${bad.base}`] : [];
@@ -252,6 +288,7 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
     for (const pre of preUs) {
       const after = applyMoves(start, [...turn('U', pre), ...turn('y', y), ...moves]);
       const base = finish(after, c.set);
+      if (c.set === 'wv' && !CENTERS.every((id) => base[id] === id)) continue;
       for (let post = 0; post < 4; post++) {
         if (render(applyMoves(base, turn('U', post)), rule.solve) === target) return true;
       }
@@ -288,6 +325,7 @@ export function lintCase(c: AlgCase): string[] {
   }
   if (c.set === 'coll') problems.push(...lintCollState(c.id, after, c.algs[0]));
   if (c.set === 'sbls') problems.push(...lintSblsState(c.id, after, c.algs));
+  if (c.set === 'wv') problems.push(...lintWvState(c.id, after));
   if (c.set === 'lse') {
     const step = lseStepOf(c);
     if (!step) {

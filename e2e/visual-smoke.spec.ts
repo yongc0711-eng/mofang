@@ -39,12 +39,12 @@ async function expectAboveNav(locator: Locator, page: Page) {
 }
 
 test.describe('视觉冒烟', () => {
-  test('首页：两张方法封面在首屏、展开后七入口完整、配色 44px、无横滚', async ({ page }) => {
+  test('首页：两张方法封面在首屏、展开后八入口完整、配色 44px、无横滚', async ({ page }) => {
     await open(page, '/');
     await expect(page.getByRole('heading', { level: 1, name: '魔方公式' })).toBeVisible();
 
     const cards = page.locator('.set-card');
-    await expect(cards).toHaveCount(7);
+    await expect(cards).toHaveCount(8);
     const covers = page.locator('.home-deck-cover');
     await expect(covers).toHaveCount(2);
     for (const cover of await covers.all()) {
@@ -53,7 +53,7 @@ test.describe('视觉冒烟', () => {
     }
     await page.getByRole('button', { name: 'CFOP，展开全部分组', exact: true }).click();
     await page.getByRole('button', { name: '桥式，展开全部分组', exact: true }).click();
-    for (let i = 0; i < 7; i += 1) {
+    for (let i = 0; i < 8; i += 1) {
       await cards.nth(i).evaluate(el => el.scrollIntoView({ block: 'center' }));
       await expect(cards.nth(i)).toBeVisible();
       await expectAboveNav(cards.nth(i), page);

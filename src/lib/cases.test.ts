@@ -4,7 +4,7 @@ import { OLL_CASES } from '../data/oll';
 import { STICKERS, applyMoves, invertMoves, solved, stickerAt, type State } from './cube';
 import { parseAlg } from './alg';
 import { type AlgCase } from '../types';
-import { COLL_RULE, COLL_U_CORNER_TOP_LOCS, COLL_U_EDGE_TOP_LOCS, SBLS_FR_PAIR_LOCS, SBLS_RULE, algSolvesCase, caseFingerprint, caseState, displayColors, isCollMask, isSblsPreserve, lintCase, lintCaseAlg, lintCollState, lintSblsState, viewCaseFor } from './cases';
+import { COLL_RULE, COLL_U_CORNER_TOP_LOCS, COLL_U_EDGE_TOP_LOCS, SBLS_FR_PAIR_LOCS, SBLS_RULE, SET_RULES, algSolvesCase, caseFingerprint, caseState, displayColors, isCollMask, isSblsPreserve, lintCase, lintCaseAlg, lintCollState, lintSblsState, viewCaseFor } from './cases';
 
 const lse = (group: string, alg: string): AlgCase => ({ id: 'lse-x', set: 'lse', name: 'x', group, algs: [alg] });
 
@@ -226,5 +226,44 @@ describe('图解按所选公式对齐（viewCaseFor）', () => {
     const alt = 'U2 ' + lse.algs[0];
     expect(algSolvesCase(lse, alt)).toBe(true);
     expect(viewCaseFor(lse, alt).algs).toEqual([alt]);
+  });
+});
+
+describe('WV 规则与拒绝条件', () => {
+  const S = STICKERS;
+  const caseAt = (n: number) => getSet('wv')!.cases[n - 1];
+  it('规则精确保护 28、显示/完成 42 张；只忽略顶层侧面 12 张', () => {
+    const rule = SET_RULES.wv;
+    expect(S.filter((s) => rule.preserve(s.id))).toHaveLength(28);
+    for (const mask of [rule.display, rule.solve]) {
+      expect(S.filter((s) => mask(s.id))).toHaveLength(42);
+      expect(S.filter((s) => !mask(s.id)).every((s) => s.p[1] === 1 && s.face !== 'U')).toBe(true);
+    }
+    expect(rule.preUs).toEqual([0]);expect(rule.preY).toEqual([0]);expect(rule.normalize).toBe(false);
+  });
+
+  it('接受后置 AUF，拒绝错误前置 U、SV 姿态、坏棱、保护区破坏与未完成 OLL', () => {
+    const c = caseAt(1);
+    expect(lintCase(c)).toEqual([]);
+    expect(algSolvesCase(c, c.algs[0] + ' U')).toBe(true);
+    expect(algSolvesCase(c, 'U ' + c.algs[0])).toBe(false);
+    expect(lintCase({ ...c, algs: ["R U' R'"] })).toContain(`${c.id}: WV 起手 UFR 角块不是相连的 DFR 角块姿态`);
+    expect(lintCase({ ...c, algs: ["U' R U R'"] })).toContain(`${c.id}: WV 起手 UFR 角块不是相连的 DFR 角块姿态`);
+    expect(lintCase({ ...c, algs: ["F R' F' R"] })).toContain(`${c.id}: WV 起手顶层棱块朝向未完成`);
+    expect(lintCase({ ...c, algs: ["L' U' L U R U' R'"] })).toContain('定义公式破坏了本该保持不动的块');
+    expect(algSolvesCase(c, "U R U' R'")).toBe(false);
+  });
+
+  it('自定义与备选公式同样拒绝整体转体和 M 中心偏移', () => {
+    const c = caseAt(1);
+    for (const axis of ['x', 'y', 'z']) {
+      const alg = `${c.algs[0]} ${axis} ${axis}'`;
+      expect(lintCaseAlg(c, alg)).toContain('WV 公式不允许包含整体转体 x/y/z');
+      expect(lintCase({ ...c, algs: [c.algs[0], alg] })).toContain('WV 公式不允许包含整体转体 x/y/z');
+      expect(algSolvesCase(c, alg)).toBe(false);
+    }
+    expect(lintCaseAlg(c, "U r U' l'")).toContain('WV 公式导致中心块偏移');
+    expect(lintCaseAlg(c, c.algs[0] + ' M')).toContain('WV 公式导致中心块偏移');
+    expect(algSolvesCase(c, c.algs[0] + ' M')).toBe(false);
   });
 });

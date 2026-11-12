@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 for (const fixture of [
   { set: 'coll', count: 40, group: 'Antisune', groupCount: 6, caseId: 'coll-as-1', name: 'AS 1' },
   { set: 'sbls', count: 65, group: 'Corner on U facing up', groupCount: 14, caseId: 'sbls-u-ub', name: 'U UB' },
+  { set: 'wv', count: 27, group: '3 Corners', groupCount: 1, caseId: 'wv-1', name: 'WV 1' },
 ]) {
 test(`${fixture.set.toUpperCase()}：浅深色列表、分类、详情和播放器适配`, async ({ page }) => {
   const width = page.viewportSize()!.width;

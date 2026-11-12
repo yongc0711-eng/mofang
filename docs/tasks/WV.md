@@ -505,3 +505,32 @@ export const wvSet: CaseSet = {
 5. **[`src/pages/outsideDiagrams.test.tsx`](file:///d:/allwork/mofang/src/pages/outsideDiagrams.test.tsx)**：`EXPECTED_TOTAL` 中 `wv: 27`，总情形数从 `359` 更新为 `386`。
 6. **[`src/pages/homeCards.test.tsx`](file:///d:/allwork/mofang/src/pages/homeCards.test.tsx)**：CFOP 组列表从 `['f2l', 'oll', 'pll', 'coll']` 更新为 `['f2l', 'oll', 'pll', 'coll', 'wv']`，CFOP 总数从 `159` 更新为 `186`，全站总数从 `359` 更新为 `386`。
 7. **[`e2e/home-decks.spec.ts`](file:///d:/allwork/mofang/e2e/home-decks.spec.ts)**、**[`e2e/visual-smoke.spec.ts`](file:///d:/allwork/mofang/e2e/visual-smoke.spec.ts)**、**[`e2e/formula-expansion.spec.ts`](file:///d:/allwork/mofang/e2e/formula-expansion.spec.ts)**：同步更新 CFOP 卡片数（`4 -> 5`）与 `WV` 页面冒烟检查。
+
+## 7. Executor 实现记录（2026-11-12）
+
+### 实际接口与规格适配
+
+- 从最新 main `ec07c28` 建立 `codex/wv`，导入 Lead 文档提交 `9e4373a`（本分支 `aafa1ad`），追加实现；main、部署工作流及原 `codex/ui-polish` 保持不变。
+- 当前类型是 `AlgCase`，每条数据必须含 `set: 'wv'`；按项目实际接口录入 `WV_CASES` 并导出 `wvSet`。`SETS` 原本内联定义，直接在 COLL 后插入 wvSet。
+- 当前没有 `verifyCase` / `solvesCase` / `equivalentStates`，用现有 `lintCase` / `lintCaseAlg` / `algSolvesCase` 接入结构、公式及目标检查，不新增同义 API。
+- 首页没有 `SET_ACCENTS`，实际穷举映射是 `COVER`，增加 `wv: 'wv-1'`。不新增颜色 token，不改 CSS。测试里也不存在 `EMPTY_COUNTS` / `EXPECTED_TOTAL`，更新实际的精确总数、链接、隐藏卡及循环边界。
+
+### 规则、数据与独立核验
+
+- 27 条主公式和 27 条备选全部通过：保护区 28 张、显示/完成 42 张、固定 UFR+UR 相连对、其余三顶棱朝向、四个分组及 27 个顶角三元组。主备选原始六中心均原位，不归一化。
+- 全部 WV 公式（包括自定义和备选）统一拒绝 x/y/z，即使转体相互抵消；拒绝 M 中心偏移。`algSolvesCase` 保持前置 U=0、y=0，仅允许后置 AUF，执行后再次确认中心原位。旧七组 SET_RULES 与语义不变。
+- 直接读取 J Perm 当前 wv.js 的 27 条主参考，按表中跨源编号映射左乘 U，每条都唯一命中对应 WV。JP #22 原文缺右括号，测试参考文本仅去掉分组括号，动作未变；不修改生产解析器。
+- 按 PDF 技能渲染 CubeSkills 原始两页，核对 22 条显式算法；PDF 的方括号是分组提示，测试只移除分组标点，全部唯一命中对应情形。其余五格仅建议入槽接 OLL，未冒充显式独立参考。
+- 新增数据几何/来源测试；规则计数、后置 AUF、错误前置 U、SV、坏棱、破坏保护区、普通入槽无法完成 WV 1、转体和中心偏移反例放在 cases.test.ts。顶视图 21 格签名 27/27 两两互异。
+- 练习不额外加 AUF 或 variation，继续使用 CFOP 配色池；原完整 54 张贴纸打乱与六底色求解回放测试动态覆盖全部 WV，另加固定起手和方法配色断言。
+- 按 D22 精确更新为八组 / 386 情形（CFOP 五组 / 186、桥式三组 / 200）；CFOP 循环变为六张卡（含封面），六个动画仍逐个锁定 220ms / 无 opacity。快滑覆盖增加为 8 次上滑，逐次计数、反向和即时点击断言保留。
+
+### 门禁与界面验收
+
+- `npm test`：5428 / 59 通过。
+- `npm run check:data`：786 / 8 通过。
+- `npm run build`：通过。
+- `npm run test:visual -- --workers=2`：44 / 44 通过。原 40 条保留，增加 WV 的两个视口×列表/详情和练习共 4 条。
+- 320×640 / 390×844、浅深色均无横向滚动，分类弹窗在视口内、返回恢复分类；WV 单图 64×64，舞台高 164 / 190px，peek 底边约 534.39 / 598.08px，底栏顶边 568 / 772px，均未遮挡。
+- WV 截图目录：`ui-review.local/formula-expansion/wv-{320,390}-{light,dark}.png`；分类和列表截图为 `wv-category-*` / `wv-list-*`。
+- 未改旧数据/ID/公式、SBLS display/mask、路由、3D、播放器、练习求解或部署工作流；不合并、不 push，待独立 Auditor。EOLR 原稿实测不符已另记复核意见，未实现。
