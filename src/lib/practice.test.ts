@@ -23,7 +23,8 @@ describe('练习打乱', () => {
         'pll-aa': "R' F R' B2 R F' R' B2 R2",
         'pll-ab': "R2 B2 R F R' B2 R F' R",
       };
-      expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
+      if (c.set === 'eolr') expect(parseAlg(s)).toEqual(parseAlg(c.setup!));
+      else expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
     }
   });
   it('原有 OLL/PLL/CMLL 的 AUF 与 F2L 固定起手保持不变', () => {

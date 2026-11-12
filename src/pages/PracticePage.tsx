@@ -1,7 +1,7 @@
 import { initializeColorPools, snapshotPools, pickPracticeColors, colorBottom, paletteFor, type PracticeColors, type PracticeColorPools } from '../lib/practiceColors';
 import { type Palette } from '../lib/colorScheme';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
@@ -22,6 +22,8 @@ import {
 } from '../lib/practiceSession';
 import { createWakeLock, type ScreenWakeLock } from '../lib/wakeLock';
 import { sampleTarget } from '../lib/practiceSample';
+import { invertMoves } from '../lib/cube';
+import { movesToString, parseAlg } from '../lib/alg';
 import { prepareSetup } from '../lib/prepareSetup';
 import { type PreparedSetup } from '../lib/practiceTarget';
 import { practiceInstructions } from '../lib/practiceInstructions';
@@ -79,11 +81,15 @@ export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palet
 }
 
 export function PracticePage() {
+  const [searchParams] = useSearchParams();
+  const requestedSet = searchParams.get('set');
   const user = useUserData();
   const prefs = useDevicePrefs();
   // 范围和筛选放在内存里，从“查看详情”返回时还在
-  const saved = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
-  const [sets, setSets] = useState<SetId[]>(saved.sets);
+  const savedScope = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
+  const saved = requestedSet && getSet(requestedSet) && !(savedScope.sets.length === 1 && savedScope.sets[0] === requestedSet)
+    ? { ...savedScope, group: '全部', filter: 'all' as const, picked: [], showPicker: false } : savedScope;
+  const [sets, setSets] = useState<SetId[]>(() => requestedSet && getSet(requestedSet) ? [requestedSet as SetId] : saved.sets);
   const [group, setGroup] = useState(saved.group);
   const [filter, setFilter] = useState<StatusFilter>(saved.filter);
   const [picked, setPicked] = useState<string[]>(saved.picked);
@@ -251,7 +257,11 @@ function Session({
     try {
       const sample = sampleTarget(requested.c, requested.scramble);
       void prepareSetup(sample.state, colors, controller.signal).then((prepared) => {
-        if (!controller.signal.aborted) setReadyQuestion({ ...requested, scramble: prepared.scramble, prepared });
+        if (!controller.signal.aborted) {
+          const alg = requested.c.set === 'eolr' && sample.auf
+            ? `${movesToString(invertMoves(parseAlg(sample.auf)))} ${requested.alg}` : requested.alg;
+          setReadyQuestion({ ...requested, alg, scramble: prepared.scramble, prepared });
+        }
       }).catch((error: unknown) => {
         if (!controller.signal.aborted) setPreparationError(error instanceof Error ? error.message : '准备失败');
       });
@@ -528,7 +538,7 @@ function Session({
           <PracticeQuestionDiagram c={c} set={set} bottom={bottom} prepared={prepared} phase={phase} palette={palette} />
           <div>
             <strong>{phase === 'ready' ? set.name : c.name}</strong>
-            <p className="muted small">{set.name} · {c.group}</p>
+            <p className="muted small">{set.name} · {c.group}{c.set === 'eolr' && <> · {c.targetTier === 'tier1' ? '化归中间态' : c.targetTier === 'tier2' ? '底层双槽' : 'LR 与顶角归位'}</>}</p>
           </div>
         </div>
         <p className="practice-scramble">

@@ -1,5 +1,5 @@
 export type MethodId = 'cfop' | 'roux';
-export type SetId = 'f2l' | 'oll' | 'pll' | 'coll' | 'wv' | 'cmll' | 'lse' | 'sbls';
+export type SetId = 'f2l' | 'oll' | 'pll' | 'coll' | 'wv' | 'cmll' | 'lse' | 'sbls' | 'eolr';
 
 /** 一个公式情形。图解由 algs[0] 的逆推导出，所以 algs[0] 决定这个情形的“标准摆法”。 */
 export interface AlgCase {
@@ -12,6 +12,14 @@ export interface AlgCase {
   group: string;
   /** 至少一条。第一条为定义公式，其余为备选 */
   algs: string[];
+  /** EOLR 独立起手；旧情形仍由定义公式的逆推导。 */
+  setup?: string;
+  targetTier?: 'tier1' | 'tier2' | 'tier3';
+  continuationAlg?: string;
+  /** Tier 1 的精确化归特征，不能仅以坏棱数量判定。 */
+  reductionKey?: string;
+  isBadCase?: boolean;
+  sourceCase?: string;
   /** 可选：搜索用的别名，如 “小鱼”“Sune” */
   aliases?: string[];
   /** 可选：识别要点 */

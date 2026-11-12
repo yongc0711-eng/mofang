@@ -6,6 +6,7 @@ import { LSE_CASES } from './lse';
 import { OLL_CASES } from './oll';
 import { PLL_CASES } from './pll';
 import { SBLS_CASES } from './sbls';
+import { EOLR_CASES } from './eolr';
 import { wvSet } from './wv';
 export { wvSet } from './wv';
 
@@ -18,6 +19,7 @@ export const SETS: CaseSet[] = [
   { id: 'cmll', method: 'roux', name: 'CMLL', description: '顶层四角', expectedCount: 42, complete: true, view: 'top', cases: CMLL_CASES },
   { id: 'lse', method: 'roux', name: 'LSE', description: '最后六棱', expectedCount: null, complete: true, view: 'lse', cases: LSE_CASES },
   { id: 'sbls', method: 'roux', name: 'SBLS', description: '右桥最后一槽 FR 成对归位（65）', expectedCount: 65, complete: true, view: 'iso', cases: SBLS_CASES },
+  { id: 'eolr', method: 'roux', name: 'EOLR', description: 'EO 与左右棱联合化归（51）', expectedCount: 51, complete: true, view: 'lse', cases: EOLR_CASES },
 ];
 
 export const METHODS: { id: MethodId; name: string; hint: string }[] = [

@@ -85,9 +85,12 @@ export function CasePage() {
     if (validId) setUi('lastCaseId', validId);
   }, [validId]);
   const [message, setMessage] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
+  const [continuationFor, setContinuationFor] = useState<string | null>(null);
 
   const primary = c ? primaryAlgOf(c, user) : '';
   const playing = selected ?? primary;
+  const includeContinuation = continuationFor === c?.id && playing === c?.algs[0];
+  const playbackAlg = includeContinuation ? [playing, c?.continuationAlg].filter(Boolean).join(' ') : playing;
   // 图解的起手要和 3D 播放器一致：播放器从 playing 的逆开始，所以图解也用 playing 推导。
   // 解决不了该情形（自定义的错公式）或判断出错时回退到 c，不显示错起手（见 viewCaseFor）
   const viewCase = useMemo(() => (c ? viewCaseFor(c, playing) : c), [c, playing]);
@@ -187,7 +190,7 @@ export function CasePage() {
       <header className="case-head">
         <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />
         <div className="case-identity">
-          <div className="case-title-row" data-long-name={c.name.length > 12}>
+          <div className="case-title-row" data-long-name={c.set === 'eolr' || c.name.length > 12}>
             <h1 className="page-title">{c.name}</h1>
             <button
               className={`fav-btn ${favorite ? 'fav-on' : ''}`}
@@ -216,7 +219,8 @@ export function CasePage() {
 
       <div className="case-layout">
         <div className="case-player">
-          <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />
+          {c.setup !== undefined ? <CubePlayer alg={playbackAlg} setup={c.setup} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} /> : <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />}
+          {c.continuationAlg && <button type="button" className={`chip eolr-continuation${includeContinuation ? ' chip-on' : ''}`} aria-pressed={includeContinuation} title="接续对应内置短公式" disabled={playing !== c.algs[0]} onClick={() => setContinuationFor(includeContinuation ? null : c.id)}>接续 4b</button>}
           <button
             className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
             aria-pressed={prefs.focusRelevant}
@@ -236,6 +240,7 @@ export function CasePage() {
           </button>
         </div>
         <div className="case-side" ref={sideRef}>
+          {c.set === 'eolr' && <p className="recognition"><strong>{c.targetTier === 'tier1' ? '化归中间态' : c.targetTier === 'tier2' ? '标准 EOLR · 底层双槽' : '严格 EOLRb · LR 与顶角归位'}</strong>{c.continuationAlg && <> · 接续 <code>{c.continuationAlg}</code></>}<br />接续从当前情形的同一起手播放。<Link to="/set/lse">基础 LSE</Link></p>}
           {c.recognition && (
             <p className="recognition">
               <strong>识别：</strong>

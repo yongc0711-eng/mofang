@@ -41,6 +41,10 @@ function withoutOuterRotations(moves: Move[], id: string): Move[] {
  * 起始状态只由情形决定，和用户选的主公式无关，所以不接收公式参数。
  */
 export function scrambleFor(c: AlgCase, rand: () => number = Math.random): string {
+  if (c.setup !== undefined) {
+    const auf = c.set === 'eolr' && c.targetTier === 'tier2' ? AUFS[Math.min(3,Math.max(0,Math.floor(rand() * 4)))] : '';
+    return [auf,movesToString(parseAlg(c.setup))].filter(Boolean).join(' ');
+  }
   const inv: Move[] = invertMoves(withoutOuterRotations(parseAlg(c.algs[0]), c.id));
   const auf = AUF_SETS.includes(c.set) ? AUFS[Math.floor(rand() * AUFS.length)] : '';
   return [auf, movesToString(inv)].filter(Boolean).join(' ');

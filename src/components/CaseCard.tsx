@@ -40,11 +40,12 @@ export function CaseCard({ c }: { c: AlgCase }) {
   const status = statusOf(c, user);
   const favorite = user.cases[c.id]?.favorite;
   return (
-    <Link to={`/case/${c.id}`} className="case-card">
+    <Link to={`/case/${c.id}`} className={`case-card${c.isBadCase ? ' case-card-bad' : ''}`}>
       <CaseDiagram c={view} view={set.view} palette={palette} />
       <div className="case-card-body">
         <div className="case-card-title">
           <span className="case-name">{c.name}</span>
+          {c.isBadCase && <span className="tag">BAD CASE</span>}
           {favorite && <span className="fav-mark" aria-label="已收藏">★</span>}
           {status !== 'none' && <span className={`case-state case-state-${status}`}>{STATUS_LABEL[status]}</span>}
         </div>

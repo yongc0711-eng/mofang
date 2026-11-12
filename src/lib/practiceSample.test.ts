@@ -20,7 +20,15 @@ describe('T37 target sampler preserves selected stage and case, independently of
             expect(sample.auf).toBe(['', 'U', "U'", 'U2'][[0, 0.3, 0.6, 0.9].indexOf(rand)]);
           }
           for (let i = 0; i < 54; i++) {
-            if (c.set === 'oll') {
+            if (c.set === 'eolr') {
+              const p = STICKERS[reference[i]].p;
+              const otherMEdge = p[0] === 0 && p[1] !== 0 && p[2] !== 0;
+              if (otherMEdge) {
+                expect(STICKERS[unauf[i]].p[0]).toBe(0);
+                expect(STICKERS[unauf[i]].p[1]).not.toBe(0);expect(STICKERS[unauf[i]].p[2]).not.toBe(0);
+                expect('UD'.includes(STICKERS[unauf[i]].face)).toBe('UD'.includes(STICKERS[reference[i]].face));
+              } else expect(unauf[i]).toBe(reference[i]);
+            } else if (c.set === 'oll') {
               // Exact U-color orientation category; entire F2L remains untouched.
               expect(STICKERS[unauf[i]].face === 'U').toBe(STICKERS[reference[i]].face === 'U');
               if (STICKERS[i].p[1] !== 1) expect(unauf[i]).toBe(reference[i]);

@@ -17,14 +17,15 @@ it('首页固定为双卡堆，旧的 ?cards / ?tone 实验开关不再生效', 
   expect(render('/?cards=c')).toBe(html);
 });
 
-it('保留八个方法入口、图解、说明、掌握数与进度', () => {
+it('保留九个方法入口、图解、说明、掌握数与进度', () => {
   const html = render();
-  for (const id of ['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls']) expect(html).toContain(`href="/set/${id}"`);
-  expect(html.match(/class="set-card"/g)).toHaveLength(8);
+  for (const id of ['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls', 'eolr']) expect(html).toContain(`href="/set/${id}"`);
+  expect(html.match(/class="set-card"/g)).toHaveLength(9);
   expect(html.match(/class="diagram"/g)).toHaveLength(8);
-  expect(html.match(/class="progress" aria-hidden="true"/g)).toHaveLength(8);
-  expect(html.match(/已掌握 0 \/ /g)).toHaveLength(8);
-  expect(html.match(/class="home-deck-expand"/g)).toHaveLength(10);
+  expect(html.match(/class="diagram eolr-diagram"/g)).toHaveLength(1);
+  expect(html.match(/class="progress" aria-hidden="true"/g)).toHaveLength(9);
+  expect(html.match(/已掌握 0 \/ /g)).toHaveLength(9);
+  expect(html.match(/class="home-deck-expand"/g)).toHaveLength(11);
   for (const set of SETS) {
     expect(html).toContain(set.name);
     expect(html).toContain(set.description);
@@ -47,16 +48,16 @@ it('三阶是公共标题，两张纯文字封面各自属于独立卡堆', () =
   expect(covers[0][1]).toContain('5 组 · 186 个情形');
   expect(covers[0][1]).toContain('F2L · OLL · PLL · COLL · WV');
   expect(covers[1][1]).toContain('<h3>桥式</h3>');
-  expect(covers[1][1]).toContain('3 组 · 200 个情形');
-  expect(covers[1][1]).toContain('CMLL · LSE · SBLS');
+  expect(covers[1][1]).toContain('4 组 · 251 个情形');
+  expect(covers[1][1]).toContain('CMLL · LSE · SBLS · EOLR');
   for (const [, body] of covers) expect(body).not.toContain('class="diagram"');
 });
 
-it('八个链接保持原顺序；展开和进入是相邻独立控件，没有嵌套交互', () => {
+it('九个链接保持原顺序；展开和进入是相邻独立控件，没有嵌套交互', () => {
   const html = render();
   const links = [...html.matchAll(/href="\/set\/([a-z0-9]+)"/g)].map(match => match[1]);
-  expect(links).toEqual(['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls']);
-  expect([...html.matchAll(/<a[^>]*class="set-card"[^>]*>([\s\S]*?)<\/a>/g)]).toHaveLength(8);
+  expect(links).toEqual(['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls', 'eolr']);
+  expect([...html.matchAll(/<a[^>]*class="set-card"[^>]*>([\s\S]*?)<\/a>/g)]).toHaveLength(9);
   for (const [, content] of html.matchAll(/<a[^>]*class="set-card"[^>]*>([\s\S]*?)<\/a>/g)) expect(content).not.toContain('<button');
-  expect(html.match(/inert=""/g)).toHaveLength(10); // 八张未翻到的分组卡和两条收起标题
+  expect(html.match(/inert=""/g)).toHaveLength(11); // 九张未翻到的分组卡和两条收起标题
 });

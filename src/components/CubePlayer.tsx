@@ -17,6 +17,7 @@ function loadSpeed(): number {
 
 interface Props {
   alg: string;
+  setup?: string;
   palette?: Palette;
   /**
    * alg 变化时是否自动从头播放，默认 true。
@@ -34,11 +35,11 @@ interface Props {
  * 自己画的 3D 播放器：Three.js 只负责渲染（动态加载），播放逻辑全在 Timeline 里。
  * 配色和 2D 图解共用 CSS 变量。
  */
-export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv', palette }: Props) {
+export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 'uv', palette }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const scrubber = useRef<HTMLInputElement>(null);
   const scene = useRef<CubeScene | null>(null);
-  const timeline = useMemo(() => new Timeline(alg), [alg]);
+  const timeline = useMemo(() => new Timeline(alg, setup), [alg, setup]);
   const tlRef = useRef(timeline);
   tlRef.current = timeline;
 
@@ -175,10 +176,19 @@ export function CubePlayer({ alg, autoPlay = true, mask = null, finish = 'uv', p
   useEffect(() => {
     // 和上次相同就什么都不做：首次进入不自动播放，开发模式下 effect 重跑也不会误触发
     if (shown.current === timeline) return;
+    const previous = shown.current;
     shown.current = timeline;
+    // 同一起手的接续只延伸/截短时间线，保留当前帧与播放位置，不重算成公式的逆。
+    if (setup !== undefined && previous.states[0].every((id, i) => id === timeline.states[0][i]) &&
+        previous.moves.slice(0, Math.min(previous.moves.length, timeline.moves.length)).every((m, i) => m.base === timeline.moves[i].base && m.amount === timeline.moves[i].amount)) {
+      const wasPlaying = target.current !== null;
+      seek(Math.min(time.current, timeline.duration));
+      if (wasPlaying) runTo(timeline.duration);
+      return;
+    }
     seek(0);
     if (autoPlay) runTo(tlRef.current.duration);
-  }, [timeline, autoPlay, seek, runTo]);
+  }, [timeline, setup, autoPlay, seek, runTo]);
 
   const changeSpeed = (v: number) => {
     setSpeed(v);

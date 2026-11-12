@@ -52,6 +52,8 @@ export function SetPage() {
           {set.name} <span className="muted title-note">{set.description}</span>
         </h1>
       </header>
+      {set.id === 'lse' && <p className="set-advanced"><Link className="chip" to="/set/eolr">进阶技巧：EOLR（4a+4b 合并）51 式 →</Link></p>}
+      {set.id === 'eolr' && <p className="muted small">粗框表示坏棱，实心与空心标记表示 LR 棱在可见面与背面。BAD CASE 可优先按常规 EO 化归。<Link to="/set/lse">返回基础 LSE</Link> · <Link to="/practice?set=eolr">练习 EOLR</Link></p>}
       <div className="chips set-status-filter" role="group" aria-label="按学习状态筛选">
         {FILTERS.map((f) => (
           <button key={f.id} className={`chip ${filter === f.id ? 'chip-on' : ''}`} aria-pressed={filter === f.id} onClick={() => setFilter(f.id)}>
@@ -78,6 +80,7 @@ export function SetPage() {
           <button className="link-btn" onClick={() => { setFilter('all'); setGroup('全部'); }}>查看全部情形</button>
         </div>
       )}
+      {set.id === 'lse' && group === 'EO' && <p className="set-advanced"><Link className="chip" to="/set/eolr">进阶技巧：EOLR（4a+4b 合并）51 式 →</Link></p>}
     </div>
   );
 }

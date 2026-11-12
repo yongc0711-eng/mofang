@@ -25,14 +25,14 @@ export interface Frame {
  */
 export class Timeline {
   readonly moves: Move[];
-  /** states[i] 是第 i 步转之前的状态，states[moves.length] 是终点（已还原） */
+  /** states[i] 是第 i 步转之前的状态；显式 setup 可让终点停在分步目标。 */
   readonly states: State[];
   /** starts[i] 是第 i 步开始的时间，starts[moves.length] 是总时长 */
   readonly starts: number[];
 
-  constructor(alg: string) {
+  constructor(alg: string, setup?: string) {
     this.moves = parseAlg(alg);
-    this.states = [applyMoves(solved(), invertMoves(this.moves))];
+    this.states = [applyMoves(solved(), setup !== undefined ? parseAlg(setup) : invertMoves(this.moves))];
     this.starts = [0];
     this.moves.forEach((m, i) => {
       this.states.push(applyMove(this.states[i], m));

@@ -1,4 +1,5 @@
 import { type AlgCase, type SetId } from '../types';
+import { eolrGoal, inspectEolr, isEolrMask, isRouxBlockSticker, lintEolr, type EolrRef } from './eolr';
 import { parseAlg } from './alg';
 import {
   STICKERS,
@@ -137,6 +138,11 @@ export function lintSblsState(caseId: string, after: State, algs: readonly strin
 }
 
 export const SET_RULES: Record<SetId, SetRule> = {
+  eolr: {
+    display: isEolrMask,
+    solve: id => isRouxBlockSticker(id) || isCorner(id),
+    preserve: isRouxBlockSticker, normalize: false, preY: [0], preUs: [0], allowedBases: 'MU',
+  },
   f2l: {
     display: isF2LPiece,
     solve: isF2LPiece,
@@ -185,10 +191,11 @@ const turn = (base: string, n: number): Move[] =>
 const finish = (state: State, set: SetId) =>
   SET_RULES[set].normalize ? normalizeRotation(state) : state;
 
-type CaseRef = Pick<AlgCase, 'set' | 'algs' | 'group'>;
+type CaseRef = Pick<AlgCase, 'set' | 'algs' | 'group'> & EolrRef;
 
 /** 这个情形的魔方状态：已还原状态执行定义公式的逆 */
-export function caseState(c: Pick<AlgCase, 'set' | 'algs'>): State {
+export function caseState(c: Pick<AlgCase, 'set' | 'algs' | 'setup'>): State {
+  if (c.setup !== undefined) return finish(applyMoves(solved(), parseAlg(c.setup)), c.set);
   return finish(applyMoves(solved(), invertMoves(parseAlg(c.algs[0]))), c.set);
 }
 
@@ -275,6 +282,7 @@ export function algSolvesCase(c: CaseRef, alg: string): boolean {
   if (lintCaseAlg(c, alg).length) return false;
   const rule = SET_RULES[c.set];
   const moves = parseAlg(alg);
+  if (c.set === 'eolr') return !!c.setup && eolrGoal(c, applyMoves(caseState(c), moves));
   if (c.set === 'lse') {
     const step = lseStepOf(c);
     if (!step) return false;
@@ -317,6 +325,7 @@ export function lintCase(c: AlgCase): string[] {
   const problems: string[] = [];
   for (const alg of c.algs) problems.push(...lintCaseAlg(c, alg));
   const after = caseState(c);
+  if (c.set === 'eolr') problems.push(...lintEolr(c));
   if (!after.every((id, loc) => !rule.preserve(loc) || id === loc)) {
     problems.push('定义公式破坏了本该保持不动的块');
   }
@@ -347,6 +356,8 @@ export function lintCase(c: AlgCase): string[] {
  * 两个情形指纹相同，说明同一情形被录入了两次。
  */
 export function caseFingerprint(c: AlgCase): string {
+  // Bas 图表包含具名起手、镜像与化归路径，不能用 solved 的逆或旧 LSE 的显示串去重。
+  if (c.set === 'eolr') return inspectEolr(caseState(c)).key;
   const rule = SET_RULES[c.set];
   const inv = invertMoves(parseAlg(c.algs[0]));
   const step = c.set === 'lse' ? lseStepOf(c) : null;

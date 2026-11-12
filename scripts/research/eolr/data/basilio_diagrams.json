@@ -1,0 +1,1686 @@
+[
+  {
+    "cx": 226.5,
+    "cy": 142,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 355.2,
+    "cy": 142,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 491,
+    "cy": 142,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 225.3,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 282.4,
+    "cy": 322.8,
+    "size": 11.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 545.1,
+    "cy": 322.8,
+    "size": 11.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 350.9,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 408.8,
+    "cy": 322.8,
+    "size": 11.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UL",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 483.4,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 615.9,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 737.4,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 799.7,
+    "cy": 322.8,
+    "size": 11.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 878.1,
+    "cy": 327.7,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 531,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 225.4,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 317.9,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 377.1,
+    "cy": 506.4,
+    "size": 11.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 444.8,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 745.8,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 872.5,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 624.6,
+    "cy": 511.2,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 225.3,
+    "cy": 697.3,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UL",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 317.7,
+    "cy": 697.3,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 406.5,
+    "cy": 697.3,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 875.5,
+    "cy": 697.3,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 494.4,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 317.5,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 406.5,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 228.7,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 874,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 751.2,
+    "cy": 878.5,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 231,
+    "cy": 1246.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 320.1,
+    "cy": 1246.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 751.2,
+    "cy": 1246.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 874,
+    "cy": 1246.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "red",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 226,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 320.3,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 380.4,
+    "cy": 1405,
+    "size": 10.5,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 415.6,
+    "cy": 1405,
+    "size": 10.5,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 396.1,
+    "cy": 1452.5,
+    "size": 10.5,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 558.8,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 652.2,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 476.2,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 753.1,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 874,
+    "cy": 1431.9,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 231,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 320.1,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 409.2,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 498.9,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 627.3,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 716.6,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 803.2,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 890.6,
+    "cy": 1586.6,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "red",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 118.8,
+    "cy": 1548.7,
+    "size": 16.4,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UF",
+      "UL",
+      "UR",
+      "DF"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 119.1,
+    "cy": 1395.8,
+    "size": 16.4,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UB",
+      "UL",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 118.6,
+    "cy": 1209.1,
+    "size": 16.7,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 117.6,
+    "cy": 830.4,
+    "size": 15.9,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UF",
+      "UB"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 119.4,
+    "cy": 645.8,
+    "size": 15.1,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 117.8,
+    "cy": 459.6,
+    "size": 14,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UB",
+      "UL"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 118.6,
+    "cy": 277.4,
+    "size": 14.3,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UF",
+      "DB"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 225,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      },
+      {
+        "slot": "DB",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 317.9,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 415,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "UR",
+        "fill": "red",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 875,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UL",
+        "fill": "red",
+        "isBad": true
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 532.1,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "DF",
+        "fill": "pink",
+        "isBad": true
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 751,
+    "cy": 1064.4,
+    "size": 21.4,
+    "isMain": true,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [
+      {
+        "slot": "UF",
+        "fill": "pink",
+        "isBad": false
+      },
+      {
+        "slot": "UB",
+        "fill": "pink",
+        "isBad": false
+      }
+    ],
+    "cornerColors": []
+  },
+  {
+    "cx": 119.9,
+    "cy": 1012.2,
+    "size": 14.1,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UL",
+      "UR",
+      "DF",
+      "DB"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 120.2,
+    "cy": 92.6,
+    "size": 13.5,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": true,
+    "badSlots": [
+      "UF",
+      "UB",
+      "UL",
+      "UR"
+    ],
+    "lrSlots": [],
+    "cornerColors": []
+  },
+  {
+    "cx": 738.6,
+    "cy": 130.2,
+    "size": 13.5,
+    "isMain": false,
+    "isLegend": false,
+    "isRowIcon": false,
+    "badSlots": [],
+    "lrSlots": [],
+    "cornerColors": []
+  }
+]

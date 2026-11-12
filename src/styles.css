@@ -134,6 +134,18 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .status-learning { background: var(--warn); }
 .status-mastered { background: var(--ok); }
 .diagram svg { display: block; width: 100%; height: auto; }
+.eolr-edge { fill: var(--surface-2); stroke: var(--muted); stroke-width: 1; }
+.eolr-edge.eolr-bad { stroke: var(--text); stroke-width: 3; }
+.eolr-edge.eolr-lr-front { fill: var(--accent); }
+.eolr-edge.eolr-lr-back { fill: var(--accent-soft); }
+.eolr-center { fill: var(--surface-2); }
+.eolr-slot-label { fill: var(--muted); font-size: 9px; }
+.diagram.eolr-diagram rect { stroke: var(--muted); }
+.diagram.eolr-diagram .eolr-bad { stroke: var(--text); stroke-width: 3; }
+.case-card.case-card-bad { border-style: dashed; }
+.set-advanced { margin: 12px 0; }
+.set-advanced .chip { display: inline-flex; white-space: normal; text-decoration: none; }
+.case-player .eolr-continuation { display: block; margin: 8px auto 0; }
 /* 细描边：白色贴纸在浅色卡片上也看得清 */
 .diagram rect, .diagram polygon { stroke: rgb(0 0 0 / 0.22); stroke-width: 0.6; }
 .alg {
@@ -494,6 +506,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 手机：悬浮胶囊导航 */
 @media (max-width: 799px) {
+  .case-player .eolr-continuation { position: absolute; right: 8px; top: 48px; margin: 0; z-index: 2; }
   :root {
     --nav-h: 60px;
     --nav-gap: max(12px, env(safe-area-inset-bottom));

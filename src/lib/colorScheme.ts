@@ -115,7 +115,7 @@ export function cleanBrowse(value: unknown, legacy: BottomColor): BrowseColors {
   return { cfop: { bottomColor: colorOr(cfop.bottomColor, legacy) }, roux: { bottomColor, bridgePair, leftColor } };
 }
 export function isRouxSet(setId: string): boolean {
-  return setId === 'cmll' || setId === 'lse' || setId === 'sbls';
+  return setId === 'cmll' || setId === 'lse' || setId === 'sbls' || setId === 'eolr';
 }
 export function browsePalette(c: { set: string }, prefs: Partial<BrowseColors> & { bottomColor: BottomColor }): Palette {
   const colors = cleanBrowse(prefs, prefs.bottomColor);

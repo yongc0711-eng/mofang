@@ -4,6 +4,7 @@ import { caseState, displayColors, displayMask, type Mask } from '../lib/cases';
 import { STICKERS, stickerAt, type Face, type Vec, type State } from '../lib/cube';
 import { displayFace, ollTopMask, type BottomColor } from '../store/devicePrefs';
 import { type AlgCase } from '../types';
+import { inspectEolr } from '../lib/eolr';
 
 /** 观察方向是黄色朝上、绿色朝前（白顶绿前的魔方做 z2），和 3D 播放器一致 */
 const COLOR_VAR: Record<Face, string> = {
@@ -109,7 +110,7 @@ export function LseView({ colors }: { colors: (Face | null)[] }) {
 }
 
 interface Props {
-  c: Pick<AlgCase, 'set' | 'algs' | 'group'>;
+  c: Pick<AlgCase, 'set' | 'algs' | 'group' | 'setup'>;
   view: 'top' | 'iso' | 'lse';
   /** 哪些贴纸显示颜色，其余画成灰色（和 3D 播放器的 mask 同一个）。不传或 null 用该组默认的显示规则 */
   mask?: Mask | null;
@@ -126,7 +127,7 @@ interface Props {
  * 颜色经 displayFace 换成所选底色的配色，和 3D 播放器用的是同一个映射。
  */
 export function diagramColors(
-  c: Pick<AlgCase, 'set' | 'algs' | 'group'>,
+  c: Pick<AlgCase, 'set' | 'algs' | 'group' | 'setup'>,
   mask?: Mask | null,
   bottom: BottomColor = 'white',
   state?: Readonly<State>,
@@ -140,6 +141,7 @@ export function diagramColors(
 
 /** 情形图解。纯由公式推导，不需要任何图片素材 */
 export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom, state, palette }: Props) {
+  if (c.set === 'eolr') return <EolrDiagram state={state ?? caseState(c)} />;
   const colors = diagramColors(c, mask, bottom, state, palette);
   const View = view === 'top' ? TopView : view === 'iso' ? IsoView : LseView;
   return (
@@ -148,3 +150,24 @@ export const CaseDiagram = memo(function CaseDiagram({ c, view, mask, bottom, st
     </div>
   );
 });
+
+/** EO 与 LR 身份图：空框为好棱，粗框为坏棱，实心/空心强调色标记 LR 可见/背向。 */
+function EolrDiagram({ state }: { state: Readonly<State> }) {
+  const info = inspectEolr(state);
+  const locations: Record<string, [number, number]> = { UF: [36, 48], UB: [36, 4], UL: [14, 26], UR: [58, 26], DF: [14, 74], DB: [58, 74] };
+  return <div className="diagram eolr-diagram" role="img" aria-label={`EOLR，坏棱 ${info.badSlots.join('、')}；UL 在 ${info.ulSlot}，UR 在 ${info.urSlot}`}>
+    <svg viewBox="0 0 94 100" aria-hidden="true">
+      <rect x="36" y="26" width="20" height="20" rx="2" className="eolr-center" />
+      {info.edges.map(edge => {
+        const [x, y] = locations[edge.slot];
+        const visible = edge.p[1] === 1 ? [0, 1, 0] : [0, 0, edge.p[2]];
+        const visibleId = stickerAt(edge.p, visible as Vec);
+        const facing = 'LR'.includes(STICKERS[state[visibleId]].face);
+        return <g key={edge.slot} data-slot={edge.slot} data-bad={!edge.oriented} data-lr={edge.lr}>
+          <rect x={x} y={y} width="20" height="20" rx="2" className={`eolr-edge${!edge.oriented ? ' eolr-bad' : ''}${edge.lr ? facing ? ' eolr-lr-front' : ' eolr-lr-back' : ''}`} />
+          {edge.p[1] === -1 && <text x={x + 10} y="99" textAnchor="middle" className="eolr-slot-label">{edge.slot}</text>}
+        </g>;
+      })}
+    </svg>
+  </div>;
+}
