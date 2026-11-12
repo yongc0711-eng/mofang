@@ -55,6 +55,10 @@
 - [T70](tasks/T70.md) 视觉冒烟：Playwright 在 320×640 / 390×844 跑 5 条布局检查（首页、公式详情、练习设置、配色弹窗、试转），只做溢出/遮挡/焦点断言，不做像素快照；`test:visual` 接进部署 CI，失败时上传截图与 trace。10 条全过。
 - [UI-polish](tasks/UI-polish.md) 公式列表与详情页视觉打磨：列表筛选改为 CategoryPicker 紧凑分类面板（原生 dialog、两列、数量/选中/焦点返回）、空结果、卡片 64px 图解与状态文字、详情单图 64px 与收藏上移；LSE 双图改为 132×64 并排、各 64×64，320 收藏放到返回行右侧；`peek-cue` 改为 accent-soft 按钮感，320 列表卡片 padding 12 / 间距 10；分类面板再加 200ms 进入 / 150ms 退出轻浮层动效（退场前 70% 不透明、最后 30% 淡出）。3748/56、393、build、visual 20 条通过；分类面板合并 main `c6101cb`、动效合并 `851fdaf`，GitHub Actions 部署成功。
 - [UI-home-decks](tasks/UI-home-decks.md) 首页改为两叠循环横卡：公共「三阶」标题下 CFOP / 桥式各一叠，封面→分组→封面首尾循环；滑动、方向键、展开全部、减少动态效果与返回恢复位置；连续快滑改为 1:1 跟手、可接管未完成动画、70–220ms 收尾；保留五入口顺序、图解、掌握数、进度、搜索和唯一配色入口。3750/56、393、build、visual 32 条通过；合并 main `7ede31c`，手感修复 `43262cb`。
+- [T71](tasks/T71.md) COLL / SBLS 的规则前提：新增 `isCollMask`、`isSblsPreserve`、`COLL_RULE`、`SBLS_RULE` 与 `lintCollState` / `lintSblsState`（COLL 要求四顶棱朝上且排除四角全朝上；SBLS 要求 FR 对未归位、公式不含整体转体）；`preUs` 从函数挪进每条规则并保留原组回退，`SetId` 增加 coll/sbls，练习配色池接入。分支 `253a790` → cherry-pick `274fb6f`。
+- [COLL](tasks/COLL.md) CFOP COLL 40 情形（Antisune/Sune/L/U/T/Pi 各 6、H 4），`algs[0]` 与 J Perm + CubeSkills 逐条核对，`coll.names.test.ts` 83 条；首页 CFOP 卡堆接 COLL。分支 `bccad77` → `925bdb3`。
+- [SBLS](tasks/SBLS.md) Roux SBLS 65 情形（6 组），按 DFR 角 / FR 棱物理位置命名，修正 SpeedCubeDB 7 对 UF↔UL、DB↔DF 标签互换，`sbls.names.test.ts` 68 条；首页 Roux 卡堆接 SBLS，`SBLS_RULE.display` 保持只显示桥块（列表同图现状用户已接受，不改）。分支 `1495183` → `fd4ddf1`。
+- **COLL/SBLS 合并记录**：只 cherry-pick 上述三个提交（不整分支 merge，避免旧版 `.github/workflows/deploy.yml` 回退“先 deploy 后 visual”）；合并后 `npm test` 5046/58、`check:data` 653/7、`build`、`visual` 40 条通过，main `fd4ddf1`，Actions deploy → visual 均成功。
 
 ## 待确认（不建任务）
 
