@@ -156,3 +156,24 @@
 - **项目接口适配**：当前没有 `equivalentStates` / `verifyCase` 接口，已有的是 `caseFingerprint`、`lintCase`、`algSolvesCase`。引擎抽象缺口可以研究，但应基于实际实现描述。
 - **计数结论待复现**：465/123/93/60 的轨道表及与 Bas 49 条的逐项映射需补枚举脚本、变换作用和代表元，再独立复核；本轮没有把这些数字当作已验证的 expectedCount，也没有为此请求用户选数。
 - EOLR 未注册 SetId / 数据 / 路由，未修改 LSE 判定、图解、播放器、训练或任何既有规则。WV 与此调研独立交付。
+
+## 9. Lead 复核结论与勘误确认（2026-11-12）
+
+经对 Executor 复核意见的逐条核实，确认上述 **5 项问题全部属实**，现将勘误与结论记录如下：
+
+1. **确认 `M2` 物理终点与显式后置 `U / U'` 的必要性**：
+   - 在 `src/lib/cube.ts` 中，`M2` 仅在 `x = 0` 中层内把底面 `DF [0,-1,1]`、`DB [0,-1,-1]` 翻到顶面 `UB [0,1,-1]`、`UF [0,1,1]`，必须再接一步显式的 `U` 或 `U'`（如现有 `src/data/lse.ts` 中 `lse-ulur-1` 的 `"U' M2 U'"`），才能把 `{UF, UB}` 连同已对齐的顶角真正送入 `x = ±1` 的 `UL / UR` 槽位。
+   - 原稿第 5 节样例写成以 `M2` 结尾却能通过 `lseStepDone(st, 'UL/UR')`，是因为校验器 `algSolvesCase` 的 `for (let post = 0; post < 4; post++)` 循环隐式补了最后的 `U / U'`；但 **3D 播放器按原公式逐步回放时不会自动补 `post` 步**，会导致动画结束时 `UL/UR` 仍停留在 `UF/UB`。
+2. **确认 `isRouxBlock` 贴纸计数为 26 张（非 24 张）**：
+   - `isRouxBlock`（`Math.abs(S[id].p[0]) === 1 && S[id].p[1] <= 0`）实际保护 **26 张**贴纸（左桥 13 张 + 右桥 13 张，含 `L`、`R` 两个中心块，见 `docs/decisions.md` D21 勘误）。本文第 3.1 节与第 5 节写的“24 张”系笔误。
+3. **确认第 5 节样例 2 / 3 / 4 的中心块偏移与 `M` 奇偶机制冲突**：
+   - 从 `solved()` 对第 5 节原样例 1..4 直接求逆生成起手，检查 `CENTERS.every((id) => st[id] === id)` 的结果确为 `true / false / false / false`：
+     - 样例 1（`M' U' M' U' M2`）：`M` 四分之一转代数和为 $(-1) + (-1) + 2 = 0 \equiv 0 \pmod 4$，中心原位；
+     - 样例 2（`M' U M U2 M' U M2`）：代数和为 $(-1) + 1 + (-1) + 2 = +1 \pmod 4$（中心偏移 $90^\circ$）；
+     - 样例 3（`M' U' M' U2 M' U' M2`）：代数和为 $(-1) + (-1) + (-1) + 2 = -1 \pmod 4$（中心偏移 $90^\circ$）；
+     - 样例 4（`M' U' M' U2 M' U' M' U' M2`）：代数和为 $-4 + 2 = 2 \pmod 4$（净偏 `M2`，中心翻转 $180^\circ$）。
+   - **深层机制原因**：EOLR 前半段（把坏棱翻正并把 `{UL, UR}` 压入 `{DF, DB}`）若自身满足 $\sum M \equiv 0 \pmod 4$（如 `M2 U M' U' M'`），再接上 4b 归位步 `U' M2 U'`（含一个 `M2`），总公式的 $\sum M$ 就会变成 $2 \pmod 4$，从而导致从 `solved()` 逆推的起手状态自带 `M2` 中心翻转（如同现有 `lse-ulur-1` 名称标注的 `（M2）`）；反之，若总公式满足 $\sum M \equiv 0 \pmod 4$（如 `M' U' M' U' M2 U'` 或 `M' U' M' U2 M' U' M' U2 M' U' M' U' M2 U'`），则进入 `U' M2 U'` 前的 `DF/DB` 预备态必然处于 `M2` 中心翻转态。这一 `M2` 相位差必须在未来的 EOLR 引擎抽象中显式建模，不能靠 `normalizeRotation` 暗中抹平。
+4. **确认仓库真实接口名称**：
+   - `src/lib/cases.ts` 的真实导出函数为 `caseFingerprint`、`lintCase`、`lintCaseAlg`、`algSolvesCase`，本文第 3.2 节使用的 `equivalentStates` / `verifyCase` 为伪代码名，后续规格统一以真实接口为准。
+5. **处置结论**：
+   - **EOLR 暂不立项编码，亦不与 WV 绑定。** 后续若需推进 EOLR，须先由 Lead 提交可独立运行的轨道枚举与 Bas 49 条映射校验脚本，并明确 `M2` 中心相位与显式末尾 `U / U'` 约定后，再交 Router 决策。

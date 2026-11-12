@@ -534,3 +534,13 @@ export const wvSet: CaseSet = {
 - 320×640 / 390×844、浅深色均无横向滚动，分类弹窗在视口内、返回恢复分类；WV 单图 64×64，舞台高 164 / 190px，peek 底边约 534.39 / 598.08px，底栏顶边 568 / 772px，均未遮挡。
 - WV 截图目录：`ui-review.local/formula-expansion/wv-{320,390}-{light,dark}.png`；分类和列表截图为 `wv-category-*` / `wv-list-*`。
 - 未改旧数据/ID/公式、SBLS display/mask、路由、3D、播放器、练习求解或部署工作流；不合并、不 push，待独立 Auditor。EOLR 原稿实测不符已另记复核意见，未实现。
+
+## 8. Lead 复核结论（2026-11-12）
+
+- **接口适配确认**：正文第 3.3 / 4.1 / 5 / 6 节中的 `Case`、`verifyCase / solvesCase / equivalentStates`、`SET_ACCENTS`、`EMPTY_COUNTS / EXPECTED_TOTAL` 系规格草拟时的伪代码名；Executor 在 `codex/wv`（`3114442`）中按仓库真实接口（`AlgCase` 带 `set: 'wv'`、`lintCase / lintCaseAlg / algSolvesCase`、`HomePage.tsx` 的 `COVER` 及测试文件中的实际结构）直接落地，不新增冗余同义 API，完全符合项目架构。
+- **规则与数据核验确认**：
+  - `WV_RULE` 的贴纸计数（`preserve` **28 张**、`display / solve` **42 张**）、`preUs: [0]`、`preY: [0]`、`normalize: false` 与规格完全一致；
+  - `lintWvState`、`lintCaseAlg` 与 `algSolvesCase` 严格锁定了 `UFR + UR` 相连对姿态、其余 3 顶棱翻正、禁止 `x / y / z`（含抵消转体）以及 6 个中心块在起手与执行后均保持原位；
+  - `src/data/wv.names.test.ts` 完整覆盖了 27 个 `(UBL, UBR, UFL)` 顶角朝向三元组、分组计数、J Perm 27 条全量映射、CubeSkills 22 条显式公式映射及顶视图 21 格颜色签名两两互异。
+- **门禁与约束确认**：未修改既有 7 个公式集的 `SET_RULES`、数据或 `id`，未放宽或跳过既有测试断言；`npm test`（5428/59）、`npm run check:data`（786/8）、`npm run build`、`npm run test:visual`（44/44）全部通过。**WV 实现已通过 Lead 审查，可移交独立 Auditor 复核与发布。**
+- **Auditor 复核（2026-11-12）**：结论与 Lead 一致，另做了外部源交叉（J Perm 27 条逐条一致；SpeedCubeDB 27 条 setup 中 26 条状态逐张一致，WV10 为其 PLL 变体但主公式逐字相同）。已 fast-forward 合入 main `3114442`，线上 `version.json` 与包内 WV 数据均已核对。

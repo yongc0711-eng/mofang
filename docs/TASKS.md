@@ -8,16 +8,16 @@
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
 - **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）；UI-home-decks 把首页改为 CFOP / 桥式两叠循环横卡；T71、COLL、SBLS 新增 CFOP COLL（40）与桥式 SBLS（65）；WV 新增 CFOP Winter Variation（27），CFOP 卡堆变成五组。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 5428/59 项全过，`npm run check:data` 786/8 项全过，`npm run build` 通过；`npm run test:visual` 44 条 Playwright 冒烟全过（main `3114442`）。
+- **基线：** `npm test` 5428/59 项全过，`npm run check:data` 786/8 项全过，`npm run build` 通过；`npm run test:visual` 46 条 Playwright 冒烟全过（main `422902b`）。
 - **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、WV、CMLL、LSE、SBLS 还没有 recognition。
 
 任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T71 已用过（T67 预留给 T15 UL/UR 文档；T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补）。
 
 ## 未完成
 
-- [EOLR](tasks/EOLR.md) 桥式 LSE 4a+4b 合并（EOLR）技术调研与边界规格：已完成权威资料核验（Bas 49 / Kian 60 / 区分前后 93 / 仅模 `U4` 123 的群轨道数学拆解）、与现有 LSE（`EO` / `UL/UR` / `4c`）及 `EOLRb` 的边界对比、静态 `SET_RULES` 的 4 项机制冲突分析及两阶段演进方案；待 Router 拍板收录粒度（60 / 49 / 93）、公式终点约定与产品入口位置后再拆编码任务。
+- [EOLR](tasks/EOLR.md) 桥式 LSE 4a+4b 合并（EOLR）技术调研与边界规格：Executor 复核指出原稿 5 项实测问题（`M2` 物理终点停在 `UF/UB` 缺显式后置 `U/U'`、`isRouxBlock` 26 张误写为 24 张、第 5 节样例 2/3/4 存在 `M` 中心偏移、接口名使用伪代码、465/123/93/60 轨道计数与 Bas 49 条缺落库复核脚本），Lead 已在 `EOLR.md` 第 9 节逐项确认勘误。**结论：暂不具备编码条件，暂缓立项，不与 `WV` 绑定**；推进前须先有可独立运行的轨道枚举与 Bas 49 条映射校验脚本，并明确 `M2` 中心相位与显式末尾 `U / U'` 约定。
 
-## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、T71、COLL、SBLS、WV；T56-fix 已合并）
+## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、UI-home-deck-tap、T71、COLL、SBLS、WV；T56-fix 已合并）
 
 每条链接到它的任务记录。
 
@@ -59,7 +59,8 @@
 - [COLL](tasks/COLL.md) CFOP COLL 40 情形（Antisune/Sune/L/U/T/Pi 各 6、H 4），`algs[0]` 与 J Perm + CubeSkills 逐条核对，`coll.names.test.ts` 83 条；首页 CFOP 卡堆接 COLL。分支 `bccad77` → `925bdb3`。
 - [SBLS](tasks/SBLS.md) Roux SBLS 65 情形（6 组），按 DFR 角 / FR 棱物理位置命名，修正 SpeedCubeDB 7 对 UF↔UL、DB↔DF 标签互换，`sbls.names.test.ts` 68 条；首页 Roux 卡堆接 SBLS，`SBLS_RULE.display` 保持只显示桥块（列表同图现状用户已接受，不改）。分支 `1495183` → `fd4ddf1`。
 - **COLL/SBLS 合并记录**：只 cherry-pick 上述三个提交（不整分支 merge，避免旧版 `.github/workflows/deploy.yml` 回退“先 deploy 后 visual”）；合并后 `npm test` 5046/58、`check:data` 653/7、`build`、`visual` 40 条通过，main `fd4ddf1`，Actions deploy → visual 均成功。
-- [WV](tasks/WV.md) CFOP Winter Variation 27 情形（`3 Corners` 1 / `2 Corners` 6 / `1 Corner` 12 / `0 Corners` 8）：`cases.ts` 新增 `isWvMask`（F2L + 顶面 42 张）、`WV_RULE`（保留 FR 对以外的 F2L 块）与 `lintWvState`（中心原位、UFR 与 UR 姿态、UF/UL/UB 三顶棱朝上），公式一律不含 `x/y/z`；`wv.names.test.ts` 104 条（物理块几何 + J Perm 27 + CubeSkills 22）。独立复核：J Perm 27 条逐条一致；SpeedCubeDB 27 条 setup 有 26 条与本项目状态逐张相同，剩下 WV10 是其 PLL 变体，但 SCDB 列出的主公式与 `wv-10` 逐字相同、也能解该状态，编号与公式无误。合并前 .github 无改动，`SBLS_RULE.display` 与既有 SET_RULES 未动；fast-forward 合并 main `3114442`，`npm test` 5428/59、`check:data` 786/8、`build`、`visual` 44 条通过。
+- [WV](tasks/WV.md) CFOP Winter Variation 27 情形（`3 Corners` 1 / `2 Corners` 6 / `1 Corner` 12 / `0 Corners` 8）：`cases.ts` 新增 `isWvMask`（F2L + 顶面 42 张）、`WV_RULE`（保留 FR 对以外的 F2L 块）与 `lintWvState`（中心原位、UFR 与 UR 姿态、UF/UL/UB 三顶棱朝上），公式一律不含 `x/y/z`；`wv.names.test.ts` 104 条（物理块几何 + J Perm 27 + CubeSkills 22）。独立复核：J Perm 27 条逐条一致；SpeedCubeDB 27 条 setup 有 26 条与本项目状态逐张相同，剩下 WV10 是其 PLL 变体，但 SCDB 列出的主公式与 `wv-10` 逐字相同、也能解该状态，编号与公式无误。合并前 .github 无改动，`SBLS_RULE.display` 与既有 SET_RULES 未动；fast-forward 合并 main `3114442`，`npm test` 5428/59、`check:data` 786/8、`build`、`visual` 44 条通过。Lead 复核结论见 `WV.md` 第 8 节。
+- [UI-home-deck-tap](tasks/UI-home-deck-tap.md) 修复安卓翻卡后第一次轻点被吞：原来只在 `pointermove` 上 `preventDefault`，没有取消原生 `touchmove`，浏览器会把下一次轻点当成终止原生手势。现在在卡堆上注册非被动 `touchmove`，仅在已识别纵向翻卡（`|dy| > 9` 且超过横向位移 1.1 倍）时取消默认；轻点、横向循环、展开后的页面滚动和原有 PointerEvent 逻辑都不受影响。反向对照：撤掉 `src` 修复后新用例两个视口都失败，装回即通过。合并 main `422902b`，`npm test` 5428/59、`check:data` 786/8、`build`、`visual` 46 条通过；仅 Chromium 触屏模拟验证，尚未在实体安卓机上复测。
 
 ## 待确认（不建任务）
 
