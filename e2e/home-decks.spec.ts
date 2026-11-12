@@ -109,6 +109,31 @@ test('首页搜索、真实进度和方法配色继续工作，宽屏无溢出',
 
 test.describe('正常动效与触屏', () => {
   test.use({ reducedMotion: 'no-preference' });
+  test('滑动归位后第一次轻点即可进入，返回不产生重复历史', async ({ page }) => {
+    const session = await page.context().newCDPSession(page);
+    try {
+      for (const reducedMotion of ['no-preference', 'reduce'] as const) {
+        await page.emulateMedia({ reducedMotion });
+        for (const entry of [{ method: 'cfop', set: 'f2l', cases: 41 }, { method: 'roux', set: 'cmll', cases: 42 }] as const) {
+          await page.goto('/');await expect(page.locator('.route')).toHaveCSS('transform', 'none');
+          const method = deck(page, entry.method);
+          const box = (await method.locator('.home-deck-pile').boundingBox())!;
+          const x = box.x + box.width * .36, y = box.y + 52;
+          await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+          // 单个 move 可复现安卓触屏在归位后吞掉下一次轻点的问题。
+          await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 58 }] });
+          await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+          await expect(method).toHaveAttribute('data-index', '1');await idle(method);
+          await page.waitForTimeout(300);await expect(page).toHaveURL(/\/$/);
+          await page.touchscreen.tap(x, y);
+          await expect(page).toHaveURL(new RegExp(`#/set/${entry.set}$`));
+          await expect(page.locator('.case-card')).toHaveCount(entry.cases);
+          await page.goBack();await expect(page).toHaveURL(/\/$/);
+          await expect(method).toHaveAttribute('data-index', '1');await noOverflow(page);
+        }
+      }
+    } finally { await session.detach(); }
+  });
   test('连续快滑：接管未结束的动画、1:1 跟手、逐次计数且不积压', async ({ page }) => {
     const errors: string[] = [];page.on('pageerror', error => errors.push(error.message));
     await page.goto('/');await expect(page.locator('.route')).toHaveCSS('transform', 'none');

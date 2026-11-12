@@ -43,6 +43,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
   const [motion, setMotion] = useState<'idle' | 'flip' | 'layout'>('idle');
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const busy = useRef(false); // 仅展开/收起改变布局时互斥，翻卡不锁输入。
+  const pile = useRef<HTMLDivElement>(null);
   const cards = useRef<(HTMLElement | null)[]>([]);
   const close = useRef<HTMLButtonElement>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -116,6 +117,18 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
     const card = cards.current[drag.index];
     if (card) card.style.transform = `translateY(${drag.dy}px) ${drag.base}`;
   }
+
+  useEffect(() => {
+    const element = pile.current!;
+    const onTouchMove = (event: TouchEvent) => {
+      const drag = gesture.current;
+      // PointerEvent 的 preventDefault 不会取消浏览器的原生触摸手势。
+      // 只接管已识别的纵向翻卡，避免安卓把下一次轻点用于终止原生手势。
+      if (drag && Math.abs(drag.dy) > 9 && Math.abs(drag.dy) > Math.abs(drag.dx) * 1.1 && event.cancelable) event.preventDefault();
+    };
+    element.addEventListener('touchmove', onTouchMove, { passive: false });
+    return () => element.removeEventListener('touchmove', onTouchMove);
+  }, []);
 
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -277,7 +290,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
       <h3>{name}</h3>
       <button ref={close} type="button" className="home-deck-close" aria-label={`${name}，收起卡片`} aria-controls={pileId} aria-expanded={view.expanded} onClick={toggle}>收起卡片<Chevron up /></button>
     </div>
-    <div className="home-deck-pile" id={pileId} style={{ '--home-deck-items': items.length } as CSSProperties} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={event => release(event)} onPointerCancel={event => release(event, true)} onLostPointerCapture={event => {
+    <div ref={pile} className="home-deck-pile" id={pileId} style={{ '--home-deck-items': items.length } as CSSProperties} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={event => release(event)} onPointerCancel={event => release(event, true)} onLostPointerCapture={event => {
       // 触屏的隐式 capture 从子链接转到 pile 时也会冒泡 lost，不能中断新手势。
       if (event.target !== event.currentTarget || event.currentTarget.hasPointerCapture(event.pointerId) || !gesture.current) return;
       gesture.current = null; suppressClick.current = true;
