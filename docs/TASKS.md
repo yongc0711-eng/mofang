@@ -8,14 +8,14 @@
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
 - **图解：** 所有 OLL 的 2D 图解固定只显示顶层的 9 张颜色（公式页、卡片、练习页、首页封面）；OLL 的 3D 和其他组一样，默认完整魔方，开“只看相关的块”后只显示顶层 21 格（T27 把两者合成一个设置，T32 修正）。外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。六色底同时作用于公式页 3D 和所有 2D 图解、练习页说明，见 T28–T30。T60a 把浏览配色按 CFOP / 桥式拆成两份设备偏好；T61 又把首页和练习的入口收成各一个，点开是带 CFOP / 桥式两个 tab 的弹窗；T62 把首页入口移到标题行右侧；T63 再把入口收成搜索框右侧的 44px 圆形按钮，搜索框缩短并改为胶囊圆角；T64 把五张方法卡改成独立卡片并加上圆形箭头，方法标题只留名称；T65 再把卡片加高到 68/78px，并把全站有框组件换成 14–24px 的大圆角；T69 全局关闭长按文字选择，只保留公式、输入框和可编辑区域；T70 加 320/390 的 Playwright 视觉冒烟并接进部署 CI；UI-polish 把公式库的分类筛选从原生 select 换成 CategoryPicker 紧凑面板，支持数量、选中、Esc/遮罩关闭和焦点返回；分类面板再加 200ms 进入 / 150ms 退出的轻浮层动效（退场前 70% 不透明、最后 30% 淡出）；UI-home-decks 把首页改为 CFOP / 桥式两叠循环横卡；T71、COLL、SBLS 新增 CFOP COLL（40）与桥式 SBLS（65）；WV 新增 CFOP Winter Variation（27），CFOP 卡堆变成五组；EOLR 新增桥式 EOLR（51），其中 20 张 BAD CASE 用虚线卡标出，桥式卡堆变成四组，详情页可把短公式接上「接续 4b」播到严格 EOLRb。
 - **部署：** 推送到 `main` 自动发布，已确认可以打开：https://yongc0711-eng.github.io/mofang/
-- **基线：** `npm test` 6209/63 项全过，`npm run check:data` 1097/9 项全过，`npm run build` 通过；`npm run test:visual` 54 条 Playwright 冒烟全过（main `15b7ee6`）。
-- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、WV、CMLL、LSE、SBLS、EOLR 还没有 recognition。
+- **基线：** `npm test` 6216/65 项全过，`npm run check:data` 1104/11 项全过，`npm run build` 通过；`npm run test:visual` 54 条 Playwright 冒烟全过（main `de733b7`）。
+- **识别要点：** PLL（T13）和 OLL（T14）已重写，有非空/互异/特征测试；OLL 识别文字里的「黄」随顶色变化（T29）；F2L、COLL、WV、CMLL、LSE、SBLS、EOLR、CLL 还没有 recognition。
 
 任务详细记录可以用 `docs/tasks/_template.md` 建文件。编号只增不复用，T1–T71 已用过（T67 预留给 T15 UL/UR 文档；T34–T55 的记录见 `docs/tasks/`，本文件没有逐条补）。
 
 ## 未完成
 
-- [2x2](tasks/2x2.md) 二阶 CLL / EG-1 / EG-2 各 42 条（共 126）：新增 24 贴纸引擎 `src/lib/cube2.ts`、独立 `cases2.ts` 规则、2×2 图解与 `CubeScene` 参数化、首页第三叠「二阶」；本轮只做查询与 2D/3D，不做练习。分 P1–P4 四期，执行方为代班的 Gemini 4 Hydrogen（分支 `hydro/2x2-p1` 起）。P1（24 贴纸引擎，与三阶引擎逐贴纸交叉验证）与 P2（`CaseDiagram2` 顶/底视图、`CubeScene` 的 `size`、`Timeline` 可选引擎 + 二阶引擎测试）已合入 main `15b7ee6`，6209/63、1097/9、build、visual 54 通过；剩 P3 的 126 条数据与 `cases2.ts` 规则、P4 的首页第三叠与页面接通。2×2 的 3D 尚未实测，等 P3 详情页。
+- [2x2](tasks/2x2.md) 二阶 CLL / EG-1 / EG-2 各 42 条（共 126）：新增 24 贴纸引擎 `src/lib/cube2.ts`、独立 `cases2.ts` 规则、2×2 图解与 `CubeScene` 参数化、首页第三叠「二阶」；本轮只做查询与 2D/3D，不做练习。分 P1–P4 四期，执行方为代班的 Gemini 4 Hydrogen（分支 `hydro/2x2-p1` 起）。P1（24 贴纸引擎，与三阶引擎逐贴纸交叉验证）、P2（`CaseDiagram2` 顶/底视图、`CubeScene` 的 `size`、`Timeline` 可选引擎 + 二阶引擎测试）与 P3a（CLL 42 条、`cases2.ts` 的 `caseState2`/`algSolvesCase2`/24 朝向指纹、双源对照测试）已合入 main `de733b7`，6216/65、1104/11、build、visual 54 通过。`SET_RULES.cll` 只是 `Record<SetId, SetRule>` 的类型占位、被调用即抛错，2×2 一律走 `cases2.ts`。剩 P3b 的 EG-1 / EG-2 84 条与 P4 的首页第三叠与页面接通；2×2 的图解与 3D 尚未在任何页面里跑过，等 P4。
 - EOLR 已按 Lead 的 `ea262a9` 规格实现并合并，调研、勘误与显示口径仍保留在 `tasks/EOLR.md`。
 
 ## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、UI-home-deck-tap、T71、COLL、SBLS、WV、EOLR；T56-fix 已合并）
