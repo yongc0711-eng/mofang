@@ -1,5 +1,5 @@
 export type MethodId = 'cfop' | 'roux';
-export type SetId = 'f2l' | 'oll' | 'pll' | 'coll' | 'wv' | 'cmll' | 'lse' | 'sbls' | 'eolr';
+export type SetId = 'f2l' | 'oll' | 'pll' | 'coll' | 'wv' | 'cmll' | 'lse' | 'sbls' | 'eolr' | 'cll';
 
 /** 一个公式情形。图解由 algs[0] 的逆推导出，所以 algs[0] 决定这个情形的“标准摆法”。 */
 export interface AlgCase {

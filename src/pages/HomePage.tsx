@@ -21,6 +21,7 @@ const COVER: Record<SetId, string> = {
   lse: 'lse-eo-7',
   sbls: 'sbls-u-ub',
   eolr: 'eolr-3-1-2',
+  cll: 'cll-as-1',
 };
 
 export function HomePage() {

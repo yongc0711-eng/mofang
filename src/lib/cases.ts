@@ -183,6 +183,7 @@ export const SET_RULES: Record<SetId, SetRule> = {
     allowedBases: 'MU',
   },
   sbls: SBLS_RULE,
+  cll: { display: () => true, solve: () => true, preserve: () => false, normalize: false, preY: [0] },
 };
 
 const turn = (base: string, n: number): Move[] =>
