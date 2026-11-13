@@ -5,7 +5,7 @@ import { applyMoves2, invertMoves2, solved2, STICKERS2, type State2 } from '../l
 import { CLL_CASES } from './cll';
 
 /**
- * 外部权威来源对照数据（2026-04 实抓离线固化，避免测试依赖网络或临时目录）：
+ * 外部权威来源对照数据（2026-11 实抓离线固化，避免测试依赖网络或临时目录）：
  * 1) J Perm (https://jperm.net/lib/2x2cll.js) — 完整 42 条（40 条 OLL 分类 + PLL Adjacent/Diagonal）
  * 2) SpeedCubeDB (https://speedcubedb.com/a/2x2/CLL) — 40 条（AS/H/L/Pi/Sune/T/U，不含 Adjacent/Diagonal）
  */

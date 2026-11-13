@@ -183,7 +183,21 @@ export const SET_RULES: Record<SetId, SetRule> = {
     allowedBases: 'MU',
   },
   sbls: SBLS_RULE,
-  cll: { display: () => true, solve: () => true, preserve: () => false, normalize: false, preY: [0] },
+  // 二阶（cll / eg1 / eg2）的规则在 lib/cases2.ts，24 贴纸状态进不了这套 54 贴纸规则。
+  // 这条只是满足 Record<SetId, SetRule> 的类型占位：真走到这里说明 2×2 误用了 3×3 路径，应当报错而不是静默放行。
+  cll: {
+    display: () => {
+      throw new Error('CLL 的规则在 lib/cases2.ts，不能走 SET_RULES');
+    },
+    solve: () => {
+      throw new Error('CLL 的规则在 lib/cases2.ts，不能走 SET_RULES');
+    },
+    preserve: () => {
+      throw new Error('CLL 的规则在 lib/cases2.ts，不能走 SET_RULES');
+    },
+    normalize: false,
+    preY: [0],
+  },
 };
 
 const turn = (base: string, n: number): Move[] =>
