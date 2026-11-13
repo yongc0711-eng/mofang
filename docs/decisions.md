@@ -192,3 +192,11 @@
 - 公式一律不含 x/y/z：SpeedCubeDB 带前置 y / y' / y2 的写法按 y 共轭换成等价无转体式（EG-1 22 条、EG-2 6 条），换算后起手仍是「底面全定向」。
 - 名称对齐：`eg1.names.test.ts` / `eg2.names.test.ts` 把来源的 40 条 OLL 形态逐条按 group + 序号对齐（本地 name 必须等于来源 name），两条 PBL 单独对齐；离线参考表逐条可在来源页面原文中命中，不依赖网络。
 - `SET_RULES` 里的 cll / eg1 / eg2 三个占位共用 `twoByTwoPlaceholder(label)`，被调用即抛错，避免 2×2 误走三阶路径时静默放行。
+
+## D26 P4 接线与全量遍历测试的拆分（2026-11-14）
+
+- 站点内按 `set.method` 分流：`is2x2Set(c.set)` 为真时卡片 / 详情 / 首页封面走 `CaseDiagram2`（颜色由 `diagramColors2` 从 `caseState2` 推出）与 `CubePlayer size={2}`，不再套三阶的 2D / 3D 掩码，也不显示「只看相关的块」；搜索文本带上方法名（搜「二阶」命中 126 条）。自定义公式与备份里的主公式校验对 2×2 走 `lintCaseAlg2` / `algSolvesCase2`。
+- 练习三重隔离：`PRACTICE_SETS` 过滤掉 `method === '2x2'`；恢复练习会话时再过滤一次；`scrambleFor` / `sampleTarget` / `PracticeQuestionDiagram` 遇到 2×2 直接抛错。练习范围仍是 437 条，`/practice?set=cll` 被忽略。
+- 首页卡堆从两叠变成三叠（CFOP 5 组 186、桥式 4 组 251、二阶 3 组 126），全站 12 组 563 条；相关的精确断言（卡数 9→12、图解 8→11、expand 11→15、封面 3 张、437→563）按真实值等强更新。
+- 首页卡堆上方的公共小标题由「三阶」改成「公式库」（`id` 同时改为 `home-library-title`）：它现在罩着二阶那一叠，再写「三阶」就是错的；不新增「二阶」标题是因为封面卡已经写着「二阶」，多一行标题会挤掉首屏预算。对应断言（`homeCards.test.tsx`、`e2e/home-decks.spec.ts`）同步按新标题等强更新。
+- `outsideDiagrams.test.tsx` 里两个「563 条全部」的遍历用例改为**按公式组各拆一条**（12 + 12 条），另加一条总数为 563、逐组求和为 563 的断言。原因：单条用例在整套并行跑时要 5.6–8.3s，顶到 vitest 默认 5s 上限（隔离跑只有 0.8s），而 P4 之前 437 条时已经在边缘。处理方式是拆分而不是调大 timeout 或 skip——每条公式、每条断言都还在，覆盖不变、总数断言更强。实测默认并行连跑两次 7149/70 全绿。
