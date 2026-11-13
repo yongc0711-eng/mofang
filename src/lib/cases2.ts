@@ -10,7 +10,7 @@ import {
   type Sticker2,
 } from './cube2';
 
-export type SetId2 = Extract<SetId, 'cll'> | 'eg1' | 'eg2';
+export type SetId2 = Extract<SetId, 'cll' | 'eg1' | 'eg2'>;
 
 export interface CaseSet2 {
   id: SetId2;
@@ -33,6 +33,12 @@ export interface SetRule2 {
 const ROTATION_BASES = new Set(['x', 'y', 'z']);
 
 const BOTTOM_STICKERS = STICKERS2.filter((s) => s.p[1] === -1);
+const BOTTOM_D_STICKER_IDS = STICKERS2.filter((s) => s.face === 'D').map((s) => s.id);
+const BOTTOM_SIDE_PAIRS: [number, number][] = (['F', 'R', 'B', 'L'] as const).map((face) => {
+  const pair = STICKERS2.filter((s) => s.face === face && s.p[1] === -1).map((s) => s.id);
+  if (pair.length !== 2) throw new Error(`Expected 2 bottom side stickers on ${face}`);
+  return [pair[0], pair[1]];
+});
 
 const FACE_STICKER_GROUPS: number[][] = (() => {
   const byFace = new Map<string, number[]>();
@@ -98,6 +104,22 @@ export function isBottomLayerSolved2(state: State2): boolean {
   return true;
 }
 
+/** 底面四角是否全部定向（D 面 4 张贴纸均为 D 色） */
+export function isBottomOriented2(state: State2): boolean {
+  if (state.length !== 24) return false;
+  return BOTTOM_D_STICKER_IDS.every((id) => STICKERS2[state[id]].face === 'D');
+}
+
+/** 统计底层四个侧面（F/R/B/L 底行各两格）同色相邻 bar 的数量（0..4） */
+export function bottomBarCount2(state: State2): number {
+  if (state.length !== 24) return 0;
+  let bars = 0;
+  for (const [a, b] of BOTTOM_SIDE_PAIRS) {
+    if (STICKERS2[state[a]].face === STICKERS2[state[b]].face) bars++;
+  }
+  return bars;
+}
+
 export const CLL_RULE_2: SetRule2 = {
   display: () => true,
   solve: isSolvedExact2,
@@ -105,20 +127,26 @@ export const CLL_RULE_2: SetRule2 = {
   normalize: true,
 };
 
+export const EG1_RULE_2: SetRule2 = {
+  display: () => true,
+  solve: isSolvedExact2,
+  preserve: (state) =>
+    isBottomOriented2(state) && bottomBarCount2(state) === 1 && !isMonochromeFaces2(state),
+  normalize: true,
+};
+
+export const EG2_RULE_2: SetRule2 = {
+  display: () => true,
+  solve: isSolvedExact2,
+  preserve: (state) =>
+    isBottomOriented2(state) && bottomBarCount2(state) === 0 && !isMonochromeFaces2(state),
+  normalize: true,
+};
+
 export const SET_RULES_2: Record<SetId2, SetRule2> = {
   cll: CLL_RULE_2,
-  eg1: {
-    display: () => true,
-    solve: isSolvedExact2,
-    preserve: () => true,
-    normalize: true,
-  },
-  eg2: {
-    display: () => true,
-    solve: isSolvedExact2,
-    preserve: () => true,
-    normalize: true,
-  },
+  eg1: EG1_RULE_2,
+  eg2: EG2_RULE_2,
 };
 
 function getRule2(setId: string): SetRule2 {

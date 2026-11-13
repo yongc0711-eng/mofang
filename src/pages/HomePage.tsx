@@ -22,6 +22,8 @@ const COVER: Record<SetId, string> = {
   sbls: 'sbls-u-ub',
   eolr: 'eolr-3-1-2',
   cll: 'cll-as-1',
+  eg1: 'eg1-h-1',
+  eg2: 'eg2-h-1',
 };
 
 export function HomePage() {
