@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CaseCard, practiceViewFor, viewForPrimary } from '../components/CaseCard';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
-import { ALL_CASES, getCase, getSet } from '../data';
+import { ALL_CASES, getCase, getSet, SETS } from '../data';
 import { caseState, viewCaseFor } from '../lib/cases';
 import { diagramColors2, is2x2Set } from '../lib/cases2';
 import { applyMoves, solved } from '../lib/cube';
@@ -84,22 +84,33 @@ describe('T33 外面的图解跟主公式对齐', () => {
     expect(card(c)).toContain(diagram(c));
   });
 
-  it('CaseCard：无主公式时和改动前完全一致（所有情形）', () => {
-    for (const c of ALL_CASES) expect(card(c)).toContain(diagram(c));
+  // 下面两组按公式组拆开：断言语义和逐条遍历与原来完全相同，只是把一个 563 条的
+  // 大循环拆成 12 个小循环——整套并行跑时单条用例不会再顶到 5s 上限（见 D26）。
+  for (const set of SETS) {
+    it(`CaseCard：无主公式时和改动前完全一致（${set.name}）`, () => {
+      expect(set.cases.length).toBeGreaterThan(0);
+      for (const c of set.cases) expect(card(c)).toContain(diagram(c));
+    });
+  }
+
+  it('全部情形共 563 条，且逐组之和相等', () => {
+    expect(ALL_CASES).toHaveLength(563);
+    expect(SETS.reduce((n, s) => n + s.cases.length, 0)).toBe(563);
   });
 
   it('viewForPrimary：主公式就是 algs[0] 时原样返回同一个对象，不解析', () => {
     for (const c of ALL_CASES) expect(viewForPrimary(c, c.algs[0])).toBe(c);
   });
 
-  it('563 条全部：带前置 U 的主公式下 viewForPrimary 和渲染都不抛错', () => {
-    expect(ALL_CASES.length).toBe(563);
-    for (const c of ALL_CASES) {
-      for (const alg of [withPreU(c), c.algs[c.algs.length - 1], 'not an alg ((']) {
-        expect(() => diagram(viewForPrimary(c, alg))).not.toThrow();
+  for (const set of SETS) {
+    it(`带前置 U 的主公式下 viewForPrimary 和渲染都不抛错（${set.name}）`, () => {
+      for (const c of set.cases) {
+        for (const alg of [withPreU(c), c.algs[c.algs.length - 1], 'not an alg ((']) {
+          expect(() => diagram(viewForPrimary(c, alg))).not.toThrow();
+        }
       }
-    }
-  });
+    });
+  }
 
   it('解决不了情形的主公式回退到 c，不画错起手', () => {
     const c = ALL_CASES[0];
