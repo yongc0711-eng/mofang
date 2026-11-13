@@ -37,9 +37,9 @@ it('方法封面只留方法名和分组信息，不再显示两行箭头说明'
   for (const method of METHODS) expect(html).not.toContain(method.hint);
 });
 
-it('三阶是公共标题，三张纯文字封面各自属于独立卡堆', () => {
+it('公式库是公共标题，三张纯文字封面各自属于独立卡堆', () => {
   const html = render();
-  expect(html.match(/id="home-three-title">三阶<\/h2>/g)).toHaveLength(1);
+  expect(html.match(/id="home-library-title">公式库<\/h2>/g)).toHaveLength(1);
   expect(html.match(/class="home-method-deck"/g)).toHaveLength(3);
   expect(html.match(/data-cover="true"/g)).toHaveLength(3);
   const covers = [...html.matchAll(/<article[^>]*data-cover="true"[^>]*>([\s\S]*?)<\/article>/g)];

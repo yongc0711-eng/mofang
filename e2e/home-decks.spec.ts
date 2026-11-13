@@ -27,7 +27,7 @@ test('三卡堆：浅深色纯文字封面、卡内展开、十二入口与搜�
   const width = page.viewportSize()!.width;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });await page.goto('/');
-    await expect(page.getByRole('heading', { name: '三阶', exact: true })).toHaveCount(1);
+    await expect(page.getByRole('heading', { name: '公式库', exact: true })).toHaveCount(1);
     await expect(page.locator('.home-method-deck')).toHaveCount(3);
     await expect(page.locator('.home-deck-cover .diagram')).toHaveCount(0);
     await expect(page.locator('.set-card')).toHaveCount(12);

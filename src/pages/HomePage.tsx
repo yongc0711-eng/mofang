@@ -66,8 +66,8 @@ export function HomePage() {
           </div>
         </section>
       )}
-      <section className="home-library" aria-labelledby="home-three-title">
-        <h2 id="home-three-title">三阶</h2>
+      <section className="home-library" aria-labelledby="home-library-title">
+        <h2 id="home-library-title">公式库</h2>
         <div className="home-decks">
           {METHODS.map((m) => <HomeMethodDeck key={m.id} method={m.id} name={m.id === 'roux' ? '桥式' : m.name} items={SETS.filter((s) => s.method === m.id).map((s) => {
             const cover = getCase(COVER[s.id]) ?? s.cases[0];
