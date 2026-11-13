@@ -20,6 +20,7 @@ import {
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { STICKERS, moveGeometry, type Face, type Move, type State, type Vec } from '../lib/cube';
+import { STICKERS2, moveGeometry2 } from '../lib/cube2';
 import { displayFace, getDevicePrefs } from '../store/devicePrefs';
 
 const FACE_VAR: Record<Face, string> = {
@@ -69,6 +70,8 @@ export class CubeScene {
   private readonly keyLight = new DirectionalLight(0xffffff, 1.7);
   private readonly resizeObserver: ResizeObserver;
   private readonly disposables: { dispose(): void }[] = [];
+  private readonly scale: number;
+  private readonly stickers: readonly { id: number; face: Face; p: Vec; n: Vec }[];
   private palette: Palette | undefined;
   private mask: ((id: number) => boolean) | null = null;
   private last: { state: State; move: Move | null; eased: number } | null = null;
@@ -82,7 +85,10 @@ export class CubeScene {
   constructor(
     private readonly host: HTMLElement,
     finish: CubeFinish = 'uv',
+    private readonly size: 2 | 3 = 3,
   ) {
+    this.scale = size === 2 ? 0.5 : 1;
+    this.stickers = size === 3 ? STICKERS : STICKERS2;
     this.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     const canvas = this.renderer.domElement;
@@ -126,16 +132,16 @@ export class CubeScene {
       n.normalize();
       normal.setXYZ(i, n.x, n.y, n.z);
     }
-    const coreGeo = new SphereGeometry(1.42, 16, 12);
+    const coreGeo = new SphereGeometry(1.42 * this.scale, 16, 12);
     this.disposables.push(this.maskMat, inner, body, coreGeo);
 
     const byKey = new Map<string, Cubie>();
-    for (const s of STICKERS) {
+    for (const s of this.stickers) {
       const key = s.p.join();
       let cubie = byKey.get(key);
       if (!cubie) {
         const group = new Group();
-        const home = new Vector3(...s.p);
+        const home = new Vector3(...s.p).multiplyScalar(this.scale);
         group.position.copy(home);
         const materials: Material[] = Array.from({ length: 6 }, () => inner);
         group.add(new Mesh(body, materials));
@@ -200,13 +206,16 @@ export class CubeScene {
     this.last = { state, move, eased };
     // 底面颜色决定配色，和 2D 图解共用 displayFace；每帧读一次，设置一改下一帧就变
     const bottom = this.palette ? 'white' : getDevicePrefs().bottomColor;
-    for (let loc = 0; loc < 54; loc++) {
+    for (let loc = 0; loc < this.stickers.length; loc++) {
       const id = state[loc];
       const visible = !this.mask || this.mask(id);
       const { cubie, slot } = this.faceSlots[loc];
-      cubie.materials[slot] = visible ? this.faceMats.get(this.palette ? paletteFace(id, this.palette) : displayFace(id, bottom))! : this.maskMat;
+      const face = this.size === 2
+        ? (this.palette ? this.palette[this.stickers[id].face] : this.stickers[id].face)
+        : (this.palette ? paletteFace(id, this.palette) : displayFace(id, bottom));
+      cubie.materials[slot] = visible ? this.faceMats.get(face)! : this.maskMat;
     }
-    const geo = move ? moveGeometry(move) : null;
+    const geo = move ? (this.size === 2 ? moveGeometry2(move) : moveGeometry(move)) : null;
     const q = new Quaternion();
     if (geo) q.setFromAxisAngle(AXES[geo.axis], geo.angle * eased);
     for (const c of this.cubies) {
@@ -253,7 +262,7 @@ export class CubeScene {
     this.camera.aspect = w / h;
     // 按较短的一边留出整个魔方：外接球半径约 2.7
     const halfFov = (this.camera.fov * Math.PI) / 360;
-    const fit = 2.75 / Math.sin(halfFov);
+    const fit = (2.75 * this.scale) / Math.sin(halfFov);
     this.camera.position.set(0, 0, w < h ? fit / this.camera.aspect : fit);
     this.camera.updateProjectionMatrix();
     this.redraw();

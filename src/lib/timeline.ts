@@ -1,5 +1,12 @@
 import { parseAlg } from './alg';
-import { applyMove, applyMoves, invertMoves, solved, type Move, type State } from './cube';
+import { applyMove, invertMoves, solved, type Move, type State } from './cube';
+
+export interface Engine {
+  solved(): State;
+  applyMove(state: State, move: Move): State;
+}
+
+const CUBE3: Engine = { solved, applyMove };
 
 /** 1x 速度下，转 90° 的时长（毫秒） */
 export const QUARTER_MS = 625;
@@ -30,12 +37,15 @@ export class Timeline {
   /** starts[i] 是第 i 步开始的时间，starts[moves.length] 是总时长 */
   readonly starts: number[];
 
-  constructor(alg: string, setup?: string) {
+  constructor(alg: string, setup?: string, engine: Engine = CUBE3) {
     this.moves = parseAlg(alg);
-    this.states = [applyMoves(solved(), setup !== undefined ? parseAlg(setup) : invertMoves(this.moves))];
+    const setupMoves = setup !== undefined ? parseAlg(setup) : invertMoves(this.moves);
+    let init = engine.solved();
+    for (const m of setupMoves) init = engine.applyMove(init, m);
+    this.states = [init];
     this.starts = [0];
     this.moves.forEach((m, i) => {
-      this.states.push(applyMove(this.states[i], m));
+      this.states.push(engine.applyMove(this.states[i], m));
       this.starts.push(this.starts[i] + durationOf(m));
     });
   }

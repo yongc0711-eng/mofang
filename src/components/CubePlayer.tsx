@@ -1,6 +1,7 @@
 import type { Palette } from '../lib/colorScheme';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Timeline, easeMove } from '../lib/timeline';
+import { applyMove2, solved2 } from '../lib/cube2';
+import { Timeline, easeMove, type Engine } from '../lib/timeline';
 import type { CubeFinish, CubeScene } from './CubeScene';
 
 const SPEEDS = [0.5, 1, 1.5, 2];
@@ -29,17 +30,23 @@ interface Props {
   mask?: ((id: number) => boolean) | null;
   /** 表面，默认 UV 亮面 */
   finish?: CubeFinish;
+  /** 魔方阶数，默认 3 阶 */
+  size?: 2 | 3;
 }
 
 /**
  * 自己画的 3D 播放器：Three.js 只负责渲染（动态加载），播放逻辑全在 Timeline 里。
  * 配色和 2D 图解共用 CSS 变量。
  */
-export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 'uv', palette }: Props) {
+export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 'uv', palette, size = 3 }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const scrubber = useRef<HTMLInputElement>(null);
   const scene = useRef<CubeScene | null>(null);
-  const timeline = useMemo(() => new Timeline(alg, setup), [alg, setup]);
+  const engine = useMemo<Engine | undefined>(
+    () => (size === 2 ? { solved: solved2, applyMove: applyMove2 } : undefined),
+    [size],
+  );
+  const timeline = useMemo(() => new Timeline(alg, setup, engine), [alg, setup, engine]);
   const tlRef = useRef(timeline);
   tlRef.current = timeline;
 
@@ -134,7 +141,7 @@ export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 
     import('./CubeScene')
       .then(({ CubeScene: Scene }) => {
         if (cancelled || !host.current) return;
-        created = new Scene(host.current, finishRef.current);
+        created = new Scene(host.current, finishRef.current, size);
         created.setMask(maskRef.current);
         created.setPalette(paletteRef.current);
         scene.current = created;
@@ -151,9 +158,8 @@ export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 
       created?.dispose();
       scene.current = null;
     };
-    // 场景只创建一次
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // 场景仅在挂载及尺寸变化时重建
+  }, [size]);
 
   const paletteRef = useRef(palette);
   paletteRef.current = palette;
