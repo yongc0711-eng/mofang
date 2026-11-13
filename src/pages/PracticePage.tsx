@@ -5,6 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
+import { is2x2Set } from '../lib/cases2';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
@@ -70,11 +71,15 @@ interface Question {
   fromSession?: boolean;
 }
 
+const PRACTICE_SETS = SETS.filter((s) => s.method !== '2x2');
+const isPracticeSet = (id: string) => PRACTICE_SETS.some((s) => s.id === id);
+
 /** done 对照主公式；训练期间保留本题采样终态。仅选择图解输入，不变更目标。 */
 export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palette }: {
   c: AlgCase; set: Pick<CaseSet, 'view'>; bottom: BottomColor;
   prepared: Pick<PreparedSetup, 'state'> | null | undefined; phase: string; palette?: Palette;
 }) {
+  if (set.view === 'top2' || set.view === 'both2') throw new Error(`练习模式不支持二阶公式组：${c.set}`);
   return prepared && phase !== 'done'
     ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} palette={palette} />
     : <CaseDiagram c={c} view={set.view} bottom={bottom} palette={palette} />;
@@ -83,13 +88,15 @@ export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palet
 export function PracticePage() {
   const [searchParams] = useSearchParams();
   const requestedSet = searchParams.get('set');
+  const validRequested = requestedSet && isPracticeSet(requestedSet) ? (requestedSet as SetId) : null;
   const user = useUserData();
   const prefs = useDevicePrefs();
   // 范围和筛选放在内存里，从“查看详情”返回时还在
   const savedScope = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
-  const saved = requestedSet && getSet(requestedSet) && !(savedScope.sets.length === 1 && savedScope.sets[0] === requestedSet)
-    ? { ...savedScope, group: '全部', filter: 'all' as const, picked: [], showPicker: false } : savedScope;
-  const [sets, setSets] = useState<SetId[]>(() => requestedSet && getSet(requestedSet) ? [requestedSet as SetId] : saved.sets);
+  const savedSets = savedScope.sets.filter(isPracticeSet);
+  const saved = validRequested && !(savedSets.length === 1 && savedSets[0] === validRequested)
+    ? { ...savedScope, sets: savedSets, group: '全部', filter: 'all' as const, picked: [], showPicker: false } : { ...savedScope, sets: savedSets };
+  const [sets, setSets] = useState<SetId[]>(() => validRequested ? [validRequested] : saved.sets);
   const [group, setGroup] = useState(saved.group);
   const [filter, setFilter] = useState<StatusFilter>(saved.filter);
   const [picked, setPicked] = useState<string[]>(saved.picked);
@@ -102,11 +109,11 @@ export function PracticePage() {
   // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
   // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
   const [restored, setRestored] = useState<PracticeSession | null>(() =>
-    loadSession(Date.now(), (id) => !!getCase(id), DOC_ID),
+    loadSession(Date.now(), (id) => { const c = getCase(id); return !!c && !is2x2Set(c.set); }, DOC_ID),
   );
   const [practicing, setPracticing] = useState(restored !== null);
 
-  const activeSets = SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
+  const activeSets = PRACTICE_SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
   const groups = [...new Set(activeSets.flatMap((s) => s.cases.map((c) => c.group)))];
   const candidates = activeSets.flatMap((s) => s.cases);
 
@@ -150,7 +157,7 @@ export function PracticePage() {
 
       <h2>公式组</h2>
       <div className="chips" role="group" aria-label="选择公式组">
-        {SETS.map((s) => (
+        {PRACTICE_SETS.map((s) => (
           <button key={s.id} className={`chip ${sets.includes(s.id) ? 'chip-on' : ''}`} aria-pressed={sets.includes(s.id)} onClick={() => toggleSet(s.id)}>
             {s.name}
           </button>

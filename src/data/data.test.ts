@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { algSolvesCase, caseFingerprint, caseState, cycleTypes, lintCase } from '../lib/cases';
+import { algSolvesCase2, caseFingerprint2, lintCase2 } from '../lib/cases2';
 import { parseAlg } from '../lib/alg';
 import { applyMoves } from '../lib/cube';
 import { ALL_CASES, SETS } from './index';
@@ -29,8 +30,13 @@ for (const set of SETS) {
       it(`${c.name}：公式合法且确实解决该情形`, () => {
         expect(c.algs.length).toBeGreaterThan(0);
         for (const alg of c.algs) expect(() => parseAlg(alg), alg).not.toThrow();
-        expect(lintCase(c)).toEqual([]);
-        for (const alg of c.algs) expect(algSolvesCase(c, alg), `备选公式不匹配：${alg}`).toBe(true);
+        if (set.method === '2x2') {
+          expect(lintCase2(c)).toEqual([]);
+          for (const alg of c.algs) expect(algSolvesCase2(c, alg), `备选公式不匹配：${alg}`).toBe(true);
+        } else {
+          expect(lintCase(c)).toEqual([]);
+          for (const alg of c.algs) expect(algSolvesCase(c, alg), `备选公式不匹配：${alg}`).toBe(true);
+        }
       });
     }
 
@@ -38,7 +44,7 @@ for (const set of SETS) {
       const seen = new Map<string, string>();
       const dupes: string[] = [];
       for (const c of set.cases) {
-        const fp = caseFingerprint(c);
+        const fp = set.method === '2x2' ? caseFingerprint2(c) : caseFingerprint(c);
         if (seen.has(fp)) dupes.push(`${seen.get(fp)} = ${c.name}`);
         else seen.set(fp, c.name);
       }

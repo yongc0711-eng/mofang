@@ -5,7 +5,7 @@ import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { ColorDialog } from './ColorDialog';
 import type { MethodId } from '../types';
 
-export function BrowseColorPanel({ method }: { method: MethodId }) {
+export function BrowseColorPanel({ method }: { method: Extract<MethodId, 'cfop' | 'roux'> }) {
   const prefs = useDevicePrefs();
   const colors = cleanBrowse(prefs, prefs.bottomColor);
   const current = colors[method];

@@ -8,7 +8,13 @@ import { PLL_CASES } from './pll';
 import { SBLS_CASES } from './sbls';
 import { EOLR_CASES } from './eolr';
 import { wvSet } from './wv';
+import { cllSet } from './cll';
+import { eg1Set } from './eg1';
+import { eg2Set } from './eg2';
 export { wvSet } from './wv';
+export { cllSet } from './cll';
+export { eg1Set } from './eg1';
+export { eg2Set } from './eg2';
 
 export const SETS: CaseSet[] = [
   { id: 'f2l', method: 'cfop', name: 'F2L', description: '前两层', expectedCount: 41, complete: true, view: 'iso', cases: F2L_CASES },
@@ -20,11 +26,15 @@ export const SETS: CaseSet[] = [
   { id: 'lse', method: 'roux', name: 'LSE', description: '最后六棱', expectedCount: null, complete: true, view: 'lse', cases: LSE_CASES },
   { id: 'sbls', method: 'roux', name: 'SBLS', description: '右桥最后一槽 FR 成对归位（65）', expectedCount: 65, complete: true, view: 'iso', cases: SBLS_CASES },
   { id: 'eolr', method: 'roux', name: 'EOLR', description: 'EO 与左右棱联合化归（51）', expectedCount: 51, complete: true, view: 'lse', cases: EOLR_CASES },
+  cllSet,
+  eg1Set,
+  eg2Set,
 ];
 
 export const METHODS: { id: MethodId; name: string; hint: string }[] = [
   { id: 'cfop', name: 'CFOP', hint: '十字 → F2L → OLL → PLL' },
   { id: 'roux', name: '桥式 Roux', hint: '两侧方块 → CMLL → LSE' },
+  { id: '2x2', name: '二阶', hint: 'CLL → EG-1 → EG-2' },
 ];
 
 export const ALL_CASES: AlgCase[] = SETS.flatMap((s) => s.cases);

@@ -30,3 +30,16 @@ describe('shared search semantics', () => {
     expect(matches(c, '', user)).toBe(true);
   });
 });
+
+import { ALL_CASES } from '../data';
+describe('2x2 search integration', () => {
+  it('matches 二阶, CLL, EG-1, EG-2 and 2x2 ids/names/groups without leaking into 3x3', () => {
+    const two = ALL_CASES.filter((x) => matches(x, '二阶', user));
+    expect(two).toHaveLength(126);
+    expect(ALL_CASES.filter((x) => matches(x, 'CLL', user)).every((x) => x.set === 'cll')).toBe(true);
+    expect(ALL_CASES.filter((x) => matches(x, 'EG-1', user))).toHaveLength(42);
+    expect(ALL_CASES.filter((x) => matches(x, 'EG-2', user))).toHaveLength(42);
+    expect(ALL_CASES.filter((x) => matches(x, 'cll-as-1', user)).map((x) => x.id)).toEqual(['cll-as-1']);
+    expect(ALL_CASES.filter((x) => matches(x, 'EG-1 Diagonal', user)).map((x) => x.id)).toEqual(['eg1-diag-1']);
+  });
+});

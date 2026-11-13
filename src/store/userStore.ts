@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { algSolvesCase } from '../lib/cases';
+import { algSolvesCase2, is2x2Set } from '../lib/cases2';
 import { type AlgCase, type LearnStatus, type UserCaseData, type UserData } from '../types';
 
 /**
@@ -123,7 +124,7 @@ function customSolves(c: AlgCase, alg: string): boolean {
   let r = solvesCache.get(key);
   if (r === undefined) {
     try {
-      r = algSolvesCase(c, alg);
+      r = is2x2Set(c.set) ? algSolvesCase2(c, alg) : algSolvesCase(c, alg);
     } catch {
       r = false;
     }

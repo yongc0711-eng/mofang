@@ -96,8 +96,11 @@ describe('各处图解的底色：默认白色不改变现有颜色；top 视图
   const render = (c: (typeof ALL_CASES)[number], view: 'top' | 'iso' | 'lse', bottom?: BottomColor) =>
     renderToStaticMarkup(createElement(CaseDiagram, { c, view, bottom }));
 
-  it('默认（不传）和白色逐字相同：卡片、练习页用的是每组自己的视图，覆盖全部 254 个情形', () => {
-    for (const s of SETS) {
+  it('默认（不传）和白色逐字相同：卡片、练习页用的是每组自己的视图，覆盖全部三阶情形', () => {
+    const sets3x3 = SETS.filter((s) => s.method !== '2x2');
+    expect(sets3x3).toHaveLength(9);
+    for (const s of sets3x3) {
+      if (s.view === 'top2' || s.view === 'both2') throw new Error(`unexpected 2x2 view: ${s.id}`);
       for (const c of s.cases) expect(render(c, s.view, 'white'), c.id).toBe(render(c, s.view));
     }
   });
@@ -106,6 +109,7 @@ describe('各处图解的底色：默认白色不改变现有颜色；top 视图
     for (const id of ['f2l-5', 'oll-27', 'pll-t', 'cmll-s-1', 'lse-eo-7']) {
       const c = getCase(id)!;
       const set = SETS.find((s) => s.id === c.set)!;
+      if (set.view === 'top2' || set.view === 'both2') throw new Error(`unexpected 2x2 view: ${set.id}`);
       const view = set.view === 'lse' ? 'top' : set.view;
       expect(render(c, view, 'white'), id).toBe(render(c, view));
     }

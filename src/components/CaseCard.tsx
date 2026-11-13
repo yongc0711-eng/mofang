@@ -3,18 +3,21 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { getSet } from '../data';
 import { viewCaseFor } from '../lib/cases';
+import { diagramColors2, is2x2Set, viewCaseFor2 } from '../lib/cases2';
 import { scrambleFor } from '../lib/practice';
 import { useDevicePrefs } from '../store/devicePrefs';
 import { primaryAlgOf, STATUS_LABEL, statusOf, useUserData } from '../store/userStore';
 import { type AlgCase } from '../types';
 import { CaseDiagram } from './CaseDiagram';
+import { CaseDiagram2 } from './CaseDiagram2';
 
 /**
  * 外面的图解（卡片、首页封面、练习页）按主公式的起手画，和详情页一致（T33）。
  * 没设主公式或主公式就是 algs[0] 时原样返回 c，不解析。
  */
 export function viewForPrimary(c: AlgCase, alg: string): AlgCase {
-  return alg === c.algs[0] ? c : viewCaseFor(c, alg);
+  if (alg === c.algs[0]) return c;
+  return is2x2Set(c.set) ? viewCaseFor2(c, alg) : viewCaseFor(c, alg);
 }
 
 /**
@@ -41,7 +44,9 @@ export function CaseCard({ c }: { c: AlgCase }) {
   const favorite = user.cases[c.id]?.favorite;
   return (
     <Link to={`/case/${c.id}`} className={`case-card${c.isBadCase ? ' case-card-bad' : ''}`}>
-      <CaseDiagram c={view} view={set.view} palette={palette} />
+      {set.view === 'top2' || set.view === 'both2'
+        ? <CaseDiagram2 colors={diagramColors2(view)} view={set.view} />
+        : <CaseDiagram c={view} view={set.view} palette={palette} />}
       <div className="case-card-body">
         <div className="case-card-title">
           <span className="case-name">{c.name}</span>

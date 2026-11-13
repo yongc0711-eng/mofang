@@ -4,8 +4,10 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CaseCard, practiceViewFor, viewForPrimary } from '../components/CaseCard';
 import { CaseDiagram } from '../components/CaseDiagram';
+import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { ALL_CASES, getCase, getSet } from '../data';
 import { caseState, viewCaseFor } from '../lib/cases';
+import { diagramColors2, is2x2Set } from '../lib/cases2';
 import { applyMoves, solved } from '../lib/cube';
 import { parseAlg } from '../lib/alg';
 import { scrambleFor } from '../lib/practice';
@@ -36,12 +38,16 @@ beforeEach(() => setPrimary(ALL_CASES[0], null));
 
 /** 带前置 U 的主公式：对顶层整体转动不敏感的组（OLL/PLL/CMLL）里，在 algs[0] 前加 U 仍解决同一情形 */
 const withPreU = (c: AlgCase) => `U ${c.algs[0]}`;
+const CASES_3X3 = ALL_CASES.filter((c) => !is2x2Set(c.set));
 const preUCases = ALL_CASES.filter((c) => ['oll', 'pll', 'cmll'].includes(c.set) && viewCaseFor(c, withPreU(c)) !== c);
 
 const card = (c: AlgCase) =>
   renderToStaticMarkup(createElement(MemoryRouter, null, createElement(CaseCard, { c })));
 const diagram = (c: AlgCase) => {
   const set = getSet(c.set)!;
+  if (set.view === 'top2' || set.view === 'both2') {
+    return renderToStaticMarkup(createElement(CaseDiagram2, { colors: diagramColors2(c), view: set.view }));
+  }
   // CaseCard 里 CaseDiagram 的 props：view 取自公式组，bottom 默认白
   return renderToStaticMarkup(createElement(CaseDiagram, { c, view: set.view, bottom: 'white' }));
 };
@@ -86,8 +92,8 @@ describe('T33 外面的图解跟主公式对齐', () => {
     for (const c of ALL_CASES) expect(viewForPrimary(c, c.algs[0])).toBe(c);
   });
 
-  it('437 条全部：带前置 U 的主公式下 viewForPrimary 和渲染都不抛错', () => {
-    expect(ALL_CASES.length).toBe(437);
+  it('563 条全部：带前置 U 的主公式下 viewForPrimary 和渲染都不抛错', () => {
+    expect(ALL_CASES.length).toBe(563);
     for (const c of ALL_CASES) {
       for (const alg of [withPreU(c), c.algs[c.algs.length - 1], 'not an alg ((']) {
         expect(() => diagram(viewForPrimary(c, alg))).not.toThrow();
@@ -125,11 +131,16 @@ describe('T33 外面的图解跟主公式对齐', () => {
     expect(r.scramble).toBe(scrambleFor(aa, () => 0));
   });
 
-  it('练习：无主公式（alg 就是 algs[0]）时和改动前一样', () => {
-    for (const c of ALL_CASES) {
+  it('练习：无主公式（alg 就是 algs[0]）时和改动前一样（三阶全部 437 条，二阶不接练习）', () => {
+    expect(CASES_3X3).toHaveLength(437);
+    for (const c of CASES_3X3) {
       const r = practiceViewFor(c, c.algs[0], () => 0);
       expect(r.view).toBe(c);
       expect(r.scramble).toBe(scrambleFor(c, () => 0));
+    }
+    for (const id of ['cll-as-1', 'eg1-h-1', 'eg2-h-1']) {
+      const c = getCase(id)!;
+      expect(() => practiceViewFor(c, c.algs[0], () => 0)).toThrow(`练习模式不支持二阶公式组：${c.set}`);
     }
   });
 

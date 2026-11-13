@@ -11,6 +11,7 @@ import practiceSource from '../pages/PracticePage.tsx?raw';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { caseState, displayColors, displayMask, SET_RULES } from '../lib/cases';
+import { is2x2Set } from '../lib/cases2';
 import { applyMoves, solved, stickerAt, STICKERS } from '../lib/cube';
 import { ALL_CASES } from '../data';
 import {
@@ -208,7 +209,7 @@ describe('ollTopMask / diagramMask / playerMask：2D 和 3D 的掩码分开', ()
 
 describe('图解按 mask 显示（CaseDiagram 用的 diagramColors）', () => {
   const oll = getSet('oll')!.cases[0];
-  const nonOll = ALL_CASES.filter((c) => c.set !== 'oll');
+  const nonOll = ALL_CASES.filter((c) => c.set !== 'oll' && !is2x2Set(c.set));
 
   it('其他组不传或 null：用该组默认的显示规则，和以前完全一样', () => {
     for (const c of nonOll) {
@@ -329,7 +330,7 @@ describe('CasePage 和「我的」页的接线（T32）', () => {
     expect(mePageSource).not.toContain('<h2>底面颜色</h2>');
     expect(mePageSource).not.toContain('aria-label="底面颜色"');
     expect(mePageSource).not.toContain('setDevicePrefs({ bottomColor:');
-    expect(METHODS.map(({ id, name }) => ({ id, name }))).toEqual([{ id: 'cfop', name: 'CFOP' }, { id: 'roux', name: '桥式 Roux' }]);
+    expect(METHODS.map(({ id, name }) => ({ id, name }))).toEqual([{ id: 'cfop', name: 'CFOP' }, { id: 'roux', name: '桥式 Roux' }, { id: '2x2', name: '二阶' }]);
     expect(homeSource.match(/<FormulaColors iconOnly \/>/g)).toHaveLength(1);
     expect(homeSource).not.toContain('<FormulaColors method={m.id} />');
   });
@@ -418,8 +419,10 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
   const oll = getSet('oll')!.cases[0];
   const pll = getSet('pll')!.cases[0];
 
-  it('白色且不传 mask：除 OLL 外和以前的 displayColors 完全一样（所有情形）；OLL 默认是顶层 9 张', () => {
-    for (const c of ALL_CASES) {
+  it('白色且不传 mask：除 OLL 外和以前的 displayColors 完全一样（三阶所有情形）；OLL 默认是顶层 9 张', () => {
+    const cases3x3 = ALL_CASES.filter((c) => !is2x2Set(c.set));
+    expect(cases3x3).toHaveLength(437);
+    for (const c of cases3x3) {
       if (c.set === 'oll') {
         expect(diagramColors(c, null, 'white'), c.id).toEqual(diagramColors(c, ollTopMask, 'white'));
       } else {
@@ -427,7 +430,7 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
       }
     }
     // 显式传该组的显示掩码，OLL 也和 displayColors 完全一样
-    for (const c of ALL_CASES) expect(diagramColors(c, displayMask(c), 'white'), c.id).toEqual(displayColors(c));
+    for (const c of cases3x3) expect(diagramColors(c, displayMask(c), 'white'), c.id).toEqual(displayColors(c));
   });
 
   it('其他底色：位置不变、只是颜色换了——显示哪些格子和白色时完全一样', () => {

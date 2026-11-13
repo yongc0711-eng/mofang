@@ -3,8 +3,10 @@ import { browsePalette } from '../lib/colorScheme';
 import { useMemo, useState } from 'react';
 import { HomeMethodDeck } from '../components/HomeMethodDeck';
 import { CaseDiagram } from '../components/CaseDiagram';
+import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
+import { diagramColors2 } from '../lib/cases2';
 import { useDevicePrefs } from '../store/devicePrefs';
 import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
 import { matches } from '../lib/search';
@@ -73,7 +75,9 @@ export function HomePage() {
               id: s.id, name: s.name, description: s.description,
               done: s.cases.filter((c) => statusOf(c, user) === 'mastered').length,
               total: s.cases.length,
-              diagram: <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />,
+              diagram: s.view === 'top2' || s.view === 'both2'
+                ? <CaseDiagram2 colors={diagramColors2(viewForPrimary(cover, primaryAlgOf(cover, user)))} view="top2" />
+                : <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />,
             };
           })} />)}
         </div>

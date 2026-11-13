@@ -41,8 +41,9 @@ function strictEnd(state: State) {
   for (const y of [1,-1]) expect(['U','D']).toContain(STICKERS[state[stickerAt([0,y,0],[0,y,0])]].face);
 }
 
-it('九组 437 情形、原顺序、51 主图解与 20 个 BAD CASE', () => {
-  expect(ALL_CASES).toHaveLength(437);
+it('十二组 563 情形（三阶九组 437 + 二阶三组 126）、原顺序、51 主图解与 20 个 BAD CASE', () => {
+  expect(ALL_CASES).toHaveLength(563);
+  expect(ALL_CASES.filter((c) => !['cll', 'eg1', 'eg2'].includes(c.set))).toHaveLength(437);
   expect(getSet('eolr')!.cases).toHaveLength(51);
   expect(EOLR_CASES.filter(c => c.isBadCase)).toHaveLength(20);
   expect(Object.fromEntries([...new Set(EOLR_CASES.map(c => c.group))].map(g => [g,EOLR_CASES.filter(c => c.group === g).length]))).toEqual({'3/1':8,'2a/2':7,'4/0':4,'2o/2':6,'2o/0':6,'0/2':4,'2a/0':7,'1/1':6,'4/2':3});

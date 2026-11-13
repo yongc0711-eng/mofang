@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
 
-const deck = (page: Page, method: 'cfop' | 'roux') => page.locator(`.home-method-deck[data-method="${method}"]`);
+const deck = (page: Page, method: 'cfop' | 'roux' | '2x2') => page.locator(`.home-method-deck[data-method="${method}"]`);
 const front = (method: Locator) => method.locator('.home-deck-card[aria-hidden="false"]:not([hidden])');
 const idle = (method: Locator) => expect(method).toHaveAttribute('data-motion', 'idle');
 const expand = (method: Locator) => method.getByRole('button', { name: /展开全部分组$/ });
@@ -23,17 +23,17 @@ async function swipe(page: Page, method: Locator, direction = 1, distance = 58, 
   await idle(method);
 }
 
-test('双卡堆：浅深色纯文字封面、卡内展开、九入口与搜索行配色', async ({ page }) => {
+test('三卡堆：浅深色纯文字封面、卡内展开、十二入口与搜索行配色', async ({ page }) => {
   const width = page.viewportSize()!.width;
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });await page.goto('/');
     await expect(page.getByRole('heading', { name: '三阶', exact: true })).toHaveCount(1);
-    await expect(page.locator('.home-method-deck')).toHaveCount(2);
+    await expect(page.locator('.home-method-deck')).toHaveCount(3);
     await expect(page.locator('.home-deck-cover .diagram')).toHaveCount(0);
-    await expect(page.locator('.set-card')).toHaveCount(9);
-    await expect(page.locator('.set-card .diagram')).toHaveCount(9);
+    await expect(page.locator('.set-card')).toHaveCount(12);
+    await expect(page.locator('.set-card .diagram')).toHaveCount(12);
     const nav = (await page.locator('.nav').boundingBox())!;
-    for (const method of [deck(page, 'cfop'), deck(page, 'roux')]) {
+    for (const method of [deck(page, 'cfop'), deck(page, 'roux'), deck(page, '2x2')]) {
       await expect(method).toHaveAttribute('data-index', '0');
       const card = (await front(method).boundingBox())!;
       expect(card.height).toBe(width === 320 ? 96 : 100);expect(card.width).toBeGreaterThan(card.height);
@@ -49,9 +49,9 @@ test('双卡堆：浅深色纯文字封面、卡内展开、九入口与搜索�
     expect(paletteBox.y).toBe(search.y);expect(paletteBox.x).toBeGreaterThan(search.x + search.width);
     await noOverflow(page);
     await page.screenshot({ path: `ui-review.local/home-decks/after-${width}-${colorScheme}.png` });
-    for (const method of [deck(page, 'cfop'), deck(page, 'roux')]) await expand(method).click();
-    await expect(page.locator('.set-card').filter({ visible: true })).toHaveCount(9);
-    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/f2l', '#/set/oll', '#/set/pll', '#/set/coll', '#/set/wv', '#/set/cmll', '#/set/lse', '#/set/sbls', '#/set/eolr']);
+    for (const method of [deck(page, 'cfop'), deck(page, 'roux'), deck(page, '2x2')]) await expand(method).click();
+    await expect(page.locator('.set-card').filter({ visible: true })).toHaveCount(12);
+    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/f2l', '#/set/oll', '#/set/pll', '#/set/coll', '#/set/wv', '#/set/cmll', '#/set/lse', '#/set/sbls', '#/set/eolr', '#/set/cll', '#/set/eg1', '#/set/eg2']);
     for (const link of await page.locator('.set-card').all()) {
       await link.evaluate(el => el.scrollIntoView({ block: 'center' }));
       const box = (await link.boundingBox())!,bottomNav = (await page.locator('.nav').boundingBox())!;
@@ -98,13 +98,13 @@ test('首页搜索、真实进度和方法配色继续工作，宽屏无溢出',
   expect(await pll.innerHTML()).toBe(beforeCfop);expect(await cmll.innerHTML()).not.toBe(beforeRoux);
   const query = page.getByRole('searchbox', { name: '搜索公式' });await query.fill('pll-t');
   await expect(page.locator('.home-results .case-card[href="#/case/pll-t"]')).toBeVisible();
-  await expect(page.locator('.home-results')).toContainText('找到');await expect(page.locator('.home-method-deck')).toHaveCount(2);
+  await expect(page.locator('.home-results')).toContainText('找到');await expect(page.locator('.home-method-deck')).toHaveCount(3);
   await query.fill('不存在的情形xyz123');await expect(page.locator('.home-results')).toContainText('没有匹配的公式');
   await query.fill('');await expect(page.locator('.home-results')).toHaveCount(0);await noOverflow(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect.poll(() => page.locator('.home-decks').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
-  const [first, second] = await page.locator('.home-method-deck').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().toJSON()));
-  expect(first.y).toBe(second.y);expect(first.x + first.width).toBeLessThan(second.x);await noOverflow(page);
+  const [first, second, third] = await page.locator('.home-method-deck').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().toJSON()));
+  expect(first.y).toBe(second.y);expect(first.x + first.width).toBeLessThan(second.x);expect(third.y).toBeGreaterThan(first.y);await noOverflow(page);
 });
 
 test.describe('正常动效与触屏', () => {

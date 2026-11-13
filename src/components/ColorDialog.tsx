@@ -3,10 +3,12 @@ import { createPortal } from 'react-dom';
 import { colorTabIndex, trappedFocusIndex } from '../lib/colorDialog';
 import type { MethodId } from '../types';
 
+type ColorMethodId = Extract<MethodId, 'cfop' | 'roux'>;
+
 export function ColorDialog({ open, title, onClose, children }: {
-  open: boolean; title: string; onClose: () => void; children: (method: MethodId) => ReactNode;
+  open: boolean; title: string; onClose: () => void; children: (method: ColorMethodId) => ReactNode;
 }) {
-  const [method, setMethod] = useState<MethodId>('cfop');
+  const [method, setMethod] = useState<ColorMethodId>('cfop');
   const id = useId();
   const dialog = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose); closeRef.current = onClose;

@@ -1,4 +1,5 @@
 import { caseState } from './cases';
+import { is2x2Set } from './cases2';
 import { scrambleFor } from './practice';
 import { compose } from './practiceTarget';
 import { applyMoves, type State } from './cube';
@@ -15,6 +16,7 @@ export interface TargetSample { state: State; auf: string; variation: number }
  * This finite sampler is intentionally NOT a uniform random-state generator.
  */
 export function sampleTarget(c: AlgCase, reference: string, rand = Math.random): TargetSample {
+  if (is2x2Set(c.set)) throw new Error(`练习模式不支持二阶公式组：${c.set}`);
   const options = ['oll', 'pll', 'cmll', 'coll'].includes(c.set) || (c.set === 'eolr' && c.targetTier === 'tier2') ? ['', 'U', "U'", 'U2'] : [''];
   const index = options.findIndex((_, i) => scrambleFor(c, () => (i + 0.01) / 4) === reference);
   if (index < 0) throw new Error('目标参考与情形不一致');

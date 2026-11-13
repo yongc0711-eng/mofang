@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { ALL_CASES, getSet } from '../data';
+import { ALL_CASES, SETS, getSet } from '../data';
 import { movesToString, parseAlg } from './alg';
 import { caseState } from './cases';
+import { is2x2Set } from './cases2';
 import { applyMoves, invertMoves, solved } from './cube';
 import { pickCase, scrambleFor } from './practice';
 import { type UserData } from '../types';
 
 const empty: UserData = { version: 1, cases: {} };
+const CASES_3X3 = ALL_CASES.filter((c) => !is2x2Set(c.set));
 
 describe('练习打乱', () => {
   it('WV 固定相连对起手，随机数不增加 AUF', () => {
@@ -16,7 +18,8 @@ describe('练习打乱', () => {
     }
   });
   it('不加 AUF 时为等价无转体公式的逆；无外围转体的定义逐步保持不变', () => {
-    for (const c of ALL_CASES) {
+    expect(CASES_3X3).toHaveLength(437);
+    for (const c of CASES_3X3) {
       const s = scrambleFor(c, () => 0);
       // Explicit x-conjugation expectations, not produced by the implementation.
       const mapped: Record<string, string> = {
@@ -26,6 +29,15 @@ describe('练习打乱', () => {
       if (c.set === 'eolr') expect(parseAlg(s)).toEqual(parseAlg(c.setup!));
       else expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
     }
+  });
+  it('练习打乱明确排除二阶（CLL / EG-1 / EG-2）', () => {
+    const cases2x2 = ALL_CASES.filter((c) => is2x2Set(c.set));
+    expect(cases2x2).toHaveLength(126);
+    for (const setId of ['cll', 'eg1', 'eg2'] as const) {
+      const first = getSet(setId)!.cases[0];
+      expect(() => scrambleFor(first, () => 0)).toThrow(`练习模式不支持二阶公式组：${setId}`);
+    }
+    expect(SETS.filter((s) => s.method !== '2x2').map((s) => s.id)).toEqual(['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls', 'eolr']);
   });
   it('原有 OLL/PLL/CMLL 的 AUF 与 F2L 固定起手保持不变', () => {
     const pll = getSet('pll')!.cases[0];
@@ -81,9 +93,9 @@ describe('打乱与主公式无关', () => {
   it('起始状态只由 algs[0] 决定，用户选了别的主公式也一样', async () => {
     const { setPrimaryAlg, addCustomAlg, importUserData } = await import('../store/userStore');
     importUserData(JSON.stringify(empty));
-    for (const c of ALL_CASES) {
+    for (const c of CASES_3X3) {
       const expected = scrambleFor(c, () => 0);
-      const other = c.algs[1] ?? ALL_CASES.find((x) => x.id !== c.id)!.algs[0];
+      const other = c.algs[1] ?? CASES_3X3.find((x) => x.id !== c.id)!.algs[0];
       addCustomAlg(c.id, other, false);
       setPrimaryAlg(c.id, other);
       expect(scrambleFor(c, () => 0)).toBe(expected);
@@ -102,7 +114,7 @@ describe('打乱与主公式无关', () => {
 });
 
 describe('固定起手、无整体转体的打乱（T22）', () => {
-  for (const c of ALL_CASES) {
+  for (const c of CASES_3X3) {
     it(`${c.id}：打乱不含 x/y/z`, () => {
       expect(parseAlg(scrambleFor(c, () => 0)).filter((m) => ['x', 'y', 'z'].includes(m.base))).toEqual([]);
     });

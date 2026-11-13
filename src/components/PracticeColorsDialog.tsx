@@ -6,7 +6,7 @@ import { togglePoolBottom, togglePoolPair, type PracticeColorPools } from '../li
 import type { MethodId } from '../types';
 
 export function PracticeColorPanel({ method, colorPools, onChange }: {
-  method: MethodId; colorPools: PracticeColorPools; onChange: Dispatch<SetStateAction<PracticeColorPools>>;
+  method: Extract<MethodId, 'cfop' | 'roux'>; colorPools: PracticeColorPools; onChange: Dispatch<SetStateAction<PracticeColorPools>>;
 }) {
   const { cfopBottoms, rouxBottoms, rouxPairsByBottom } = colorPools;
   return <>

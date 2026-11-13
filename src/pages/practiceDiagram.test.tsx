@@ -22,6 +22,7 @@ for (const id of ['oll-27', 'pll-t']) {
   const base = getCase(id)!;
   const c = viewCaseFor(base, 'U ' + base.algs[0]);
   const set = getSet(c.set)!;
+  if (set.view === 'top2' || set.view === 'both2') throw new Error(`unexpected 2x2 view: ${c.set}`);
   const props = { c, view: set.view, bottom: 'white' as const };
   const canonical = () => renderToStaticMarkup(createElement(CaseDiagram, props));
   const state = applyMoves(caseState(c), parseAlg('U'));

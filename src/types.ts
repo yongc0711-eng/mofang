@@ -1,4 +1,4 @@
-export type MethodId = 'cfop' | 'roux';
+export type MethodId = 'cfop' | 'roux' | '2x2';
 export type SetId = 'f2l' | 'oll' | 'pll' | 'coll' | 'wv' | 'cmll' | 'lse' | 'sbls' | 'eolr' | 'cll' | 'eg1' | 'eg2';
 
 /** 一个公式情形。图解由 algs[0] 的逆推导出，所以 algs[0] 决定这个情形的“标准摆法”。 */
@@ -36,7 +36,7 @@ export interface CaseSet {
   /** 录入完成后改为 true，测试会严格检查数量 */
   complete: boolean;
   /** 列表和详情使用的图解视角 */
-  view: 'top' | 'iso' | 'lse';
+  view: 'top' | 'iso' | 'lse' | 'top2' | 'both2';
   cases: AlgCase[];
 }
 

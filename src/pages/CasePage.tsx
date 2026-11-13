@@ -9,10 +9,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlgKeyboard } from '../components/AlgKeyboard';
 import { editAlgDraft } from '../lib/algKeyboard';
 import { CaseDiagram } from '../components/CaseDiagram';
+import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
 import { algSolvesCase, lintCaseAlg, viewCaseFor } from '../lib/cases';
+import { algSolvesCase2, diagramColors2, is2x2Set, lintCaseAlg2, viewCaseFor2 } from '../lib/cases2';
 import {
   STATUS_LABEL,
   addCustomAlg,
@@ -47,15 +49,16 @@ export function CasePage() {
   const palette = useMemo(() => browsePalette(c ?? { set: '' }, prefs), [c, prefs]);
   const caseSet = c?.set;
   const caseGroup = c?.group;
+  const is2x2 = !!caseSet && is2x2Set(caseSet);
   // 2D 和 3D 的掩码分开算：2D 里 OLL 固定只显示顶层的 9 张，其他组看“只看相关的块”；
   // 3D 所有组一样，默认完整魔方，开了“只看相关的块”才只显示相关的块
   const maskFor2D = useMemo(
-    () => (caseSet && caseGroup !== undefined ? diagramMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
-    [prefs.focusRelevant, caseSet, caseGroup],
+    () => (!is2x2 && caseSet && caseGroup !== undefined ? diagramMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
+    [is2x2, prefs.focusRelevant, caseSet, caseGroup],
   );
   const maskFor3D = useMemo(
-    () => (caseSet && caseGroup !== undefined ? playerMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
-    [prefs.focusRelevant, caseSet, caseGroup],
+    () => (!is2x2 && caseSet && caseGroup !== undefined ? playerMask({ set: caseSet, group: caseGroup }, { focusRelevant: prefs.focusRelevant }) : null),
+    [is2x2, prefs.focusRelevant, caseSet, caseGroup],
   );
   const [draft, setDraft] = useState('');
   const [keyboardOpen, setKeyboardOpenState] = useState(false);
@@ -93,7 +96,10 @@ export function CasePage() {
   const playbackAlg = includeContinuation ? [playing, c?.continuationAlg].filter(Boolean).join(' ') : playing;
   // 图解的起手要和 3D 播放器一致：播放器从 playing 的逆开始，所以图解也用 playing 推导。
   // 解决不了该情形（自定义的错公式）或判断出错时回退到 c，不显示错起手（见 viewCaseFor）
-  const viewCase = useMemo(() => (c ? viewCaseFor(c, playing) : c), [c, playing]);
+  const viewCase = useMemo(
+    () => (!c ? c : is2x2Set(c.set) ? viewCaseFor2(c, playing) : viewCaseFor(c, playing)),
+    [c, playing],
+  );
 
   if (!c || !viewCase) {
     return (
@@ -116,12 +122,21 @@ export function CasePage() {
     if (!alg) return;
     let solves: boolean;
     try {
-      const problems = lintCaseAlg(c, alg);
-      if (problems.length) {
-        setMessage({ kind: 'error', text: problems.join('；') });
-        return;
+      if (is2x2Set(c.set)) {
+        const problem = lintCaseAlg2(alg);
+        if (problem) {
+          setMessage({ kind: 'error', text: problem });
+          return;
+        }
+        solves = parseAlg(alg).length > 0 && algSolvesCase2(c, alg);
+      } else {
+        const problems = lintCaseAlg(c, alg);
+        if (problems.length) {
+          setMessage({ kind: 'error', text: problems.join('；') });
+          return;
+        }
+        solves = parseAlg(alg).length > 0 && algSolvesCase(c, alg);
       }
-      solves = parseAlg(alg).length > 0 && algSolvesCase(c, alg);
     } catch (e) {
       setMessage({ kind: 'error', text: `公式格式有误：${(e as Error).message}` });
       return;
@@ -139,7 +154,7 @@ export function CasePage() {
 
   const customSolves = (alg: string) => {
     try {
-      return algSolvesCase(c, alg);
+      return is2x2Set(c.set) ? algSolvesCase2(c, alg) : algSolvesCase(c, alg);
     } catch {
       return false;
     }
@@ -188,7 +203,9 @@ export function CasePage() {
         ‹ 返回
       </button>
       <header className="case-head">
-        <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />
+        {set.view === 'top2' || set.view === 'both2'
+          ? <CaseDiagram2 colors={diagramColors2(viewCase)} view={set.view} />
+          : <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />}
         <div className="case-identity">
           <div className="case-title-row" data-long-name={c.set === 'eolr' || c.name.length > 12}>
             <h1 className="page-title">{c.name}</h1>
@@ -219,15 +236,21 @@ export function CasePage() {
 
       <div className="case-layout">
         <div className="case-player">
-          {c.setup !== undefined ? <CubePlayer alg={playbackAlg} setup={c.setup} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} /> : <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />}
+          {set.method === '2x2'
+            ? <CubePlayer alg={playing} autoPlay={false} finish={prefs.finish} size={2} />
+            : c.setup !== undefined
+              ? <CubePlayer alg={playbackAlg} setup={c.setup} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />
+              : <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />}
           {c.continuationAlg && <button type="button" className={`chip eolr-continuation${includeContinuation ? ' chip-on' : ''}`} aria-pressed={includeContinuation} title="接续对应内置短公式" disabled={playing !== c.algs[0]} onClick={() => setContinuationFor(includeContinuation ? null : c.id)}>接续 4b</button>}
-          <button
-            className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
-            aria-pressed={prefs.focusRelevant}
-            onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
-          >
-            只看相关的块
-          </button>
+          {!is2x2 && (
+            <button
+              className={`chip focus-chip ${prefs.focusRelevant ? 'chip-on' : ''}`}
+              aria-pressed={prefs.focusRelevant}
+              onClick={() => setDevicePrefs({ focusRelevant: !prefs.focusRelevant })}
+            >
+              只看相关的块
+            </button>
+          )}
           {/* 手机上播放器占首屏，这个提示条告诉用户下面还有内容；宽屏两栏同屏，不显示（T48） */}
           <button
             className="peek-cue"

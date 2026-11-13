@@ -1,5 +1,6 @@
 import { applyMoves, invertMoves, solved, type Move } from './cube';
 import { movesToString, parseAlg } from './alg';
+import { is2x2Set } from './cases2';
 import { type AlgCase, type LearnStatus, type SetId, type UserData } from '../types';
 
 /** 只有顶层整体转动不改变情形的公式组才加随机 AUF；F2L、LSE 和 SBLS 的起始状态对 U 敏感 */
@@ -41,6 +42,7 @@ function withoutOuterRotations(moves: Move[], id: string): Move[] {
  * 起始状态只由情形决定，和用户选的主公式无关，所以不接收公式参数。
  */
 export function scrambleFor(c: AlgCase, rand: () => number = Math.random): string {
+  if (is2x2Set(c.set)) throw new Error(`练习模式不支持二阶公式组：${c.set}`);
   if (c.setup !== undefined) {
     const auf = c.set === 'eolr' && c.targetTier === 'tier2' ? AUFS[Math.min(3,Math.max(0,Math.floor(rand() * 4)))] : '';
     return [auf,movesToString(parseAlg(c.setup))].filter(Boolean).join(' ');
