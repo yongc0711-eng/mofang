@@ -182,3 +182,13 @@
 - 本轮不做练习，`practice.ts` / `practiceSample.ts` 的集合列表保持 `oll / pll / cmll / coll / eolr`，新增断言锁住 2×2 不会被抽到；练习配色池、计时、setup 均不改。2×2 的 2D / 3D 固定黄顶绿前，不接六底配色（没有中心可对齐）。
 - `CubeScene` 参数化新增可选 `size: 2 | 3`（默认 3），3×3 渲染行为不得改变；`CaseSet.view` 新增 `'top2'` / `'both2'`，CLL 只画顶视，EG-1 / EG-2 画顶视 + 底视。
 - 数据与既有断言：新增集合会改变首页卡堆分组数、情形总数（437 → 563）、首页卡数（9 → 12）等精确断言，允许按真实值**等强更新**；禁止删除、skip 或放宽既有断言（遵循 D6）。
+
+## D25 EG-1 / EG-2 的不变量与来源口径（2026-11-13）
+
+- 三条不变量一起成立，既是 `preserve` 也是数据校验的口径：CLL 底层 12 张贴纸逐张归位；EG-1 底面四角全部定向（4 个 D 色都在 D 面）且底层恰好 1 条同色相邻 bar；EG-2 底面四角全部定向且底层 0 条 bar。三条都排除「六面各自单色」的伪情形。
+- bar 只有一份实现 `bottomBarCount2`（F/R/B/L 各取底层两格），EG-1 / EG-2 规则共用；实测 CLL 4 条、EG-1 1 条、EG-2 0 条。
+- barCount 只是近似分类：底层 4-cycle 同样是 0 条 bar，单看 bar 分不开 4-cycle 与对角换。真正防止三组串味的是「126 条按 24 朝向指纹两两不同」的互斥测试（`eg1.test.ts`），不变量异常时报具体 id，不放宽条件。
+- 来源口径：EG-1 42 = SpeedCubeDB EG1 40 + J Perm PBL 2；EG-2 42 = SpeedCubeDB EG2 40 + J Perm PBL 2（`Diagonal D: Adj/Diag` 与 `Diag/Diag`）。J Perm 的 EG-1 页实为 43 条，多出的 `Ortega: Solved` 是占位，去掉才是 42。
+- 公式一律不含 x/y/z：SpeedCubeDB 带前置 y / y' / y2 的写法按 y 共轭换成等价无转体式（EG-1 22 条、EG-2 6 条），换算后起手仍是「底面全定向」。
+- 名称对齐：`eg1.names.test.ts` / `eg2.names.test.ts` 把来源的 40 条 OLL 形态逐条按 group + 序号对齐（本地 name 必须等于来源 name），两条 PBL 单独对齐；离线参考表逐条可在来源页面原文中命中，不依赖网络。
+- `SET_RULES` 里的 cll / eg1 / eg2 三个占位共用 `twoByTwoPlaceholder(label)`，被调用即抛错，避免 2×2 误走三阶路径时静默放行。
