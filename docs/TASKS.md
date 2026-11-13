@@ -2,7 +2,7 @@
 
 ## 当前状态（2026-11-12）
 
-- **分工：** Lead = Gemini 4 / Antigravity；Executor = Codex；Auditor / Release = 独立复核者；Router = 用户。Claude 账号不可用，旧分工不再适用；细则见 `AGENTS.md`。
+- **分工：** Lead = Gemini 4 / Antigravity；Executor = Codex（额度用尽期间由 Gemini 4 Hydrogen 代班）；Auditor / Release = 独立复核者；Router = 用户。Claude 账号不可用，旧分工不再适用；细则见 `AGENTS.md`。
 - **公式数据：** 9 个公式集、437 条已录完：F2L 41、OLL 57、PLL 21、COLL 40、WV 27、CMLL 42、LSE 93、SBLS 65、EOLR 51。来源见 `docs/decisions.md` 和各数据文件开头。
 - **功能：** 列表、搜索、进度、收藏、自定义公式、备份导入导出、练习模式都已完成。
 - **3D 播放器：** Three.js 版已合并并上线，cubing.js 已移除。
@@ -15,7 +15,8 @@
 
 ## 未完成
 
-- 暂无。EOLR 已按 Lead 的 `ea262a9` 规格实现并合并，调研、勘误与显示口径仍保留在 `tasks/EOLR.md`。
+- [2x2](tasks/2x2.md) 二阶 CLL / EG-1 / EG-2 各 42 条（共 126）：新增 24 贴纸引擎 `src/lib/cube2.ts`、独立 `cases2.ts` 规则、2×2 图解与 `CubeScene` 参数化、首页第三叠「二阶」；本轮只做查询与 2D/3D，不做练习。分 P1–P4 四期，执行方为代班的 Gemini 4 Hydrogen（分支 `hydro/2x2-p1` 起）。
+- EOLR 已按 Lead 的 `ea262a9` 规格实现并合并，调研、勘误与显示口径仍保留在 `tasks/EOLR.md`。
 
 ## 已完成（T15、T16、T21–T30、T32、T33、T56、T58、T59、T60a、T60b、T61、T62、T63、T64、T65、T66、T68、T69、T70、UI-polish、UI-home-decks、UI-home-deck-tap、T71、COLL、SBLS、WV、EOLR；T56-fix 已合并）
 
