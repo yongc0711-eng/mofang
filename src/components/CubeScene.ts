@@ -264,6 +264,8 @@ export class CubeScene {
     const halfFov = (this.camera.fov * Math.PI) / 360;
     const fit = (2.75 * this.scale) / Math.sin(halfFov);
     this.camera.position.set(0, 0, w < h ? fit / this.camera.aspect : fit);
+    // 二阶色块更大，取景略留白；按页面断点区分手机与桌面，不改变三阶。
+    if (this.size === 2) this.camera.zoom = window.matchMedia('(max-width: 799px)').matches ? 0.88 : 0.82;
     this.camera.updateProjectionMatrix();
     this.redraw();
   }

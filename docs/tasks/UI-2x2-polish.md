@@ -48,3 +48,13 @@
 - `after-{320,390}-{cll-adj-1,eg1-adj-1,eg2-diag-1,eg2-h-1}-{light,dark}.png` 等详情帧。
 
 浏览器为 Chromium 触屏模拟；实体安卓手机尚未复测。
+
+## 二阶取景缩小（2026-11-15 追加）
+
+用户认为二阶模型占画面过满，确认手机缩小约12%、桌面缩小约18%。在`82004a6`上追加修复，仅修改`CubeScene.resize()`中的二阶相机zoom：视口≤799px为0.88，≥800px为0.82。沿用现有ResizeObserver，窗口改变时重新取景；三阶相机仍使用原zoom=1，不改模型几何、旋转、引擎、数据或播放逻辑。
+
+播放器、canvas、速度按钮、提示条、导航与2D图解的布局不变；320/390/1280、浅/深色六组浏览器实测与上一版几何逐项一致，单步与回到开头可用。只改取景，没有修改CSS或既有测试。
+
+验证：`npm test`7150/70、`npm run check:data`1251/15、`npm run build`通过；`npm run test:visual -- --workers=2`74条通过，无skip。
+
+截图：`ui-review.local/2x2-framing/before-{320,390,1280}-{light,dark}.png`与`after-{320,390,1280}-{light,dark}.png`；几何记录`geometry.json`。分支仍为`codex/ui-lab-polish`，不合并、不push。
