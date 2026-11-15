@@ -826,6 +826,38 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .case-page .alg-play .small { margin-top: 8px; font-size: 0.75rem; }
 .case-page .alg-actions { margin-top: 8px; }
 .case-page .alg-keyboard-toggle { color: var(--muted); background: var(--surface); border-color: var(--border); font-size: 0.8125rem; }
+
+/* 二阶：图解保留完整尺寸，公式与长说明有独立空间；不改三阶图解和播放器预算。 */
+.diagram[data-view] { display: flex; gap: 4px; }
+.diagram-face { flex: 1; min-width: 0; margin: 0; }
+.diagram-face figcaption { color: var(--muted); font-size: .6875rem; line-height: 16px; text-align: center; }
+.set-card .diagram-face figcaption { display: none; }
+.home-method-deck[data-method="2x2"] { --home-deck-expanded-height: 96px; }
+.home-method-deck[data-method="2x2"] .set-title { display: block; }
+.home-method-deck[data-method="2x2"] .set-title strong { display: block; font-size: 1.125rem; line-height: 1.25; }
+.home-method-deck[data-method="2x2"] .set-title > .small { display: block; font-size: .6875rem; line-height: 1.5; }
+.home-method-deck[data-method="2x2"][data-expanded="false"] .set-body { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; }
+.home-method-deck[data-method="2x2"][data-expanded="false"] .set-title { display: contents; }
+.home-method-deck[data-method="2x2"][data-expanded="false"] .set-title strong { grid-column: 1; grid-row: 1; }
+.home-method-deck[data-method="2x2"][data-expanded="false"] .set-title > .small { grid-column: 1 / -1; grid-row: 2; }
+.home-method-deck[data-method="2x2"][data-expanded="false"] .set-body > .small { grid-column: 2; grid-row: 1; align-self: center; font-size: .6875rem; }
+.case-card:has(> .diagram[data-view="both2"]) { display: grid; grid-template-columns: 132px minmax(0, 1fr) auto; gap: 10px 12px; }
+.case-card .diagram[data-view="both2"] { width: 132px; grid-column: 1; grid-row: 1; }
+.case-card:has(> .diagram[data-view="both2"]) .case-card-body { display: contents; }
+.case-card:has(> .diagram[data-view="both2"]) .case-card-title { grid-column: 2; grid-row: 1; margin: 0; }
+.case-card:has(> .diagram[data-view="both2"]) .case-card-arrow { grid-column: 3; grid-row: 1; }
+.case-card:has(> .diagram[data-view="both2"]) .alg { grid-column: 1 / -1; grid-row: 2; }
+.case-page[data-size="2"] .case-head { position: relative; gap: 8px 12px; margin-bottom: 8px; align-items: flex-start; }
+.case-page[data-size="2"] .case-head .diagram { width: 64px; height: 80px; flex-direction: row; align-items: flex-start; }
+.case-page[data-size="2"] .case-head .diagram[data-view="both2"] { width: 132px; }
+.case-page[data-size="2"] .case-head .diagram svg { width: 64px; height: 64px; }
+.case-page[data-size="2"] .case-title-row .page-title { font-size: clamp(1.25rem, 6vw, 1.5rem); line-height: 1.3; }
+.case-page[data-size="2"] .case-identity { padding-top: 8px; }
+.case-page[data-size="2"] .fav-btn { position: absolute; top: -44px; right: 0; }
+.player[data-size="2"] .player-scene { width: 100%; height: 100%; }
+@media (max-width: 799px) {
+  .player[data-size="2"] .player-stage { display: block; padding-top: 40px; }
+}
 @media (min-width: 800px) {
   .set-head { margin-bottom: 24px; }
   .set-status-filter { max-width: 440px; }

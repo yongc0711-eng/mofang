@@ -125,7 +125,7 @@ export function CasePage() {
       if (is2x2Set(c.set)) {
         const problem = lintCaseAlg2(alg);
         if (problem) {
-          setMessage({ kind: 'error', text: problem });
+          setMessage({ kind: 'error', text: problem.replace('Unsupported 2x2 move base: ', '二阶不支持此转法：') });
           return;
         }
         solves = parseAlg(alg).length > 0 && algSolvesCase2(c, alg);
@@ -198,7 +198,7 @@ export function CasePage() {
   );
 
   return (
-    <div className="page case-page">
+    <div className="page case-page" data-size={is2x2 ? 2 : undefined}>
       <button className="back" onClick={() => navigate(-1)}>
         ‹ 返回
       </button>
@@ -327,6 +327,7 @@ export function CasePage() {
             <div key={keyboardEntry} ref={keyboardRef} className="alg-keyboard-wrap">
               <AlgKeyboard
                 id={keyboardId}
+                size={is2x2 ? 2 : 3}
                 empty={draft.length === 0}
                 onEdit={(edit) => {
                   setDraft((current) => editAlgDraft(current, edit));

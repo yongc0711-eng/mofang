@@ -1,15 +1,16 @@
-import { ALG_MOVE_KEYS, type AlgKeyboardEdit } from '../lib/algKeyboard';
+import { ALG_BASE_KEYS, ALG_MOVE_KEYS, type AlgKeyboardEdit } from '../lib/algKeyboard';
 
-export function AlgKeyboard({ id, empty, onEdit }: {
+export function AlgKeyboard({ id, empty, onEdit, size = 3 }: {
   id: string;
   empty: boolean;
   onEdit: (edit: AlgKeyboardEdit) => void;
+  size?: 2 | 3;
 }) {
   return (
     <div id={id} className="alg-keyboard" role="group" aria-label="公式键盘">
-      <p className="muted small">先点转法，再点 '、2 或 3；小写表示宽转。</p>
+      <p className="muted small">{size === 2 ? "先点转法，再点 '、2 或 3；二阶公式只使用六个面的转动。" : "先点转法，再点 '、2 或 3；小写表示宽转。"}</p>
       <div className="alg-keyboard-moves">
-        {ALG_MOVE_KEYS.map((token) => (
+        {(size === 2 ? ALG_BASE_KEYS : ALG_MOVE_KEYS).map((token) => (
           <button type="button" key={token} onClick={() => onEdit({ type: 'append', token })}>{token}</button>
         ))}
       </div>

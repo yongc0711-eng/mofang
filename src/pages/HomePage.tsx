@@ -28,6 +28,12 @@ const COVER: Record<SetId, string> = {
   eg2: 'eg2-h-1',
 };
 
+const TWO_BY_TWO_SUMMARY: Partial<Record<SetId, string>> = {
+  cll: '底层已还原 · 完成顶层',
+  eg1: '底面完成 · 一条底层同色边',
+  eg2: '底面完成 · 无底层同色边',
+};
+
 export function HomePage() {
   const [q, setQ] = useState('');
   const user = useUserData();
@@ -72,7 +78,7 @@ export function HomePage() {
           {METHODS.map((m) => <HomeMethodDeck key={m.id} method={m.id} name={m.id === 'roux' ? '桥式' : m.name} items={SETS.filter((s) => s.method === m.id).map((s) => {
             const cover = getCase(COVER[s.id]) ?? s.cases[0];
             return {
-              id: s.id, name: s.name, description: s.description,
+              id: s.id, name: s.name, description: s.description, summary: TWO_BY_TWO_SUMMARY[s.id],
               done: s.cases.filter((c) => statusOf(c, user) === 'mastered').length,
               total: s.cases.length,
               diagram: s.view === 'top2' || s.view === 'both2'

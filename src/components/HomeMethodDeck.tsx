@@ -7,6 +7,7 @@ export interface HomeDeckItem {
   id: SetId;
   name: string;
   description: string;
+  summary?: string;
   done: number;
   total: number;
   diagram: ReactNode;
@@ -308,7 +309,7 @@ export function HomeMethodDeck({ method, name, items }: { method: MethodId; name
         return <article key={item?.id ?? 'cover'} ref={node => { cards.current[index] = node; }} className={`home-deck-card${item ? '' : ' home-deck-cover'}`} data-cover={!item || undefined} data-set={item?.id} data-depth={view.expanded ? 0 : depth} aria-hidden={!available} inert={!available} hidden={!item && view.expanded} style={{ transform, zIndex: view.expanded ? 1 : 20 - depth }}>
           {item ? <Link to={`/set/${item.id}`} className="set-card">
             <div className="set-body">
-              <div className="set-title"><strong>{item.name}</strong><span className="muted small">{item.description}</span></div>
+              <div className="set-title"><strong>{item.name}</strong><span className="muted small" title={item.summary ? item.description : undefined}>{item.summary ?? item.description}</span></div>
               <span className="muted small">已掌握 {item.done} / {item.total}</span>
               <div className="progress" aria-hidden="true"><div style={{ width: `${item.total ? item.done / item.total * 100 : 0}%` }} /></div>
             </div>

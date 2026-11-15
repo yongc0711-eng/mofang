@@ -15,3 +15,11 @@ it('T42 empty draft disables suffixes, backspace and clear; move keys stay usabl
   expect(html).toMatch(/disabled=""[^>]*>退格/);
   expect(html).toMatch(/disabled=""[^>]*>清空/);
 });
+
+it('二阶仅提供六个面转法，保留全部后缀与编辑键，不引导输入宽转', () => {
+  const html = renderToStaticMarkup(createElement(AlgKeyboard, { id: 'keyboard2', size: 2, empty: false, onEdit: () => {} }));
+  const keys = [...html.matchAll(/<button[^>]*>([^<]*)<\/button>/g)].map(match => match[1]);
+  expect(keys).toEqual(['R', 'L', 'U', 'D', 'F', 'B', '&#x27;', '2', '3', '退格', '清空']);
+  expect(html).toContain('二阶公式只使用六个面的转动');
+  expect(html).not.toContain('小写表示宽转');
+});

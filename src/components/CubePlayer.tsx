@@ -214,14 +214,12 @@ export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 
 
   if (error) return <div className="player player-error">这台设备无法显示 3D 魔方</div>;
 
+  const loading = <div className="player-loading"><span className="spinner" aria-hidden="true" />正在加载 3D 魔方…</div>;
   return (
-    <div className="player">
-      <div className="player-stage" ref={host}>
-        <div className="player-loading">
-          <span className="spinner" aria-hidden="true" />
-          正在加载 3D 魔方…
-        </div>
-      </div>
+    <div className="player" data-size={size === 2 ? 2 : undefined}>
+      {size === 2
+        ? <div className="player-stage"><div className="player-scene" ref={host}>{loading}</div></div>
+        : <div className="player-stage" ref={host}>{loading}</div>}
 
       <ol className="move-track" aria-label="公式步骤">
         {tokens.map((m, i) => (

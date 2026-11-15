@@ -146,15 +146,15 @@ export const CaseDiagram2 = memo(function CaseDiagram2({
 }) {
   if (view === 'top2') {
     return (
-      <div className="diagram">
-        <TopView2 colors={colors} />
+      <div className="diagram" data-view={view}>
+        <figure className="diagram-face"><TopView2 colors={colors} label="顶视图" /><figcaption>顶视</figcaption></figure>
       </div>
     );
   }
   return (
-    <div className="diagram" style={{ display: 'flex', gap: 4 }}>
-      <TopView2 colors={colors} label="顶视图" />
-      <BottomView2 colors={colors} label="底视图" />
+    <div className="diagram" data-view={view}>
+      <figure className="diagram-face"><TopView2 colors={colors} label="顶视图" /><figcaption>顶视</figcaption></figure>
+      <figure className="diagram-face"><BottomView2 colors={colors} label="底视图" /><figcaption>底视</figcaption></figure>
     </div>
   );
 });
