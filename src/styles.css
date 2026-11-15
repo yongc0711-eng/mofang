@@ -645,19 +645,44 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 /* 首页搜索结果横跨宽屏两列，窄屏仍收在正文内。 */
 .home-results { grid-column: 1 / -1; min-width: 0; margin-bottom: 16px; }
 
-/* 试转页：紧凑的三行按键；不影响公式播放器的高度预算。 */
+/* 试转页：舞台、键盘、次要操作分层；只影响 sandbox，不改变详情播放器预算。 */
+.play-head { margin-bottom: 16px; }
+.play-head .page-title { margin-bottom: 6px; font-size: 1.75rem; font-weight: 600; line-height: 1.25; }
+.play-head .small { font-size: .75rem; line-height: 1.6; }
 .sandbox-layout { display: grid; gap: 12px; min-width: 0; }
-.sandbox-stage { width: 100%; height: 220px; min-width: 0; }
-/* 320×640 时 220px 会把撤销/复原压到底栏下面；缩到 180 留出空间。 */
-@media (max-width: 360px) { .sandbox-stage { height: 180px; } }
-.sandbox-controls { min-width: 0; }
-.sandbox-suffix, .sandbox-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
-.sandbox-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.sandbox-controls button { min-height: 44px; min-width: 44px; }
-.sandbox-controls button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
+.sandbox-view { position: relative; min-width: 0; }
+.sandbox-loading { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; color: var(--muted); font-size: .8125rem; pointer-events: none; }
+.sandbox-stage { width: 100%; height: 260px; min-width: 0; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); }
+.sandbox-controls { min-width: 0; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); }
+.sandbox-toolbar, .sandbox-modifier, .sandbox-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }
+.sandbox-control-label { color: var(--muted); font-size: .75rem; }
+.sandbox-modifier { justify-content: flex-start; }
+.sandbox-suffix { display: flex; gap: 2px; padding: 3px; background: var(--surface-2); border-radius: var(--radius-small); }
+.sandbox-controls .btn { min-height: 36px; min-width: 36px; padding: 6px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: var(--radius-small); box-shadow: none; font-size: .8125rem; font-weight: 500; }
+.sandbox-suffix .btn { padding: 4px 8px; border-color: transparent; background: transparent; color: var(--muted); font-size: .875rem; }
+.sandbox-suffix .btn[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.sandbox-controls .sandbox-more { display: inline-flex; align-items: center; gap: 4px; flex: none; padding-inline: 8px; border-color: transparent; color: var(--muted); }
+.sandbox-more[aria-pressed="true"] svg { transform: rotate(180deg); }
+.sandbox-keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.sandbox-keys .btn { min-height: 48px; font-size: 1.125rem; font-weight: 600; }
+.sandbox-keys .btn:nth-child(n+7) { background: var(--surface-2); border-color: transparent; color: var(--muted); font-size: 1rem; }
+.sandbox-footer { margin-top: 12px; }
+.sandbox-actions { display: flex; gap: 4px; }
+.sandbox-actions .btn { border-color: transparent; color: var(--muted); }
+.sandbox-queue { flex: none; font-size: .6875rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media (max-width: 360px), (max-width: 799px) and (max-height: 700px) {
+  .play-head { margin-bottom: 12px; }
+  .sandbox-stage { height: 180px; }
+  .sandbox-keys { margin-top: 10px; }
+  .sandbox-keys .btn { min-height: 44px; }
+  .sandbox-footer { margin-top: 10px; }
+}
 @media (min-width: 800px) {
-  .sandbox-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+  .play-head { margin-bottom: 24px; }
+  .sandbox-layout { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; align-items: center; }
   .sandbox-stage { height: 380px; }
+  .sandbox-controls { padding: 20px; }
+  .sandbox-keys .btn { min-height: 56px; }
 }
 
 /* 方法配色入口与内联面板；不改变详情播放器的高度预算。 */

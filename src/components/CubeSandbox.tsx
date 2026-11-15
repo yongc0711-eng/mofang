@@ -47,21 +47,30 @@ export function CubeSandbox() {
   };
   const m = model.current;
   return <div className="sandbox-layout">
-    <div className="sandbox-stage" ref={host} role="img" aria-label="可拖动的试转魔方" />
+    <div className="sandbox-view">
+      <div className="sandbox-stage" ref={host} role="img" aria-label="可拖动的试转魔方" />
+      {!ready && <p className="sandbox-loading" role="status">{error ? '3D 加载失败，请重新打开页面' : '正在加载魔方…'}</p>}
+    </div>
     <div className="sandbox-controls">
-      {!ready && <p role="status">{error ? '3D 加载失败，请重新打开页面' : '正在加载魔方…'}</p>}
-      <div className="sandbox-suffix" aria-label="转动后缀">
-        {(['', "'", '2'] as Suffix[]).map(s => <button type="button" className="btn" key={s} aria-label={s ? `后缀 ${s}` : '无后缀'} aria-pressed={m.suffix === s} onClick={() => { m.suffix = s; refresh(n => n + 1); }}>{s || '无'}</button>)}
-        <button type="button" className="btn" aria-label="切换更多转法" aria-pressed={more} onClick={() => setMore(!more)}>{more ? '主键' : '更多'}</button>
+      <div className="sandbox-toolbar">
+        <div className="sandbox-modifier">
+          <span className="sandbox-control-label" aria-hidden="true">后缀</span>
+          <div className="sandbox-suffix" role="group" aria-label="转动后缀">
+            {(['', "'", '2'] as Suffix[]).map(s => <button type="button" className="btn" key={s} aria-label={s ? `后缀 ${s}` : '无后缀'} aria-pressed={m.suffix === s} onClick={() => { m.suffix = s; refresh(n => n + 1); }}>{s || '无'}</button>)}
+          </div>
+        </div>
+        <button type="button" className="btn sandbox-more" aria-label="切换更多转法" aria-pressed={more} onClick={() => setMore(!more)}>{more ? '基础转法' : '更多转法'}<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
       </div>
       <div className="sandbox-keys">
         {(more ? MORE_KEYS : MAIN_KEYS).map(key => <button type="button" className="btn" key={key} aria-label={`转动 ${key}`} disabled={!ready || m.pending >= 16} onClick={() => { if (m.press(key)) run(); }}>{key}</button>)}
       </div>
-      <div className="sandbox-actions">
-        <button type="button" className="btn" aria-label="撤销最后一转" disabled={!ready || !m.canUndo} onClick={() => { if (m.undo()) run(); }}>撤销</button>
-        <button type="button" className="btn" aria-label="复原魔方" onClick={() => { cancelAnimationFrame(raf.current); raf.current = 0; m.reset(); draw(); refresh(n => n + 1); }}>复原</button>
+      <div className="sandbox-footer">
+        <div className="sandbox-actions">
+          <button type="button" className="btn" aria-label="撤销最后一转" disabled={!ready || !m.canUndo} onClick={() => { if (m.undo()) run(); }}>撤销</button>
+          <button type="button" className="btn" aria-label="复原魔方" onClick={() => { cancelAnimationFrame(raf.current); raf.current = 0; m.reset(); draw(); refresh(n => n + 1); }}>复原</button>
+        </div>
+        <p className="sandbox-queue muted small" aria-live="polite">待转 {m.pending} / 16</p>
       </div>
-      <p className="muted small" aria-live="polite">待转 {m.pending} / 16</p>
     </div>
   </div>;
 }
