@@ -1,6 +1,33 @@
 import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 
-test('二阶：第三叠卡堆展开、列表与详情 2D/3D 渲染、搜索及练习隔离无横滚', async ({ page }) => {
+const FIXTURES = [
+  { set: 'cll', svgs: 1, caseId: 'cll-as-1', title: 'CLL AS 1' },
+  { set: 'eg1', svgs: 2, caseId: 'eg1-h-1', title: 'EG-1 H 1' },
+  { set: 'eg2', svgs: 2, caseId: 'eg2-h-1', title: 'EG-2 H 1' },
+] as const;
+
+async function checkDetail(page: Page, fixture: (typeof FIXTURES)[number]) {
+  const width = page.viewportSize()!.width;
+  await page.goto(`/#/set/${fixture.set}`);
+  await page.locator(`a[href="#/case/${fixture.caseId}"]`).click();
+  await expect(page.locator('.case-head .page-title')).toHaveText(fixture.title);
+  const diagrams = page.locator('.case-head .diagram svg');
+  await expect(diagrams).toHaveCount(fixture.svgs);
+  for (let i = 0; i < fixture.svgs; i += 1) {
+    const box = (await diagrams.nth(i).boundingBox())!;
+    expect(box.width).toBe(64);
+    expect(box.height).toBe(64);
+  }
+  await expect(page.locator('.player-stage canvas')).toBeVisible();
+  await expect(page.locator('.focus-chip')).toHaveCount(0);
+  const nav = (await page.locator('.nav').boundingBox())!;
+  const peek = (await page.locator('.peek-cue').boundingBox())!;
+  expect(peek.y + peek.height).toBeLessThanOrEqual(nav.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+}
+
+test('二阶：第三叠入口展开，三组各 42 条列表无横滚', async ({ page }) => {
   const width = page.viewportSize()!.width;
   await page.goto('/');
   await expect(page.locator('.home-head')).toContainText('共 563 条公式');
@@ -12,38 +39,30 @@ test('二阶：第三叠卡堆展开、列表与详情 2D/3D 渲染、搜索及�
   await expect(deck2x2.locator('.set-card')).toHaveCount(3);
 
   let totalCases = 0;
-  for (const fixture of [
-    { set: 'cll', svgs: 1, caseId: 'cll-as-1', title: 'CLL AS 1' },
-    { set: 'eg1', svgs: 2, caseId: 'eg1-h-1', title: 'EG-1 H 1' },
-    { set: 'eg2', svgs: 2, caseId: 'eg2-h-1', title: 'EG-2 H 1' },
-  ] as const) {
+  for (const fixture of FIXTURES) {
     for (const colorScheme of ['light', 'dark'] as const) {
       await page.emulateMedia({ colorScheme });
       await page.goto(`/#/set/${fixture.set}`);
       await expect(page.locator('.set-count')).toHaveText('42 个情形');
       await expect(page.locator('.case-card')).toHaveCount(42);
       expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
-
-      await page.locator(`a[href="#/case/${fixture.caseId}"]`).click();
-      await expect(page.locator('.case-head .page-title')).toHaveText(fixture.title);
-      const diagrams = page.locator('.case-head .diagram svg');
-      await expect(diagrams).toHaveCount(fixture.svgs);
-      for (let i = 0; i < fixture.svgs; i += 1) {
-        const box = (await diagrams.nth(i).boundingBox())!;
-        expect(box.width).toBe(64);
-        expect(box.height).toBe(64);
-      }
-      await expect(page.locator('.player-stage canvas')).toBeVisible();
-      await expect(page.locator('.focus-chip')).toHaveCount(0);
-      const nav = (await page.locator('.nav').boundingBox())!;
-      const peek = (await page.locator('.peek-cue').boundingBox())!;
-      expect(peek.y + peek.height).toBeLessThanOrEqual(nav.y);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
     }
     totalCases += 42;
   }
   expect(totalCases).toBe(126);
+});
 
+test('二阶：浅色详情页双视图 2D 与大小同步的 3D，避开底栏、无横滚', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  for (const fixture of FIXTURES) await checkDetail(page, fixture);
+});
+
+test('二阶：深色详情页双视图 2D 与大小同步的 3D，避开底栏、无横滚', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  for (const fixture of FIXTURES) await checkDetail(page, fixture);
+});
+
+test('二阶：搜索命中 126 条，练习不接二阶仍报 437 条', async ({ page }) => {
   await page.goto('/');
   const search = page.getByRole('searchbox', { name: '搜索公式' });
   await search.fill('二阶');
