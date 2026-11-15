@@ -82,7 +82,7 @@ export function HomePage() {
               done: s.cases.filter((c) => statusOf(c, user) === 'mastered').length,
               total: s.cases.length,
               diagram: s.view === 'top2' || s.view === 'both2'
-                ? <CaseDiagram2 colors={diagramColors2(viewForPrimary(cover, primaryAlgOf(cover, user)))} view="top2" />
+                ? <CaseDiagram2 colors={diagramColors2(viewForPrimary(cover, primaryAlgOf(cover, user)), browsePalette(cover, prefs))} view="top2" />
                 : <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />,
             };
           })} />)}

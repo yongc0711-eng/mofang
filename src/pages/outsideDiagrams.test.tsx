@@ -142,7 +142,7 @@ describe('T33 外面的图解跟主公式对齐', () => {
     expect(r.scramble).toBe(scrambleFor(aa, () => 0));
   });
 
-  it('练习：无主公式（alg 就是 algs[0]）时和改动前一样（三阶全部 437 条，二阶不接练习）', () => {
+  it('练习：无主公式（alg 就是 algs[0]）时和改动前一样（三阶全部 437 条，二阶独立接入）', () => {
     expect(CASES_3X3).toHaveLength(437);
     for (const c of CASES_3X3) {
       const r = practiceViewFor(c, c.algs[0], () => 0);
@@ -151,7 +151,9 @@ describe('T33 外面的图解跟主公式对齐', () => {
     }
     for (const id of ['cll-as-1', 'eg1-h-1', 'eg2-h-1']) {
       const c = getCase(id)!;
-      expect(() => practiceViewFor(c, c.algs[0], () => 0)).toThrow(`练习模式不支持二阶公式组：${c.set}`);
+      const r = practiceViewFor(c, c.algs[0], () => 0);
+      expect(r.view).toBe(c);
+      expect(r.scramble).toBe(scrambleFor(c, () => 0));
     }
   });
 

@@ -52,6 +52,7 @@ export function SetPage() {
           {set.name} <span className="muted title-note">{set.description}</span>
         </h1>
       </header>
+      {set.method === '2x2' && <p className="set-advanced"><Link className="chip" to={`/practice?set=${set.id}`}>练习 {set.name}</Link></p>}
       {set.id === 'lse' && <p className="set-advanced"><Link className="chip" to="/set/eolr">进阶技巧：EOLR（4a+4b 合并）51 式 →</Link></p>}
       {set.id === 'eolr' && <p className="muted small">粗框表示坏棱，实心与空心标记表示 LR 棱在可见面与背面。BAD CASE 可优先按常规 EO 化归。<Link to="/set/lse">返回基础 LSE</Link> · <Link to="/practice?set=eolr">练习 EOLR</Link></p>}
       <div className="chips set-status-filter" role="group" aria-label="按学习状态筛选">

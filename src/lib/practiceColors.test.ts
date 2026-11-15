@@ -12,18 +12,18 @@ it.each(['cmll', 'lse', 'sbls', 'f2l', 'oll', 'pll', 'coll', 'wv'])('%s samples 
 });
 it('defaults use independent browsing prefs once; subsequent preference edits do not overwrite pools',()=>{
   const pools=initializeColorPools({},prefs);
-  expect(pools).toEqual({cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['green-blue']}});
+  expect(pools).toEqual({twoByTwoBottoms:['white'],cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['green-blue']}});
   expect(initializeColorPools(pools,{cfop:{bottomColor:'red'},roux:{bottomColor:'yellow',bridgePair:'red-orange',leftColor:'red'}})).toEqual(pools);
 });
 it('old T52 bottoms are copied into both pools and each bottom has a visible legal default pair',()=>{
   const old={bottoms:['white','green'] as const};
   const pools=initializeColorPools({bottoms:[...old.bottoms]},prefs);
-  expect(pools).toEqual({cfopBottoms:['white','green'],rouxBottoms:['white','green'],rouxPairsByBottom:{white:['green-blue'],green:['red-orange']}});
+  expect(pools).toEqual({twoByTwoBottoms:['white'],cfopBottoms:['white','green'],rouxBottoms:['white','green'],rouxPairsByBottom:{white:['green-blue'],green:['red-orange']}});
   expect(pools.cfopBottoms).not.toBe(pools.rouxBottoms);
 });
 it('invalid/empty persisted pools and pair arrays clean independently',()=>{
   const pools=initializeColorPools({cfopBottoms:[],rouxBottoms:['white'],rouxPairsByBottom:{white:['white-yellow','red-orange','red-orange']}},prefs);
-  expect(pools).toEqual({cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['red-orange']}});
+  expect(pools).toEqual({twoByTwoBottoms:['white'],cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['red-orange']}});
 });
 it('each method retains one bottom; adding/removing in one never changes the other',()=>{
   const original=initializeColorPools({},prefs);
@@ -78,7 +78,7 @@ it('invalid candidate pools fail rather than dropping a bottom or guessing a leg
 it('a session pool snapshot and sampled frozen colors are independent of future setting edits',()=>{
   const pools=initializeColorPools({},prefs),copy=snapshotPools(pools),colors=pickPracticeColors({set:'cmll'},copy,null,()=>0);
   pools.rouxBottoms.push('green');pools.rouxPairsByBottom.white!.push('red-orange');
-  expect(copy).toEqual({cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['green-blue']}});
+  expect(copy).toEqual({twoByTwoBottoms:['white'],cfopBottoms:['green'],rouxBottoms:['white'],rouxPairsByBottom:{white:['green-blue']}});
   expect(colors).toEqual({method:'roux',bottomColor:'white',bridgePair:'green-blue',leftColor:'green'});
   expect(Object.isFrozen(colors)).toBe(true);
 });

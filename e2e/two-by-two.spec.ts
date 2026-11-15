@@ -62,7 +62,7 @@ test('二阶：深色详情页双视图 2D 与大小同步的 3D，避开底栏�
   for (const fixture of FIXTURES) await checkDetail(page, fixture);
 });
 
-test('二阶：搜索命中 126 条，练习不接二阶仍报 437 条', async ({ page }) => {
+test('二阶：搜索命中 126 条，练习默认三阶 437 条，切换二阶 126 条', async ({ page }) => {
   await page.goto('/');
   const search = page.getByRole('searchbox', { name: '搜索公式' });
   await search.fill('二阶');
@@ -77,4 +77,8 @@ test('二阶：搜索命中 126 条，练习不接二阶仍报 437 条', async (
     await expect(setGroup.getByRole('button', { name, exact: true })).toHaveCount(0);
   }
   await expect(page.locator('.practice-start')).toContainText('范围内共 437 个情形');
+  await page.getByRole('group', { name: '魔方阶数', exact: true }).getByRole('button', { name: '二阶', exact: true }).click();
+  await expect(setGroup.getByRole('button')).toHaveCount(3);
+  for (const name of ['CLL', 'EG-1', 'EG-2']) await expect(setGroup.getByRole('button', { name, exact: true })).toHaveCount(1);
+  await expect(page.locator('.practice-start')).toContainText('范围内共 126 个情形');
 });

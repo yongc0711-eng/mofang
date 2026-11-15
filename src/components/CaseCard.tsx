@@ -45,7 +45,7 @@ export function CaseCard({ c }: { c: AlgCase }) {
   return (
     <Link to={`/case/${c.id}`} className={`case-card${c.isBadCase ? ' case-card-bad' : ''}`}>
       {set.view === 'top2' || set.view === 'both2'
-        ? <CaseDiagram2 colors={diagramColors2(view)} view={set.view} />
+        ? <CaseDiagram2 colors={diagramColors2(view, palette)} view={set.view} />
         : <CaseDiagram c={view} view={set.view} palette={palette} />}
       <div className="case-card-body">
         <div className="case-card-title">

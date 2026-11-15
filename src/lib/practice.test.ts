@@ -30,12 +30,13 @@ describe('练习打乱', () => {
       else expect(parseAlg(s)).toEqual(invertMoves(parseAlg(mapped[c.id] ?? c.algs[0])));
     }
   });
-  it('练习打乱明确排除二阶（CLL / EG-1 / EG-2）', () => {
+  it('二阶参考串精确使用定义公式逆，不添加 AUF（三阶范围保留）', () => {
     const cases2x2 = ALL_CASES.filter((c) => is2x2Set(c.set));
     expect(cases2x2).toHaveLength(126);
     for (const setId of ['cll', 'eg1', 'eg2'] as const) {
       const first = getSet(setId)!.cases[0];
-      expect(() => scrambleFor(first, () => 0)).toThrow(`练习模式不支持二阶公式组：${setId}`);
+      expect(parseAlg(scrambleFor(first, () => 0))).toEqual(invertMoves(parseAlg(first.algs[0])));
+      expect(scrambleFor(first, () => 0.9)).toBe(scrambleFor(first, () => 0));
     }
     expect(SETS.filter((s) => s.method !== '2x2').map((s) => s.id)).toEqual(['f2l', 'oll', 'pll', 'coll', 'wv', 'cmll', 'lse', 'sbls', 'eolr']);
   });

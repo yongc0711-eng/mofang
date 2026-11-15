@@ -59,7 +59,7 @@ it('cleans malformed method objects separately and preserves an explicit swapped
   const result=cleanBrowse({cfop:{bottomColor:'green'},roux:{bottomColor:'white',bridgePair:'green-blue',leftColor:'green'}},'red');
   expect(result.cfop.bottomColor).toBe('green');expect(result.roux.leftColor).toBe('green');
   const dirty=cleanBrowse({cfop:[],roux:{bottomColor:'no',bridgePair:'white-yellow',leftColor:'blue'}},'white');
-  expect(dirty).toEqual({cfop:{bottomColor:'white'},roux:{bottomColor:'white',bridgePair:'red-orange',leftColor:'red'}});
+  expect(dirty).toEqual({ twoByTwo: { bottomColor: 'white' },cfop:{bottomColor:'white'},roux:{bottomColor:'white',bridgePair:'red-orange',leftColor:'red'}});
 });
 it('full palette affects all 54 stickers in canonical and displaced-center states with masks unchanged',()=>{
   for(const bottomColor of BOTTOM_COLORS) for(const bridgePair of validPairs(bottomColor)) for(const leftColor of PAIRS[bridgePair]) {

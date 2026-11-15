@@ -4,6 +4,11 @@ import { frontColor, topColor } from '../store/devicePrefs';
 import { COLOR_NAME_ZH } from './recognition';
 import type { PreparedSetup } from './practiceTarget';
 export function practiceInstructions(setup: PreparedSetup): string {
+  if (setup.version === 3) {
+    const p = paletteFor(setup.colors);
+    return '二阶没有中心：还原态白面朝上、绿面朝前；打乱后' + (setup.observation ? '转 ' + setup.observation : '保持不转') +
+      '（' + COLOR_NAME_ZH[FACE_COLOR[p.U]] + '顶、' + COLOR_NAME_ZH[FACE_COLOR[p.D]] + '底、' + COLOR_NAME_ZH[FACE_COLOR[p.F]] + '前）。';
+  }
   if (setup.version === 2) {
     const p = paletteFor(setup.colors);
     return '白色中心朝上、绿色中心朝前起手；做完按观察持法 ' + (setup.observation || '保持不转') +

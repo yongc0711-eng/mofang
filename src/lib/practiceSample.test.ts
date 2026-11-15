@@ -10,11 +10,11 @@ import { sampleTarget } from './practiceSample';
 const CASES_3X3 = ALL_CASES.filter((c) => !is2x2Set(c.set));
 
 describe('T37 target sampler preserves selected stage and case, independently of solver', () => {
-  it('excludes all 2x2 sets from practice target sampling', () => {
+  it('keeps all 2x2 sets outside the 54-sticker sampler (they use their own sampler)', () => {
     expect(CASES_3X3).toHaveLength(437);
     for (const setId of ['cll', 'eg1', 'eg2'] as const) {
       const sampleCase = getSet(setId)!.cases[0];
-      expect(() => sampleTarget(sampleCase, '')).toThrow(`练习模式不支持二阶公式组：${setId}`);
+      expect(() => sampleTarget(sampleCase, '')).toThrow(`三阶出题器不接受二阶公式组：${setId}`);
     }
   });
   for (const c of CASES_3X3) {

@@ -204,7 +204,7 @@ export function CasePage() {
       </button>
       <header className="case-head">
         {set.view === 'top2' || set.view === 'both2'
-          ? <CaseDiagram2 colors={diagramColors2(viewCase)} view={set.view} />
+          ? <CaseDiagram2 colors={diagramColors2(viewCase, palette)} view={set.view} />
           : <CaseDiagram c={viewCase} view={set.view} mask={maskFor2D} palette={palette} />}
         <div className="case-identity">
           <div className="case-title-row" data-long-name={c.set === 'eolr' || c.name.length > 12}>
@@ -237,7 +237,7 @@ export function CasePage() {
       <div className="case-layout">
         <div className="case-player">
           {set.method === '2x2'
-            ? <CubePlayer alg={playing} autoPlay={false} finish={prefs.finish} size={2} />
+            ? <CubePlayer alg={playing} autoPlay={false} finish={prefs.finish} size={2} palette={palette} />
             : c.setup !== undefined
               ? <CubePlayer alg={playbackAlg} setup={c.setup} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />
               : <CubePlayer alg={playing} autoPlay={false} mask={maskFor3D} finish={prefs.finish} palette={palette} />}

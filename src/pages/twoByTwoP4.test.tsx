@@ -72,7 +72,7 @@ describe('2x2 P4 页面接线与练习隔离', () => {
     expect(eg1Html).toContain('aria-label="底视图"');
   });
 
-  it('PracticePage 不包含 CLL / EG-1 / EG-2，且忽略 ?set=cll', () => {
+  it('PracticePage ?set=cll 自动进入二阶，只选择 CLL 的 42 条', () => {
     const html = renderToStaticMarkup(
       createElement(
         MemoryRouter,
@@ -80,10 +80,12 @@ describe('2x2 P4 页面接线与练习隔离', () => {
         createElement(Routes, null, createElement(Route, { path: '/practice', element: createElement(PracticePage) })),
       ),
     );
-    expect(html).toContain('范围内共 437 个情形');
-    expect(html).not.toContain('>CLL<');
-    expect(html).not.toContain('>EG-1<');
-    expect(html).not.toContain('>EG-2<');
+    expect(html).toContain('范围内共 42 个情形');
+    expect(html).toContain('aria-label="魔方阶数"');
+    expect(html).not.toContain('>OLL<');
+    expect(html).toContain('>CLL<');
+    expect(html).toContain('>EG-1<');
+    expect(html).toContain('>EG-2<');
   });
 
   it('userStore.primaryAlgOf 对二阶合法/非法自定义公式走 cases2 校验', () => {

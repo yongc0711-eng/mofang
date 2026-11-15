@@ -42,7 +42,7 @@ function withoutOuterRotations(moves: Move[], id: string): Move[] {
  * 起始状态只由情形决定，和用户选的主公式无关，所以不接收公式参数。
  */
 export function scrambleFor(c: AlgCase, rand: () => number = Math.random): string {
-  if (is2x2Set(c.set)) throw new Error(`练习模式不支持二阶公式组：${c.set}`);
+  if (is2x2Set(c.set)) return movesToString(invertMoves(parseAlg(c.algs[0])));
   if (c.setup !== undefined) {
     const auf = c.set === 'eolr' && c.targetTier === 'tier2' ? AUFS[Math.min(3,Math.max(0,Math.floor(rand() * 4)))] : '';
     return [auf,movesToString(parseAlg(c.setup))].filter(Boolean).join(' ');

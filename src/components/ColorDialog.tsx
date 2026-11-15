@@ -3,12 +3,15 @@ import { createPortal } from 'react-dom';
 import { colorTabIndex, trappedFocusIndex } from '../lib/colorDialog';
 import type { MethodId } from '../types';
 
-type ColorMethodId = Extract<MethodId, 'cfop' | 'roux'>;
+type ColorMethodId = MethodId;
+const DEFAULT_METHODS: ColorMethodId[] = ['cfop', 'roux'];
 
-export function ColorDialog({ open, title, onClose, children }: {
+export function ColorDialog({ open, title, onClose, children, methods = DEFAULT_METHODS }: {
   open: boolean; title: string; onClose: () => void; children: (method: ColorMethodId) => ReactNode;
+  methods?: ColorMethodId[];
 }) {
-  const [method, setMethod] = useState<ColorMethodId>('cfop');
+  const [selected, setMethod] = useState<ColorMethodId>(methods[0]);
+  const method = methods.includes(selected) ? selected : methods[0];
   const id = useId();
   const dialog = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose); closeRef.current = onClose;
@@ -45,15 +48,15 @@ export function ColorDialog({ open, title, onClose, children }: {
         </button>
       </header>
       <div className="color-dialog-tabs" role="tablist" aria-label="配色方法">
-        {(['cfop', 'roux'] as const).map((m, index) => <button type="button" className="chip" role="tab" key={m}
+        {methods.map((m, index) => <button type="button" className="chip" role="tab" key={m}
           id={`${id}-${m}`} aria-controls={`${id}-panel`} aria-selected={method === m} tabIndex={method === m ? 0 : -1}
           onClick={() => setMethod(m)} onKeyDown={e => {
-            const next = colorTabIndex(index, e.key);
+            const next = colorTabIndex(index, e.key, methods.length);
             if (next === null) return;
             e.preventDefault();
-            const target = next === 0 ? 'cfop' : 'roux'; setMethod(target);
+            const target = methods[next]; setMethod(target);
             document.getElementById(`${id}-${target}`)?.focus();
-          }}>{m === 'cfop' ? 'CFOP' : 'Roux'}</button>)}
+          }}>{m === '2x2' ? '二阶' : m === 'cfop' ? 'CFOP' : 'Roux'}</button>)}
       </div>
       <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${method}`}>{children(method)}</div>
     </div>

@@ -54,7 +54,7 @@ describe('devicePrefs：默认值与持久化（ollView 已在 T32 删除，旧�
   it('没有 localStorage（node）：默认值里没有 ollView', async () => {
     vi.stubGlobal('localStorage', undefined);
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(getDevicePrefs()).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'uv', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
     expect('ollView' in getDevicePrefs()).toBe(false);
   });
 
@@ -68,7 +68,7 @@ describe('devicePrefs：默认值与持久化（ollView 已在 T32 删除，旧�
     for (const old of ['top', 'full', 'sideways', 42, null, {}, ['full']]) {
       installStorage({ [KEY]: JSON.stringify({ finish: 'matte', focusRelevant: true, ollView: old, bottomColor: 'red' }) });
       const { getDevicePrefs } = await freshModule();
-      expect(getDevicePrefs(), String(old)).toEqual({ finish: 'matte', focusRelevant: true, bottomColor: 'red', cfop: { bottomColor: 'red' }, roux: { bottomColor: 'red', bridgePair: 'white-yellow', leftColor: 'yellow' } });
+      expect(getDevicePrefs(), String(old)).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'matte', focusRelevant: true, bottomColor: 'red', cfop: { bottomColor: 'red' }, roux: { bottomColor: 'red', bridgePair: 'white-yellow', leftColor: 'yellow' } });
       expect('ollView' in getDevicePrefs(), String(old)).toBe(false);
     }
   });
@@ -77,27 +77,27 @@ describe('devicePrefs：默认值与持久化（ollView 已在 T32 删除，旧�
     const m = installStorage({ [KEY]: JSON.stringify({ finish: 'uv', focusRelevant: false, ollView: 'full' }) });
     const { setDevicePrefs } = await freshModule();
     setDevicePrefs({ focusRelevant: true });
-    expect(JSON.parse(m.get(KEY)!)).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(JSON.parse(m.get(KEY)!)).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
   });
 
   it('旧数据缺某一项：用默认值，已有的设置不丢', async () => {
     installStorage({ [KEY]: JSON.stringify({ finish: 'matte', focusRelevant: true }) });
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'matte', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(getDevicePrefs()).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'matte', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
   });
 
   it('JSON 损坏：整体回到默认值，不抛', async () => {
     installStorage({ [KEY]: '{oops' });
     const { getDevicePrefs } = await freshModule();
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(getDevicePrefs()).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'uv', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
   });
 
   it('设置后立刻生效，并写进 mofang.device.v1；只改一项不影响其他项', async () => {
     const m = installStorage();
     const { getDevicePrefs, setDevicePrefs } = await freshModule();
     setDevicePrefs({ focusRelevant: true });
-    expect(getDevicePrefs()).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
-    expect(JSON.parse(m.get(KEY)!)).toEqual({ finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(getDevicePrefs()).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+    expect(JSON.parse(m.get(KEY)!)).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'uv', focusRelevant: true, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
     setDevicePrefs({ finish: 'matte' });
     expect(getDevicePrefs().focusRelevant).toBe(true);
   });
@@ -491,7 +491,7 @@ describe('底面颜色：2D 和 3D 共用同一个映射，切换后一致', () 
       // 输入里故意留着 T27 的 ollView：它应该被忽略
       installStorage({ [KEY]: JSON.stringify({ finish: 'matte', ollView: 'full', bottomColor: bad }) });
       const { getDevicePrefs } = await freshModule();
-      expect(getDevicePrefs(), String(bad)).toEqual({ finish: 'matte', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
+      expect(getDevicePrefs(), String(bad)).toEqual({ twoByTwo: { bottomColor: 'white' }, finish: 'matte', focusRelevant: false, bottomColor: 'white', cfop: { bottomColor: 'white' }, roux: { bottomColor: 'white', bridgePair: 'red-orange', leftColor: 'red' } });
     }
     vi.unstubAllGlobals();
   });

@@ -3,6 +3,7 @@ import { applyMoves, invertMoves, solved, STICKERS, type State } from './cube';
 import { BOTTOM_COLORS, displayFace, paletteFace, type BottomColor } from './colorScheme';
 import { paletteFor, type PracticeColors } from './practiceColors';
 import { OBSERVATION, observationFor } from './practiceOrientation';
+import { verifySetup2, type PreparedSetup2 } from './practice2';
 export { OBSERVATION, observationFor } from './practiceOrientation';
 export { paletteFor } from './practiceColors';
 
@@ -24,7 +25,7 @@ export interface PreparedSetupV2 {
   state: State;
   observation: string;
 }
-export type PreparedSetup = PreparedSetupV1 | PreparedSetupV2;
+export type PreparedSetup = PreparedSetupV1 | PreparedSetupV2 | PreparedSetup2;
 const observation = (colors: BottomColor | PracticeColors): string => typeof colors === 'string' ? OBSERVATION[colors] : observationFor(colors);
 export function validState(v: unknown): v is State {
   return Array.isArray(v) && v.length === 54 && new Set(v).size === 54 &&
@@ -46,10 +47,14 @@ export function verifySetup(value: unknown): value is PreparedSetup {
   try {
     if (!value || typeof value !== 'object') return false;
     const setup = value as PreparedSetup;
+    if (setup.version === 3) return verifySetup2(setup);
     if (!validState(setup.state) || typeof setup.scramble !== 'string' || typeof setup.observation !== 'string') return false;
     let colors: BottomColor | PracticeColors;
     if (setup.version === 1 && BOTTOM_COLORS.includes(setup.bottom)) colors = setup.bottom;
-    else if (setup.version === 2) { paletteFor(setup.colors); colors = setup.colors; }
+    else if (setup.version === 2) {
+      if (setup.colors.method === '2x2') return false;
+      paletteFor(setup.colors); colors = setup.colors;
+    }
     else return false;
     if (setup.observation !== observation(colors)) return false;
     const moves = parseAlg(setup.scramble);

@@ -5,7 +5,11 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
-import { is2x2Set } from '../lib/cases2';
+import { diagramColors2, is2x2Set } from '../lib/cases2';
+import { compatiblePracticeSession } from '../lib/practiceRestore';
+import { STICKERS2 } from '../lib/cube2';
+import { sampleTarget2 } from '../lib/practice2';
+import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
@@ -52,6 +56,7 @@ const FILTERS: { id: StatusFilter; label: string }[] = [
 ];
 
 interface PracticeScope extends PracticeColorPools {
+  size?: 2 | 3;
   sets: SetId[];
   group: string;
   filter: StatusFilter;
@@ -71,7 +76,7 @@ interface Question {
   fromSession?: boolean;
 }
 
-const PRACTICE_SETS = SETS.filter((s) => s.method !== '2x2');
+const PRACTICE_SETS = SETS;
 const isPracticeSet = (id: string) => PRACTICE_SETS.some((s) => s.id === id);
 
 /** done 对照主公式；训练期间保留本题采样终态。仅选择图解输入，不变更目标。 */
@@ -79,7 +84,12 @@ export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palet
   c: AlgCase; set: Pick<CaseSet, 'view'>; bottom: BottomColor;
   prepared: Pick<PreparedSetup, 'state'> | null | undefined; phase: string; palette?: Palette;
 }) {
-  if (set.view === 'top2' || set.view === 'both2') throw new Error(`练习模式不支持二阶公式组：${c.set}`);
+  if (set.view === 'top2' || set.view === 'both2') {
+    const colors = prepared && phase !== 'done'
+      ? prepared.state.map(id => palette ? palette[STICKERS2[id].face] : STICKERS2[id].face)
+      : diagramColors2(c, palette);
+    return <CaseDiagram2 colors={colors} view={set.view} />;
+  }
   return prepared && phase !== 'done'
     ? <CaseDiagram c={c} view={set.view} bottom={bottom} state={prepared.state} palette={palette} />
     : <CaseDiagram c={c} view={set.view} bottom={bottom} palette={palette} />;
@@ -93,7 +103,8 @@ export function PracticePage() {
   const prefs = useDevicePrefs();
   // 范围和筛选放在内存里，从“查看详情”返回时还在
   const savedScope = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
-  const savedSets = savedScope.sets.filter(isPracticeSet);
+  const [size, setSize] = useState<2 | 3>(() => validRequested ? (is2x2Set(validRequested) ? 2 : 3) : savedScope.size ?? 3);
+  const savedSets = savedScope.sets.filter(id => isPracticeSet(id) && is2x2Set(id) === (size === 2));
   const saved = validRequested && !(savedSets.length === 1 && savedSets[0] === validRequested)
     ? { ...savedScope, sets: savedSets, group: '全部', filter: 'all' as const, picked: [], showPicker: false } : { ...savedScope, sets: savedSets };
   const [sets, setSets] = useState<SetId[]>(() => validRequested ? [validRequested] : saved.sets);
@@ -102,18 +113,24 @@ export function PracticePage() {
   const [picked, setPicked] = useState<string[]>(saved.picked);
   const [showPicker, setShowPicker] = useState(saved.showPicker);
   const [colorPools, setColorPools] = useState(() => initializeColorPools(saved, prefs));
-  const { cfopBottoms, rouxBottoms, rouxPairsByBottom } = colorPools;
+  const { cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms } = colorPools;
   useEffect(() => {
-    setUi<PracticeScope>('practice:scope', { sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom });
-  }, [sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom]);
+    setUi<PracticeScope>('practice:scope', { size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms });
+  }, [size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms]);
   // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
   // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
   const [restored, setRestored] = useState<PracticeSession | null>(() =>
-    loadSession(Date.now(), (id) => { const c = getCase(id); return !!c && !is2x2Set(c.set); }, DOC_ID),
+    (() => {
+      const session = loadSession(Date.now(), id => !!getCase(id), DOC_ID);
+      if (!session) return null;
+      if (!compatiblePracticeSession(session)) { clearSession(); return null; }
+      return session;
+    })(),
   );
   const [practicing, setPracticing] = useState(restored !== null);
 
-  const activeSets = PRACTICE_SETS.filter((s) => sets.length === 0 || sets.includes(s.id));
+  const availableSets = PRACTICE_SETS.filter(s => (s.method === '2x2') === (size === 2));
+  const activeSets = availableSets.filter((s) => sets.length === 0 || sets.includes(s.id));
   const groups = [...new Set(activeSets.flatMap((s) => s.cases.map((c) => c.group)))];
   const candidates = activeSets.flatMap((s) => s.cases);
 
@@ -126,7 +143,7 @@ export function PracticePage() {
       return statusOf(c, user) === filter;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sets, group, filter, picked, user]);
+  }, [size, sets, group, filter, picked, user]);
 
   const toggleSet = (id: SetId) => {
     setSets((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
@@ -153,17 +170,25 @@ export function PracticePage() {
   return (
     <div className="page">
       <h1 className="page-title">练习</h1>
-      <PracticeColorsDialog colorPools={colorPools} onChange={setColorPools} />
+      <div className="practice-settings-head">
+        <div className="segmented practice-size" role="group" aria-label="魔方阶数">
+          {([3, 2] as const).map(n => <button type="button" key={n} className={size === n ? 'seg-on' : ''} aria-pressed={size === n}
+            onClick={() => { if (n === size) return; setSize(n); setSets([]); setGroup('全部'); setPicked([]); setShowPicker(false); }}>
+            {n === 2 ? '二阶' : '三阶'}
+          </button>)}
+        </div>
+        <PracticeColorsDialog key={size} size={size} colorPools={colorPools} onChange={setColorPools} />
+      </div>
 
       <h2>公式组</h2>
       <div className="chips" role="group" aria-label="选择公式组">
-        {PRACTICE_SETS.map((s) => (
+        {availableSets.map((s) => (
           <button key={s.id} className={`chip ${sets.includes(s.id) ? 'chip-on' : ''}`} aria-pressed={sets.includes(s.id)} onClick={() => toggleSet(s.id)}>
             {s.name}
           </button>
         ))}
       </div>
-      <p className="muted small">不选就是全部公式组</p>
+      <p className="muted small">不选就是当前阶数的全部公式组</p>
 
       <div className={picked.length ? 'scope-off' : ''}>
         {/* 分组只有在单个公式组里才有意义，多个组混在一起时标签太多 */}
@@ -262,7 +287,9 @@ function Session({
     const colors = requested.colors;
     if (!colors) { setPreparationError('题目缺少配色快照'); return; }
     try {
-      const sample = sampleTarget(requested.c, requested.scramble);
+      const sample = is2x2Set(requested.c.set)
+        ? { state: sampleTarget2(requested.c), auf: '', variation: 0 }
+        : sampleTarget(requested.c, requested.scramble);
       void prepareSetup(sample.state, colors, controller.signal).then((prepared) => {
         if (!controller.signal.aborted) {
           const alg = requested.c.set === 'eolr' && sample.auf
@@ -289,7 +316,7 @@ function Session({
   const [banner, setBanner] = useState(restore !== null && restore.phase !== 'running');
   const phase = timer.phase;
   const lastId = useRef<string | null>(restore?.question.id ?? null);
-  const lastColors = useRef<PracticeColors | null>(restore?.question.prepared?.version === 2 ? restore.question.prepared.colors : null);
+  const lastColors = useRef<PracticeColors | null>(restore?.question.prepared && restore.question.prepared.version !== 1 ? restore.question.prepared.colors : null);
   const [pressing, setPressing] = useState(false);
   const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement; armed: boolean } | null>(null);
   const heldSpace = useRef<SpaceHold | null>(null);
@@ -474,7 +501,7 @@ function Session({
     </div>
   );
   const { c, alg, scramble, prepared } = question;
-  const colors = prepared?.version === 2 ? prepared.colors : question.colors;
+  const colors = prepared && prepared.version !== 1 ? prepared.colors : question.colors;
   const palette = colors ? paletteFor(colors) : undefined;
   const bottom = prepared?.version === 1 ? prepared.bottom : colors ? colorBottom(colors) : question.bottom ?? prefs.bottomColor;
   const set = getSet(c.set)!;
@@ -490,12 +517,12 @@ function Session({
   const padHint = pressing ? (phase === 'done' ? '松开下一题' : '松开开始') : hint;
 
   return (
-    <div className="practice" data-phase={phase}>
+    <div className="practice" data-phase={phase} data-size={is2x2Set(c.set) ? 2 : 3}>
       <div className="practice-bar">
         <button className="back" onClick={finish}>
           ‹ 结束
         </button>
-        <span className="muted small">本次 {count} 题</span>
+        <span className="muted small">{is2x2Set(c.set) ? '二阶' : '三阶'} · 本次 {count} 题</span>
       </div>
       {banner && (
         <div className="practice-bar" role="status">
@@ -555,7 +582,7 @@ function Session({
           <span className="muted small">{prepared
             ? practiceInstructions(prepared)
             : setupText(bottom)}</span>
-          <span className="muted small">{prepared ? '训练打乱由目标状态求解生成；图解显示本题实际终态，不是 WCA 随机打乱。' : '定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。'}</span>
+          {!is2x2Set(c.set) && <span className="muted small">{prepared ? '训练打乱由目标状态求解生成；图解显示本题实际终态，不是 WCA 随机打乱。' : '定点练习的 setup 是这条公式的逆，用来精确摆出情形；WCA 4b3 的随机打乱用于比赛，不能瞄准某个情形。'}</span>}
         </p>
         <div className="practice-time" aria-live="off">
           {formatTime(elapsed)}

@@ -10,7 +10,10 @@ export function prepareSetup(state: State, colors: BottomColor | PracticeColors,
   return new Promise((resolve, reject) => {
     try { if (typeof requested !== 'string') paletteFor(requested); } catch (error) { reject(error); return; }
     if (signal.aborted) return reject(new Error('已取消'));
-    const worker = new Worker(new URL('./practiceSolver.worker.ts', import.meta.url), { type: 'module' });
+    const twoByTwo = typeof requested !== 'string' && requested.method === '2x2';
+    const worker = twoByTwo
+      ? new Worker(new URL('./practiceSolver2.worker.ts', import.meta.url), { type: 'module' })
+      : new Worker(new URL('./practiceSolver.worker.ts', import.meta.url), { type: 'module' });
     const clean = () => { clearTimeout(timeout); signal.removeEventListener('abort', abort); worker.terminate(); };
     const fail = (message: string) => { clean(); reject(new Error(message)); };
     const abort = () => fail('已取消');
@@ -19,7 +22,7 @@ export function prepareSetup(state: State, colors: BottomColor | PracticeColors,
     worker.onerror = () => fail('求解器加载或运行失败，请重试');
     worker.onmessage = (event: MessageEvent<{ setup?: PreparedSetup; error?: string }>) => {
       const setup = event.data.setup;
-      if (!setup || !verifySetup(setup) || (typeof requested === 'string' ? setup.version !== 1 || setup.bottom !== requested : setup.version !== 2 || !sameColors(setup.colors, requested)) || setup.state.some((id, i) => id !== target[i])) {
+      if (!setup || !verifySetup(setup) || (typeof requested === 'string' ? setup.version !== 1 || setup.bottom !== requested : setup.version !== (twoByTwo ? 3 : 2) || !sameColors(setup.colors, requested)) || setup.state.length !== target.length || setup.state.some((id, i) => id !== target[i])) {
         fail(event.data.error ?? '求解结果校验失败');
         return;
       }

@@ -1,6 +1,6 @@
 import { BOTTOM_COLORS, PAIRS, bottomPalette, isRouxSet, legacyRoux, rouxPalette, validPairs, type BottomColor, type BridgePair, type BrowseColors, type Palette, type RouxColors } from './colorScheme';
 
-export type PracticeColors = { method: 'cfop'; bottom: BottomColor } | ({ method: 'roux' } & RouxColors);
+export type PracticeColors = { method: 'cfop' | '2x2'; bottom: BottomColor } | ({ method: 'roux' } & RouxColors);
 const palettes = new Map<string, Palette>();
 export function paletteFor(colors: PracticeColors): Palette {
   if (!colors || typeof colors !== 'object') throw new Error('非法练习配色');
@@ -12,14 +12,15 @@ export function paletteFor(colors: PracticeColors): Palette {
     if (!palette) { palette = rouxPalette(colors); palettes.set(key, palette); }
     return palette;
   }
-  if (colors.method !== 'cfop' || !BOTTOM_COLORS.includes(colors.bottom)) throw new Error('非法练习配色');
+  if (!['cfop', '2x2'].includes(colors.method) || !BOTTOM_COLORS.includes(colors.bottom)) throw new Error('非法练习配色');
   return bottomPalette(colors.bottom);
 }
-export const colorBottom = (c: PracticeColors): BottomColor => c.method === 'cfop' ? c.bottom : c.bottomColor;
-export const colorKey = (c: PracticeColors): string => c.method === 'cfop' ? `cfop/${c.bottom}` : `roux/${c.bottomColor}/${c.bridgePair}/${c.leftColor}`;
+export const colorBottom = (c: PracticeColors): BottomColor => c.method !== 'roux' ? c.bottom : c.bottomColor;
+export const colorKey = (c: PracticeColors): string => c.method !== 'roux' ? `${c.method}/${c.bottom}` : `roux/${c.bottomColor}/${c.bridgePair}/${c.leftColor}`;
 export function sameColors(a: PracticeColors, b: PracticeColors): boolean { return colorKey(a) === colorKey(b); }
 export interface PracticeColorPools {
   cfopBottoms: BottomColor[];
+  twoByTwoBottoms?: BottomColor[];
   rouxBottoms: BottomColor[];
   rouxPairsByBottom: Partial<Record<BottomColor, BridgePair[]>>;
 }
@@ -36,18 +37,20 @@ export function initializeColorPools(saved: Partial<PracticeColorPools> & { bott
     const pairs = Array.isArray(raw) ? [...new Set(raw.filter(p => validPairs(bottom).includes(p)))] : [];
     rouxPairsByBottom[bottom] = pairs.length ? pairs : [bottom === prefs.roux.bottomColor ? prefs.roux.bridgePair : legacyRoux(bottom).bridgePair];
   }
-  return { cfopBottoms, rouxBottoms, rouxPairsByBottom };
+  const twoByTwoBottoms = legalColors(saved.twoByTwoBottoms);
+  if (!twoByTwoBottoms.length) twoByTwoBottoms.push(prefs.twoByTwo?.bottomColor ?? 'white');
+  return { cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms };
 }
 export function snapshotPools(pools: PracticeColorPools): PracticeColorPools {
-  return { cfopBottoms: [...pools.cfopBottoms], rouxBottoms: [...pools.rouxBottoms], rouxPairsByBottom: Object.fromEntries(Object.entries(pools.rouxPairsByBottom).map(([b,p])=>[b,[...p]])) };
+  return { twoByTwoBottoms: [...(pools.twoByTwoBottoms ?? ['white'])], cfopBottoms: [...pools.cfopBottoms], rouxBottoms: [...pools.rouxBottoms], rouxPairsByBottom: Object.fromEntries(Object.entries(pools.rouxPairsByBottom).map(([b,p])=>[b,[...p]])) };
 }
-export function togglePoolBottom(pools: PracticeColorPools, method: 'cfop' | 'roux', bottom: BottomColor): PracticeColorPools {
+export function togglePoolBottom(pools: PracticeColorPools, method: 'cfop' | 'roux' | '2x2', bottom: BottomColor): PracticeColorPools {
   if (!BOTTOM_COLORS.includes(bottom)) throw new Error('非法底色');
-  const next = snapshotPools(pools), key = method === 'cfop' ? 'cfopBottoms' : 'rouxBottoms';
-  const selected = next[key];
+  const next = snapshotPools(pools), key = method === '2x2' ? 'twoByTwoBottoms' : method === 'cfop' ? 'cfopBottoms' : 'rouxBottoms';
+  const selected = next[key]!;
   if (selected.includes(bottom)) { if (selected.length > 1) next[key] = selected.filter(c=>c!==bottom); }
   else {
-    next[key].push(bottom);
+    next[key]!.push(bottom);
     if (method === 'roux' && !next.rouxPairsByBottom[bottom]?.length) next.rouxPairsByBottom[bottom] = [legacyRoux(bottom).bridgePair];
   }
   return next;
@@ -60,13 +63,13 @@ export function togglePoolPair(pools: PracticeColorPools, bottom: BottomColor, p
   else pairs.push(pair);
   return next;
 }
-export function colorCandidates(method: 'cfop' | 'roux', pools: PracticeColorPools): PracticeColors[] {
-  const bottoms = method === 'cfop' ? pools.cfopBottoms : pools.rouxBottoms;
+export function colorCandidates(method: 'cfop' | 'roux' | '2x2', pools: PracticeColorPools): PracticeColors[] {
+  const bottoms = method === '2x2' ? (pools.twoByTwoBottoms ?? ['white']) : method === 'cfop' ? pools.cfopBottoms : pools.rouxBottoms;
   if (!bottoms.length) throw new Error('至少选择一种练习底色');
   const candidates: PracticeColors[] = [];
   for (const bottom of [...new Set(bottoms)]) {
     if (!BOTTOM_COLORS.includes(bottom)) throw new Error('非法练习底色');
-    if (method === 'cfop') candidates.push({ method, bottom });
+    if (method !== 'roux') candidates.push({ method, bottom });
     else {
       const pairs = pools.rouxPairsByBottom[bottom];
       if (!pairs?.length) throw new Error('至少选择一对桥色');
@@ -82,7 +85,7 @@ export function colorCandidates(method: 'cfop' | 'roux', pools: PracticeColorPoo
   return candidates;
 }
 export function pickPracticeColors(c: { set: string }, pools: PracticeColorPools, last: PracticeColors | null, rand = Math.random): PracticeColors {
-  const method = isRouxSet(c.set) ? 'roux' : 'cfop';
+  const method = ['cll', 'eg1', 'eg2'].includes(c.set) ? '2x2' : isRouxSet(c.set) ? 'roux' : 'cfop';
   let candidates = colorCandidates(method, pools);
   if (candidates.length > 1 && last) candidates = candidates.filter(c=>!sameColors(c,last));
   const value = rand(), index = Number.isFinite(value) ? Math.min(candidates.length-1, Math.max(0, Math.floor(value*candidates.length))) : 0;

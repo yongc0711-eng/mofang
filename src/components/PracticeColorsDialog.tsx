@@ -6,9 +6,20 @@ import { togglePoolBottom, togglePoolPair, type PracticeColorPools } from '../li
 import type { MethodId } from '../types';
 
 export function PracticeColorPanel({ method, colorPools, onChange }: {
-  method: Extract<MethodId, 'cfop' | 'roux'>; colorPools: PracticeColorPools; onChange: Dispatch<SetStateAction<PracticeColorPools>>;
+  method: MethodId; colorPools: PracticeColorPools; onChange: Dispatch<SetStateAction<PracticeColorPools>>;
 }) {
   const { cfopBottoms, rouxBottoms, rouxPairsByBottom } = colorPools;
+  if (method === '2x2') return <section className="practice-colors">
+    <h3>二阶练习底色</h3>
+    <div className="practice-color-grid" role="group" aria-label="二阶练习底色">
+      {BOTTOM_COLORS.map(color => <button type="button" key={color} className="chip"
+        aria-label={`二阶练习底色${COLOR_LABEL[color]}色`} aria-pressed={(colorPools.twoByTwoBottoms ?? ['white']).includes(color)}
+        onClick={() => onChange(current => togglePoolBottom(current, method, color))}>
+        <span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />{COLOR_LABEL[color]}
+      </button>)}
+    </div>
+    <p className="muted small">可多选，每题随机一种已选底色；至少保留一种。二阶与三阶配色分别设置。</p>
+  </section>;
   return <>
     <section className="practice-colors">
       <h3>{method === 'cfop' ? 'CFOP 练习底色' : 'Roux 练习底色'}</h3>
@@ -32,12 +43,13 @@ export function PracticeColorPanel({ method, colorPools, onChange }: {
     <p className="muted small">可多选；每题按所属方法随机一个已选完整配色。Roux 两个左右方向都包含；新增底色会带入上方显示的默认桥对，每底至少一对。</p>
   </>;
 }
-export function PracticeColorsDialog({ colorPools, onChange }: {
+export function PracticeColorsDialog({ colorPools, onChange, size = 3 }: {
+  size?: 2 | 3;
   colorPools: PracticeColorPools; onChange: Dispatch<SetStateAction<PracticeColorPools>>;
 }) {
   const [open, setOpen] = useState(false);
   return <>
     <button type="button" className="chip color-dialog-entry" id="practice-colors" aria-haspopup="dialog" aria-expanded={open} onClick={e => { e.currentTarget.focus(); setOpen(true); }}>练习配色</button>
-    <ColorDialog open={open} title="练习配色" onClose={() => setOpen(false)}>{method => <PracticeColorPanel method={method} colorPools={colorPools} onChange={onChange} />}</ColorDialog>
+    <ColorDialog open={open} methods={size === 2 ? ['2x2'] : ['cfop', 'roux']} title="练习配色" onClose={() => setOpen(false)}>{method => <PracticeColorPanel method={method} colorPools={colorPools} onChange={onChange} />}</ColorDialog>
   </>;
 }

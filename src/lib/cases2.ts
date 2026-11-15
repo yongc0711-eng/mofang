@@ -1,6 +1,7 @@
 import { parseAlg } from './alg';
 import type { AlgCase, SetId } from '../types';
 import type { Face } from './cube';
+import type { Palette } from './colorScheme';
 import {
   STICKERS2,
   applyMove2,
@@ -259,8 +260,8 @@ export function lintCase2(c: AlgCase): string[] {
 export const is2x2Set = (setId: string): boolean => setId === 'cll' || setId === 'eg1' || setId === 'eg2';
 
 /** 二阶图解使用：24 张贴纸按当前起手状态对应的标准配色 */
-export function diagramColors2(c: Pick<AlgCase, 'algs'>): Face[] {
-  return caseState2(c).map((id) => STICKERS2[id].face);
+export function diagramColors2(c: Pick<AlgCase, 'algs'>, palette?: Palette): Face[] {
+  return caseState2(c).map((id) => palette ? palette[STICKERS2[id].face] : STICKERS2[id].face);
 }
 
 /** 二阶图解按所选公式的逆推导起手；解决不了该情形或解析失败时回退到 c */

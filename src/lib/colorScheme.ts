@@ -102,7 +102,7 @@ export function swapRoux(colors: RouxColors): RouxColors {
   rouxPalette(colors);
   return { ...colors, leftColor: PAIRS[colors.bridgePair].find(c => c !== colors.leftColor)! };
 }
-export interface BrowseColors { cfop: { bottomColor: BottomColor }; roux: RouxColors }
+export interface BrowseColors { cfop: { bottomColor: BottomColor }; roux: RouxColors; twoByTwo?: { bottomColor: BottomColor } }
 const colorOr = (value: unknown, fallback: BottomColor): BottomColor => BOTTOM_COLORS.includes(value as BottomColor) ? value as BottomColor : fallback;
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 export function cleanBrowse(value: unknown, legacy: BottomColor): BrowseColors {
@@ -112,14 +112,14 @@ export function cleanBrowse(value: unknown, legacy: BottomColor): BrowseColors {
   const bridgePair = validPairs(bottomColor).includes(roux.bridgePair as BridgePair) ? roux.bridgePair as BridgePair : old.bridgePair;
   const leftColor = (PAIRS[bridgePair] as readonly unknown[]).includes(roux.leftColor) ? roux.leftColor as BottomColor :
     !('roux' in raw) ? old.leftColor : defaultLeft(bridgePair);
-  return { cfop: { bottomColor: colorOr(cfop.bottomColor, legacy) }, roux: { bottomColor, bridgePair, leftColor } };
+  return { cfop: { bottomColor: colorOr(cfop.bottomColor, legacy) }, roux: { bottomColor, bridgePair, leftColor }, twoByTwo: { bottomColor: colorOr(object(raw.twoByTwo).bottomColor, 'white') } };
 }
 export function isRouxSet(setId: string): boolean {
   return setId === 'cmll' || setId === 'lse' || setId === 'sbls' || setId === 'eolr';
 }
 export function browsePalette(c: { set: string }, prefs: Partial<BrowseColors> & { bottomColor: BottomColor }): Palette {
   const colors = cleanBrowse(prefs, prefs.bottomColor);
-  return isRouxSet(c.set) ? rouxPalette(colors.roux) : bottomPalette(colors.cfop.bottomColor);
+  return ['cll', 'eg1', 'eg2'].includes(c.set) ? bottomPalette(colors.twoByTwo!.bottomColor) : isRouxSet(c.set) ? rouxPalette(colors.roux) : bottomPalette(colors.cfop.bottomColor);
 }
 /** Physical white-up, green-front sandbox frame, independent of browsing/legacy prefs. */
 export const SANDBOX_PALETTE: Palette = Object.freeze({ U: 'D', D: 'U', F: 'F', B: 'B', R: 'L', L: 'R' });

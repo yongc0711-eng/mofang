@@ -5,15 +5,16 @@ import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { ColorDialog } from './ColorDialog';
 import type { MethodId } from '../types';
 
-export function BrowseColorPanel({ method }: { method: Extract<MethodId, 'cfop' | 'roux'> }) {
+export function BrowseColorPanel({ method }: { method: MethodId }) {
   const prefs = useDevicePrefs();
   const colors = cleanBrowse(prefs, prefs.bottomColor);
-  const current = colors[method];
+  const current = method === '2x2' ? colors.twoByTwo! : colors[method];
   return <div className="formula-colors-panel">
-      <p className="small">{method === 'cfop' ? 'CFOP' : '桥式 Roux'} 浏览配色 · 只对这台设备生效</p>
+      <p className="small">{method === '2x2' ? '二阶' : method === 'cfop' ? 'CFOP' : '桥式 Roux'} 浏览配色 · 只对这台设备生效</p>
       <div className="formula-color-grid" role="group" aria-label="浏览底色">
         {BOTTOM_COLORS.map(color => <button type="button" className="chip" key={color} aria-label={`底面${COLOR_LABEL[color]}色`} aria-pressed={current.bottomColor === color} onClick={() => {
-          if (method === 'cfop') setDevicePrefs({ cfop: { bottomColor: color } });
+          if (method === '2x2') setDevicePrefs({ twoByTwo: { bottomColor: color } });
+          else if (method === 'cfop') setDevicePrefs({ cfop: { bottomColor: color } });
           else setDevicePrefs({ roux: withRouxBottom(colors.roux, color) });
         }}><span className="swatch-dot" aria-hidden="true" style={{ background: COLOR_VAR[color] }} />{COLOR_LABEL[color]}</button>)}
       </div>
@@ -40,6 +41,6 @@ export function FormulaColors({ iconOnly = false }: { iconOnly?: boolean }) {
       </svg>
       {!iconOnly && <span>配色</span>}
     </button>
-    <ColorDialog open={open} title="浏览配色" onClose={() => setOpen(false)}>{method => <BrowseColorPanel method={method} />}</ColorDialog>
+    <ColorDialog open={open} title="浏览配色" methods={['cfop', 'roux', '2x2']} onClose={() => setOpen(false)}>{method => <BrowseColorPanel method={method} />}</ColorDialog>
   </>;
 }

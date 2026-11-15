@@ -2,6 +2,9 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { prepareSetup } from './prepareSetup';
 import { solveTarget } from './practiceTarget';
 import { solved } from './cube';
+import { solveTarget2 } from './practice2';
+import { caseState2 } from './cases2';
+import { getCase } from '../data';
 class FakeWorker {
   static instances: FakeWorker[] = [];
   onmessage: ((e: MessageEvent) => void) | null = null;
@@ -72,4 +75,29 @@ it('v2 cancellation still terminates the solver without replacing the chosen col
   const p=prepareSetup(solved(),{method:'cfop',bottom:'green'},controller.signal);
   const rejected=expect(p).rejects.toThrow('已取消');controller.abort();await rejected;
   expect(FakeWorker.instances[0].terminate).toHaveBeenCalledOnce();
+});
+it('v3 worker request snapshots 24-sticker target/colors and rejects a different target or bottom', async () => {
+  const state = caseState2(getCase('eg1-h-1')!), colors = { method: '2x2' as const, bottom: 'blue' as const };
+  const p = prepareSetup(state, colors, new AbortController().signal), worker = FakeWorker.instances[0];
+  expect(worker.postMessage).toHaveBeenCalledExactlyOnceWith({ state, colors });
+  const setup = solveTarget2(state, colors);
+  state[0] = -1;
+  worker.onmessage!({ data: { setup } } as MessageEvent);
+  expect(await p).toEqual(setup);
+  expect(worker.terminate).toHaveBeenCalledOnce();
+  for (const wrong of [solveTarget2(setup.state, { method: '2x2', bottom: 'green' }), solveTarget2(caseState2(getCase('eg2-h-1')!), colors)]) {
+    const request = prepareSetup(setup.state, colors, new AbortController().signal);
+    FakeWorker.instances.at(-1)!.onmessage!({ data: { setup: wrong } } as MessageEvent);
+    await expect(request).rejects.toThrow('校验失败');
+  }
+});
+it('v3 cancellation and timeout terminate their workers without changing the question', async () => {
+  const controller = new AbortController(), state = caseState2(getCase('cll-as-1')!);
+  const request = prepareSetup(state, { method: '2x2', bottom: 'white' }, controller.signal);
+  const rejected = expect(request).rejects.toThrow('已取消'); controller.abort(); await rejected;
+  expect(FakeWorker.instances[0].terminate).toHaveBeenCalledOnce();
+  const timed = prepareSetup(state, { method: '2x2', bottom: 'white' }, new AbortController().signal);
+  const timeout = expect(timed).rejects.toThrow('准备超时');
+  await vi.advanceTimersByTimeAsync(15000); await timeout;
+  expect(FakeWorker.instances[1].terminate).toHaveBeenCalledOnce();
 });
