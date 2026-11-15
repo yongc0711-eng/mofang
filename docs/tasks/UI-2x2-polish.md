@@ -58,3 +58,11 @@
 验证：`npm test`7150/70、`npm run check:data`1251/15、`npm run build`通过；`npm run test:visual -- --workers=2`74条通过，无skip。
 
 截图：`ui-review.local/2x2-framing/before-{320,390,1280}-{light,dark}.png`与`after-{320,390,1280}-{light,dark}.png`；几何记录`geometry.json`。分支仍为`codex/ui-lab-polish`，不合并、不push。
+
+## 复核与合并（2026-11-15，Auditor）
+
+逐条看过两个提交（`82004a6`、`3bb8a7c`）的 `src` 与 CSS 改动，确认没有碰数据、`SET_RULES`、`cases2` 校验器、练习、路由与发布工作流；`CubeScene` 的 zoom 只在 `size === 2` 时写入，三阶仍是 1。
+
+交付时的浏览器用例是 2 个视口 × 5 条：详情一条要连开 5 个情形（16.6s）、EG 长名称连开 4 个（13.2s），按 CI 2 vCPU 约 2.8 倍的放大会重新撞上 30s 上限（上一轮 `two-by-two.spec.ts` 就是这样红的）。因此在不删任何断言的前提下按「浅/深色 × 情形分组」重排成 26 条：首页 1 条不变，列表按 eg1/eg2 × 浅深色拆 4 条，EG 长名称按浅深色拆 2 条，详情按浅深色 × 两组 id 拆 4 条，键盘从详情里独立成浅深色 2 条，其余 13 条 × 2 个 project 共 26 条。单条最长 7.0s，整包 52.2s。
+
+合并与门禁：fast-forward `8a6d41f..3490d7d`（`3490d7d` 为拆分提交），main 上 `npm test` 7150/70、`check:data` 1251/15、`build` 通过、`test:visual` 90 条（1.5m 本地实测 52.2s 为本 spec，全量 2.5m）全过，无 skip。
