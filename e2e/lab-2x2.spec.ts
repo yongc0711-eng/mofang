@@ -52,8 +52,20 @@ async function fits(page: Page) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
 }
 
+/** Enter the play page on the 2×2 model and return its canvas plus the clean frame. */
+async function enterTwoByTwo(page: Page, scheme: 'light' | 'dark') {
+  const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+  await page.emulateMedia({ colorScheme: scheme }); await page.goto('/#/search');
+  await expect(turn(page, 'R')).toBeEnabled();
+  await sizes(page).getByRole('button', { name: '二阶', exact: true }).click();
+  await expect(page.locator('.sandbox-layout')).toHaveAttribute('data-size', '2');
+  await expect(turn(page, 'R')).toBeEnabled();
+  const canvas = page.locator('.sandbox-stage canvas');
+  return { errors, canvas };
+}
+
 for (const scheme of ['light', 'dark'] as const) {
-  test(`试转二阶 ${scheme}：模型切换、九键含转体、后缀、撤销与复原，首屏避开底栏`, async ({ page }) => {
+  test(`试转二阶 ${scheme}：模型切换、九键与首屏避开底栏`, async ({ page }) => {
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.emulateMedia({ colorScheme: scheme }); await page.goto('/#/search');
     await expect(turn(page, 'R')).toBeEnabled();
@@ -68,9 +80,14 @@ for (const scheme of ['light', 'dark'] as const) {
     await expect(page.getByRole('button', { name: '切换更多转法', exact: true })).toHaveCount(0);
     await expect(sizes(page).getByRole('button', { name: '二阶', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await fits(page);
-    const canvas = page.locator('.sandbox-stage canvas');
-    const initial = await canvas.screenshot({ path: `ui-review.local/lab-2x2/initial-${page.viewportSize()!.width}-${scheme}.png` });
+    const initial = await page.locator('.sandbox-stage canvas').screenshot({ path: `ui-review.local/lab-2x2/initial-${page.viewportSize()!.width}-${scheme}.png` });
     await expectCubeMargin(page, initial);
+    expect(errors).toEqual([]);
+  });
+
+  test(`试转二阶 ${scheme}：后缀、撤销与转体后的画面`, async ({ page }) => {
+    const { errors, canvas } = await enterTwoByTwo(page, scheme);
+    const initial = await canvas.screenshot();
     const prime = page.getByRole('button', { name: "后缀 '", exact: true });
     const undo = page.getByRole('button', { name: '撤销最后一转', exact: true });
     await prime.click(); await turn(page, 'R').click(); await expect(undo).toBeEnabled();
@@ -87,6 +104,13 @@ for (const scheme of ['light', 'dark'] as const) {
       await undo.click(); await expect(page.locator('.sandbox-queue')).toHaveText('待转 0 / 16');
       await expect(undo).toBeDisabled(); await expectSameFrame(page, initial, await canvas.screenshot());
     }
+    expect(errors).toEqual([]);
+  });
+
+  test(`试转二阶 ${scheme}：连续转体、复原后回三阶`, async ({ page }) => {
+    const { errors, canvas } = await enterTwoByTwo(page, scheme);
+    const initial = await canvas.screenshot();
+    const undo = page.getByRole('button', { name: '撤销最后一转', exact: true });
     await page.getByRole('button', { name: '后缀 2', exact: true }).click();
     for (const key of ['U', 'F', 'L', 'D', 'B', 'x', 'y', 'z']) await turn(page, key).click();
     await expect(page.locator('.sandbox-queue')).toHaveText('待转 0 / 16');
