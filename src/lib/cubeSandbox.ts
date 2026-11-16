@@ -3,11 +3,11 @@ import { applyMove, invertMoves, solved, type Move } from './cube';
 import { applyMove2, solved2 } from './cube2';
 
 export const MAIN_KEYS = ['R', 'U', 'F', 'L', 'D', 'B', 'x', 'y', 'z'] as const;
-export const TWO_KEYS = ['R', 'U', 'F', 'L', 'D', 'B'] as const;
+export const TWO_KEYS = MAIN_KEYS;
 export const MORE_KEYS = ['r', 'l', 'u', 'd', 'f', 'b', 'M', 'E', 'S'] as const;
 export type Suffix = '' | "'" | '2';
 export function keyMove(key: string, suffix: Suffix, size: 2 | 3 = 3): Move {
-  if (size === 2 && !TWO_KEYS.some(k => k === key)) throw new Error('二阶只支持六面转动');
+  if (size === 2 && !TWO_KEYS.some(k => k === key)) throw new Error('二阶只支持六面转动和整体转体');
   if (![...MAIN_KEYS, ...MORE_KEYS].some(k => k === key)) throw new Error('未知试转按键');
   return parseAlg(key + suffix)[0];
 }

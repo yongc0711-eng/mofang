@@ -68,14 +68,26 @@ it.each(TWO_KEYS)('二阶 %s 的三个后缀均使用 24 贴纸引擎，撤销�
     expect(s.canUndo).toBe(false);
   }
 });
-it('二阶拒绝整体转体、宽转、切片和未知键，且不改变队列或后缀', () => {
+it('二阶拒绝宽转、切片和未知键，且不改变队列或后缀', () => {
   const s = new Sandbox(2); s.suffix = '2';
-  for (const key of [...MORE_KEYS, 'x', 'y', 'z', 'Q']) {
-    expect(() => keyMove(key, s.suffix, 2)).toThrow('二阶只支持六面转动');
-    expect(() => s.press(key)).toThrow('二阶只支持六面转动');
+  for (const key of [...MORE_KEYS, 'Q']) {
+    expect(() => keyMove(key, s.suffix, 2)).toThrow('二阶只支持六面转动和整体转体');
+    expect(() => s.press(key)).toThrow('二阶只支持六面转动和整体转体');
     expect(s.tick(1000)).toEqual({ state: solved2(), move: null, fraction: 0 });
     expect(s.suffix).toBe('2'); expect(s.history).toEqual([]);
   }
+});
+it.each(['x', 'y', 'z'])('二阶 %s 后继续面转保留当前持方，逐步撤销精确返回', axis => {
+  const s = new Sandbox(2);
+  s.press(axis); s.press('R'); s.press('U'); s.tick(480);
+  expect(s.state).toEqual(applyMoves2(solved2(), parseAlg(`${axis} R U`)));
+  expect(s.state).not.toEqual(applyMoves2(solved2(), parseAlg('R U')));
+  expect(s.history).toEqual(parseAlg(`${axis} R U`));
+  for (const expected of [`${axis} R`, axis, '']) {
+    expect(s.undo()).toBe(true); s.tick(160);
+    expect(s.state).toEqual(applyMoves2(solved2(), parseAlg(expected)));
+  }
+  expect(s.canUndo).toBe(false);
 });
 it('二阶快速连点保序、16 步封顶，忙时不可撤销，复原取消动画和后缀', () => {
   const s = new Sandbox(2); s.suffix = "'";

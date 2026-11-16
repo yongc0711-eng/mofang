@@ -53,7 +53,7 @@ async function fits(page: Page) {
 }
 
 for (const scheme of ['light', 'dark'] as const) {
-  test(`试转二阶 ${scheme}：模型切换、六键、后缀、撤销与复原，首屏避开底栏`, async ({ page }) => {
+  test(`试转二阶 ${scheme}：模型切换、九键含转体、后缀、撤销与复原，首屏避开底栏`, async ({ page }) => {
     const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
     await page.emulateMedia({ colorScheme: scheme }); await page.goto('/#/search');
     await expect(turn(page, 'R')).toBeEnabled();
@@ -63,8 +63,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await expect(turn(page, 'R')).toBeEnabled();
     await expect(page.locator('.sandbox-layout')).toHaveAttribute('data-size', '2');
     await expect(page.locator('.sandbox-stage canvas')).toHaveCount(1);
-    await expect(page.locator('.sandbox-keys button')).toHaveText(['R', 'U', 'F', 'L', 'D', 'B']);
-    await expect(page.locator('.sandbox-controls button')).toHaveCount(11);
+    await expect(page.locator('.sandbox-keys button')).toHaveText(['R', 'U', 'F', 'L', 'D', 'B', 'x', 'y', 'z']);
+    await expect(page.locator('.sandbox-controls button')).toHaveCount(14);
     await expect(page.getByRole('button', { name: '切换更多转法', exact: true })).toHaveCount(0);
     await expect(sizes(page).getByRole('button', { name: '二阶', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await fits(page);
@@ -80,8 +80,15 @@ for (const scheme of ['light', 'dark'] as const) {
     await undo.click(); await expect(page.locator('.sandbox-queue')).toHaveText('待转 0 / 16');
     await expect(undo).toBeDisabled(); await expectSameFrame(page, initial, await canvas.screenshot({ path: `ui-review.local/lab-2x2/undo-${page.viewportSize()!.width}-${scheme}.png` }));
     await expect(prime).toHaveAttribute('aria-pressed', 'true');
+    for (const axis of ['x', 'y', 'z']) {
+      await turn(page, axis).click(); await expect(undo).toBeEnabled();
+      await expect(prime).toHaveAttribute('aria-pressed', 'true');
+      expect((await canvas.screenshot()).equals(initial)).toBe(false);
+      await undo.click(); await expect(page.locator('.sandbox-queue')).toHaveText('待转 0 / 16');
+      await expect(undo).toBeDisabled(); await expectSameFrame(page, initial, await canvas.screenshot());
+    }
     await page.getByRole('button', { name: '后缀 2', exact: true }).click();
-    for (const key of ['U', 'F', 'L', 'D', 'B']) await turn(page, key).click();
+    for (const key of ['U', 'F', 'L', 'D', 'B', 'x', 'y', 'z']) await turn(page, key).click();
     await expect(page.locator('.sandbox-queue')).toHaveText('待转 0 / 16');
     await expect(undo).toBeEnabled();
     await page.getByRole('button', { name: '复原魔方', exact: true }).click();
