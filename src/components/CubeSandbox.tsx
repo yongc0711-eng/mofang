@@ -1,14 +1,19 @@
 import { SANDBOX_PALETTE } from '../lib/colorScheme';
 import { useEffect, useRef, useState } from 'react';
-import { Sandbox, MAIN_KEYS, MORE_KEYS, type Suffix } from '../lib/cubeSandbox';
+import { Sandbox, MAIN_KEYS, MORE_KEYS, TWO_KEYS, type Suffix } from '../lib/cubeSandbox';
 import { easeMove } from '../lib/timeline';
 import { useDevicePrefs } from '../store/devicePrefs';
 import type { CubeScene } from './CubeScene';
 
-export function CubeSandbox() {
+export function CubeSandbox({ size = 3 }: { size?: 2 | 3 }) {
+  return <SandboxBody key={size} size={size} />;
+}
+
+/** A size change remounts the model and scene together, cancelling old async work. */
+function SandboxBody({ size }: { size: 2 | 3 }) {
   const host = useRef<HTMLDivElement>(null);
   const scene = useRef<CubeScene | null>(null);
-  const model = useRef(new Sandbox());
+  const model = useRef(new Sandbox(size));
   const raf = useRef(0);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
@@ -26,7 +31,7 @@ export function CubeSandbox() {
     let created: CubeScene | null = null;
     import('./CubeScene').then(({ CubeScene }) => {
       if (disposed || !host.current) return;
-      created = new CubeScene(host.current, prefsRef.current.finish);
+      created = new CubeScene(host.current, prefsRef.current.finish, size, size === 2 ? 1.15 : 1);
       created.setPalette(SANDBOX_PALETTE);
       scene.current = created; setReady(true); draw();
     }).catch(() => { if (!disposed) setError(true); });
@@ -46,7 +51,7 @@ export function CubeSandbox() {
     raf.current = requestAnimationFrame(tick);
   };
   const m = model.current;
-  return <div className="sandbox-layout">
+  return <div className="sandbox-layout" data-size={size}>
     <div className="sandbox-view">
       <div className="sandbox-stage" ref={host} role="img" aria-label="可拖动的试转魔方" />
       {!ready && <p className="sandbox-loading" role="status">{error ? '3D 加载失败，请重新打开页面' : '正在加载魔方…'}</p>}
@@ -59,10 +64,10 @@ export function CubeSandbox() {
             {(['', "'", '2'] as Suffix[]).map(s => <button type="button" className="btn" key={s} aria-label={s ? `后缀 ${s}` : '无后缀'} aria-pressed={m.suffix === s} onClick={() => { m.suffix = s; refresh(n => n + 1); }}>{s || '无'}</button>)}
           </div>
         </div>
-        <button type="button" className="btn sandbox-more" aria-label="切换更多转法" aria-pressed={more} onClick={() => setMore(!more)}>{more ? '基础转法' : '更多转法'}<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>
+        {size === 3 && <button type="button" className="btn sandbox-more" aria-label="切换更多转法" aria-pressed={more} onClick={() => setMore(!more)}>{more ? '基础转法' : '更多转法'}<svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="m6 4 4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg></button>}
       </div>
       <div className="sandbox-keys">
-        {(more ? MORE_KEYS : MAIN_KEYS).map(key => <button type="button" className="btn" key={key} aria-label={`转动 ${key}`} disabled={!ready || m.pending >= 16} onClick={() => { if (m.press(key)) run(); }}>{key}</button>)}
+        {(size === 2 ? TWO_KEYS : more ? MORE_KEYS : MAIN_KEYS).map(key => <button type="button" className="btn" key={key} aria-label={`转动 ${key}`} disabled={!ready || m.pending >= 16} onClick={() => { if (m.press(key)) run(); }}>{key}</button>)}
       </div>
       <div className="sandbox-footer">
         <div className="sandbox-actions">

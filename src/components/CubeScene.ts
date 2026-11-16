@@ -86,6 +86,8 @@ export class CubeScene {
     private readonly host: HTMLElement,
     finish: CubeFinish = 'uv',
     private readonly size: 2 | 3 = 3,
+    /** 额外取景留白倍率；默认不改变公式播放器。 */
+    private readonly framingScale = 1,
   ) {
     this.scale = size === 2 ? 0.5 : 1;
     this.stickers = size === 3 ? STICKERS : STICKERS2;
@@ -262,7 +264,7 @@ export class CubeScene {
     this.camera.aspect = w / h;
     // 按较短的一边留出整个魔方：外接球半径约 2.7
     const halfFov = (this.camera.fov * Math.PI) / 360;
-    const fit = (2.75 * this.scale) / Math.sin(halfFov);
+    const fit = (2.75 * this.scale * this.framingScale) / Math.sin(halfFov);
     this.camera.position.set(0, 0, w < h ? fit / this.camera.aspect : fit);
     // 二阶色块更大，取景略留白；按页面断点区分手机与桌面，不改变三阶。
     if (this.size === 2) this.camera.zoom = window.matchMedia('(max-width: 799px)').matches ? 0.88 : 0.82;

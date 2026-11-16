@@ -1,10 +1,13 @@
 import { parseAlg } from './alg';
 import { applyMove, invertMoves, solved, type Move } from './cube';
+import { applyMove2, solved2 } from './cube2';
 
 export const MAIN_KEYS = ['R', 'U', 'F', 'L', 'D', 'B', 'x', 'y', 'z'] as const;
+export const TWO_KEYS = ['R', 'U', 'F', 'L', 'D', 'B'] as const;
 export const MORE_KEYS = ['r', 'l', 'u', 'd', 'f', 'b', 'M', 'E', 'S'] as const;
 export type Suffix = '' | "'" | '2';
-export function keyMove(key: string, suffix: Suffix): Move {
+export function keyMove(key: string, suffix: Suffix, size: 2 | 3 = 3): Move {
+  if (size === 2 && !TWO_KEYS.some(k => k === key)) throw new Error('二阶只支持六面转动');
   if (![...MAIN_KEYS, ...MORE_KEYS].some(k => k === key)) throw new Error('未知试转按键');
   return parseAlg(key + suffix)[0];
 }
@@ -12,7 +15,8 @@ export const moveDuration = (move: Move) => move.amount === 2 ? 240 : 160;
 
 /** Sticker state stays in the current frame, including rotated centers; never normalize. */
 export class Sandbox {
-  state = solved();
+  state: number[];
+  constructor(readonly size: 2 | 3 = 3) { this.state = size === 2 ? solved2() : solved(); }
   suffix: Suffix = '';
   history: Move[] = [];
   queue: { move: Move; record: boolean }[] = [];
@@ -21,7 +25,7 @@ export class Sandbox {
   get canUndo() { return !this.pending && this.history.length > 0; }
   press(key: string): boolean {
     if (this.pending >= 16) return false;
-    this.queue.push({ move: keyMove(key, this.suffix), record: true });
+    this.queue.push({ move: keyMove(key, this.suffix, this.size), record: true });
     return true;
   }
   undo(): boolean {
@@ -30,7 +34,7 @@ export class Sandbox {
     return true;
   }
   reset() {
-    this.state = solved(); this.queue = []; this.active = null; this.history = []; this.suffix = '';
+    this.state = this.size === 2 ? solved2() : solved(); this.queue = []; this.active = null; this.history = []; this.suffix = '';
   }
   tick(dt: number) {
     let remaining = Math.max(0, dt);
@@ -40,7 +44,7 @@ export class Sandbox {
       const used = Math.min(remaining, duration - this.active.elapsed);
       this.active.elapsed += used; remaining -= used;
       if (this.active.elapsed < duration) break;
-      this.state = applyMove(this.state, this.active.move);
+      this.state = this.size === 2 ? applyMove2(this.state, this.active.move) : applyMove(this.state, this.active.move);
       if (this.active.record) this.history.push(this.active.move);
       this.active = null;
     }
