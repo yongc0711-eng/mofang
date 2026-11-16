@@ -10,6 +10,7 @@ import { AlgKeyboard } from '../components/AlgKeyboard';
 import { editAlgDraft } from '../lib/algKeyboard';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
+import { Recognition2 } from '../components/Recognition2';
 import { CubePlayer } from '../components/CubePlayer';
 import { getCase, getSet } from '../data';
 import { moveCount, parseAlg } from '../lib/alg';
@@ -259,10 +260,11 @@ export function CasePage() {
               sideRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
             }}
           >
-            <span aria-hidden="true">↓</span> {c.recognition ? '识别与公式' : '公式'}
+            <span aria-hidden="true">↓</span> {is2x2 || c.recognition ? '识别与公式' : '公式'}
           </button>
         </div>
         <div className="case-side" ref={sideRef}>
+          {is2x2 && <Recognition2 c={viewCase} palette={palette} />}
           {c.set === 'eolr' && <p className="recognition"><strong>{c.targetTier === 'tier1' ? '化归中间态' : c.targetTier === 'tier2' ? '标准 EOLR · 底层双槽' : '严格 EOLRb · LR 与顶角归位'}</strong>{c.continuationAlg && <> · 接续 <code>{c.continuationAlg}</code></>}<br />接续从当前情形的同一起手播放。<Link to="/set/lse">基础 LSE</Link></p>}
           {c.recognition && (
             <p className="recognition">
