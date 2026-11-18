@@ -454,7 +454,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 @keyframes spin { to { transform: rotate(360deg); } }
 .move-track {
   list-style: none; margin: 0; padding: 4px 14px 8px;
-  display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
+  position: relative; display: flex; flex-wrap: wrap; gap: 3px; justify-content: center;
   font-family: ui-monospace, 'SF Mono', Consolas, monospace; font-size: 0.92rem;
 }
 .move-track li {
@@ -566,6 +566,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
      各项是实测值（390×844 上：上方 270、控件约 172，步骤按 2 行算）；窗口高度变化时跟着 dvh 走，不在滚动中变。 */
   .case-player { position: relative; }
   .player { position: relative; }
+  .case-page:not([data-size="2"]) .move-track { line-height: 1.5; max-height: calc(3em + 19px); overflow-y: auto; }
   .player-stage {
     --player-above: 270px; --player-chrome: 172px; --peek-cue: 40px; --peek: 100px;
     height: clamp(180px, calc(100vh - var(--player-above) - var(--player-chrome) - var(--peek-cue) - var(--peek) - var(--nav-h) - var(--nav-gap)), 340px);
@@ -586,6 +587,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
     .player-stage { height: 164px; }
     .player { padding-bottom: 0; }
     .move-track { padding: 2px 10px 4px; gap: 2px; font-size: 0.85rem; }
+    .case-page:not([data-size="2"]) .move-track { max-height: calc(3em + 12px); }
     .player-scrubber { height: 24px; }
     .player-controls { padding: 0 8px; }
     .ctl { width: 40px; height: 40px; }
@@ -866,6 +868,8 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .case-page .alg-row-on { box-shadow: none; }
 .case-page .alg-play { min-height: 44px; }
 .case-page .alg-play .alg { font-size: 1rem; line-height: 1.85; }
+.alg-phrase, .alg-turn { display: inline-block; max-inline-size: 100%; }
+.alg-phrase { vertical-align: top; }
 .case-page .alg-play .small { margin-top: 8px; font-size: 0.75rem; }
 .case-page .alg-actions { margin-top: 8px; }
 .case-page .alg-keyboard-toggle { color: var(--muted); background: var(--surface); border-color: var(--border); font-size: 0.8125rem; }

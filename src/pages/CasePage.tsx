@@ -8,6 +8,7 @@ import { setUi } from '../lib/uiState';
 import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { AlgKeyboard } from '../components/AlgKeyboard';
+import { AlgText } from '../components/AlgText';
 import { editAlgDraft } from '../lib/algKeyboard';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
@@ -170,7 +171,7 @@ export function CasePage() {
         onClick={() => setSelected(alg)}
         aria-label={`查看这条公式的起手 ${alg}`}
       >
-        <code className="alg">{displayAlg(c.id, alg)}</code>
+        <AlgText text={displayAlg(c.id, alg)} />
         <span className="muted small">
           {moveCount(alg)} 步{isCustom && ' · 我的公式'}
         </span>

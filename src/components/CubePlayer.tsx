@@ -1,5 +1,5 @@
 import type { Palette } from '../lib/colorScheme';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { applyMove2, solved2 } from '../lib/cube2';
 import { Timeline, easeMove, type Engine } from '../lib/timeline';
 import type { CubeFinish, CubeScene } from './CubeScene';
@@ -41,6 +41,7 @@ interface Props {
 export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 'uv', palette, size = 3 }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const scrubber = useRef<HTMLInputElement>(null);
+  const moveTrack = useRef<HTMLOListElement>(null);
   const scene = useRef<CubeScene | null>(null);
   const engine = useMemo<Engine | undefined>(
     () => (size === 2 ? { solved: solved2, applyMove: applyMove2 } : undefined),
@@ -211,6 +212,18 @@ export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 
     () => timeline.moves.map((m) => m.base + (m.amount === 1 ? '' : m.amount === 2 ? '2' : "'")),
     [timeline],
   );
+  useLayoutEffect(() => {
+    const track = moveTrack.current;
+    if (!track || track.scrollHeight <= track.clientHeight) return;
+    const step = track.children[moveIndex] as HTMLElement | undefined;
+    if (!step) {
+      track.scrollTop = 0;
+      return;
+    }
+    if (step.offsetTop < track.scrollTop) track.scrollTop = step.offsetTop;
+    const bottom = step.offsetTop + step.offsetHeight;
+    if (bottom > track.scrollTop + track.clientHeight) track.scrollTop = bottom - track.clientHeight;
+  }, [moveIndex, tokens]);
 
   if (error) return <div className="player player-error">这台设备无法显示 3D 魔方</div>;
 
@@ -221,7 +234,7 @@ export function CubePlayer({ alg, setup, autoPlay = true, mask = null, finish = 
         ? <div className="player-stage"><div className="player-scene" ref={host}>{loading}</div></div>
         : <div className="player-stage" ref={host}>{loading}</div>}
 
-      <ol className="move-track" aria-label="公式步骤">
+      <ol className="move-track" aria-label="公式步骤" ref={moveTrack} tabIndex={0}>
         {tokens.map((m, i) => (
           <li key={`${i}-${m}`} className={i === moveIndex ? 'move-now' : i < moveIndex ? 'move-done' : ''}>
             {m}

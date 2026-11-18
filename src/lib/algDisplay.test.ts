@@ -44,7 +44,7 @@ it('keeps oll-22 ungrouped and the corrected oll-50 grouping', () => {
 it('wires only row visible text to displayAlg and keeps all actions and labels raw', () => {
   const src = casePageSource;
   const row = src.slice(src.indexOf('  const row ='), src.indexOf('  const row =') + 1800);
-  expect(row).toContain('<code className="alg">{displayAlg(c.id, alg)}</code>');
+  expect(row).toContain('<AlgText text={displayAlg(c.id, alg)} />');
   expect(row).toContain('onClick={() => setSelected(alg)}');
   expect(row).toContain('key={alg}');
   expect(row).toContain('aria-label={`查看这条公式的起手 ${alg}`}');
