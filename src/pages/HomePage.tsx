@@ -12,6 +12,9 @@ import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
 import { matches } from '../lib/search';
 import { type SetId } from '../types';
 
+const TWO_BY_TWO_METHODS = METHODS.filter(({ id }) => id === '2x2');
+const THREE_BY_THREE_METHODS = METHODS.filter(({ id }) => id !== '2x2');
+
 /** 每组用一个有代表性的情形做缩略图 */
 const COVER: Record<SetId, string> = {
   f2l: 'f2l-5',
@@ -41,6 +44,21 @@ export function HomePage() {
   const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
+  const renderDeck = (method: (typeof METHODS)[number]) => {
+    const items = SETS.filter((set) => set.method === method.id).map((set) => {
+      const cover = getCase(COVER[set.id]) ?? set.cases[0];
+      const view = viewForPrimary(cover, primaryAlgOf(cover, user));
+      return {
+        id: set.id, name: set.name, description: set.description, summary: TWO_BY_TWO_SUMMARY[set.id],
+        done: set.cases.filter((c) => statusOf(c, user) === 'mastered').length,
+        total: set.cases.length,
+        diagram: set.view === 'top2' || set.view === 'both2'
+          ? <CaseDiagram2 colors={diagramColors2(view, browsePalette(cover, prefs))} view="top2" />
+          : <CaseDiagram c={view} view={set.view === 'lse' ? 'top' : set.view} palette={browsePalette(cover, prefs)} />,
+      };
+    });
+    return <HomeMethodDeck key={method.id} method={method.id} name={method.id === 'roux' ? '桥式' : method.name} items={items} />;
+  };
   return (
     <div className="page">
       <header className="home-head">
@@ -74,19 +92,11 @@ export function HomePage() {
       )}
       <section className="home-library" aria-labelledby="home-library-title">
         <h2 id="home-library-title">公式库</h2>
-        <div className="home-decks">
-          {METHODS.map((m) => <HomeMethodDeck key={m.id} method={m.id} name={m.id === 'roux' ? '桥式' : m.name} items={SETS.filter((s) => s.method === m.id).map((s) => {
-            const cover = getCase(COVER[s.id]) ?? s.cases[0];
-            return {
-              id: s.id, name: s.name, description: s.description, summary: TWO_BY_TWO_SUMMARY[s.id],
-              done: s.cases.filter((c) => statusOf(c, user) === 'mastered').length,
-              total: s.cases.length,
-              diagram: s.view === 'top2' || s.view === 'both2'
-                ? <CaseDiagram2 colors={diagramColors2(viewForPrimary(cover, primaryAlgOf(cover, user)), browsePalette(cover, prefs))} view="top2" />
-                : <CaseDiagram c={viewForPrimary(cover, primaryAlgOf(cover, user))} view={s.view === 'lse' ? 'top' : s.view} palette={browsePalette(cover, prefs)} />,
-            };
-          })} />)}
-        </div>
+        {TWO_BY_TWO_METHODS.map(renderDeck)}
+        <section className="home-three-by-three" aria-labelledby="home-three-by-three-title">
+          <h3 id="home-three-by-three-title">三阶</h3>
+          <div className="home-decks">{THREE_BY_THREE_METHODS.map(renderDeck)}</div>
+        </section>
       </section>
     </div>
   );

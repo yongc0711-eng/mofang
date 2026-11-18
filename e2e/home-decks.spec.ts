@@ -28,6 +28,15 @@ test('三卡堆：浅深色纯文字封面、卡内展开、十二入口与搜�
   for (const colorScheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme });await page.goto('/');
     await expect(page.getByRole('heading', { name: '公式库', exact: true })).toHaveCount(1);
+    const threeByThree = page.getByRole('region', { name: '三阶', exact: true });
+    await expect(threeByThree.locator('.home-method-deck')).toHaveCount(2);
+    const title = (await threeByThree.getByRole('heading', { name: '三阶', exact: true }).boundingBox())!;
+    const two = (await front(deck(page, '2x2')).boundingBox())!;
+    const cfop = (await front(deck(page, 'cfop')).boundingBox())!;
+    const roux = (await front(deck(page, 'roux')).boundingBox())!;
+    expect(two.y + two.height).toBeLessThan(title.y);
+    expect(title.y + title.height).toBeLessThan(cfop.y);
+    expect(cfop.y + cfop.height).toBeLessThan(roux.y);
     await expect(page.locator('.home-method-deck')).toHaveCount(3);
     await expect(page.locator('.home-deck-cover .diagram')).toHaveCount(0);
     await expect(page.locator('.set-card')).toHaveCount(12);
@@ -51,7 +60,7 @@ test('三卡堆：浅深色纯文字封面、卡内展开、十二入口与搜�
     await page.screenshot({ path: `ui-review.local/home-decks/after-${width}-${colorScheme}.png` });
     for (const method of [deck(page, 'cfop'), deck(page, 'roux'), deck(page, '2x2')]) await expand(method).click();
     await expect(page.locator('.set-card').filter({ visible: true })).toHaveCount(12);
-    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/f2l', '#/set/oll', '#/set/pll', '#/set/coll', '#/set/wv', '#/set/cmll', '#/set/lse', '#/set/sbls', '#/set/eolr', '#/set/cll', '#/set/eg1', '#/set/eg2']);
+    expect(await page.locator('.set-card').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual(['#/set/cll', '#/set/eg1', '#/set/eg2', '#/set/f2l', '#/set/oll', '#/set/pll', '#/set/coll', '#/set/wv', '#/set/cmll', '#/set/lse', '#/set/sbls', '#/set/eolr']);
     for (const link of await page.locator('.set-card').all()) {
       await link.evaluate(el => el.scrollIntoView({ block: 'center' }));
       const box = (await link.boundingBox())!,bottomNav = (await page.locator('.nav').boundingBox())!;
@@ -103,8 +112,13 @@ test('首页搜索、真实进度和方法配色继续工作，宽屏无溢出',
   await query.fill('');await expect(page.locator('.home-results')).toHaveCount(0);await noOverflow(page);
   await page.setViewportSize({ width: 1280, height: 900 });
   await expect.poll(() => page.locator('.home-decks').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length)).toBe(2);
-  const [first, second, third] = await page.locator('.home-method-deck').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().toJSON()));
-  expect(first.y).toBe(second.y);expect(first.x + first.width).toBeLessThan(second.x);expect(third.y).toBeGreaterThan(first.y);await noOverflow(page);
+  const [two, cfopBox, rouxBox] = await page.locator('.home-method-deck').evaluateAll(elements => elements.map(el => el.getBoundingClientRect().toJSON()));
+  const title = (await page.getByRole('heading', { name: '三阶', exact: true }).boundingBox())!;
+  expect(two.y + two.height).toBeLessThan(title.y);
+  expect(title.y + title.height).toBeLessThanOrEqual(cfopBox.y);
+  expect(cfopBox.y).toBe(rouxBox.y);
+  expect(cfopBox.x + cfopBox.width).toBeLessThan(rouxBox.x);
+  await noOverflow(page);
 });
 
 test.describe('正常动效与触屏', () => {

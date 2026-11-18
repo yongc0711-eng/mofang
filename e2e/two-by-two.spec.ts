@@ -27,7 +27,7 @@ async function checkDetail(page: Page, fixture: (typeof FIXTURES)[number]) {
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
 }
 
-test('二阶：第三叠入口展开，三组各 42 条列表无横滚', async ({ page }) => {
+test('二阶：首页入口展开，三组各 42 条列表无横滚', async ({ page }) => {
   const width = page.viewportSize()!.width;
   await page.goto('/');
   await expect(page.locator('.home-head')).toContainText('共 563 条公式');

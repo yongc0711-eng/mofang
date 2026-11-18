@@ -297,6 +297,8 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .home-head .small { font-size: var(--fs-meta); }
 .home-library { grid-column: 1 / -1; min-width: 0; }
 .home-library > h2 { margin: 0 0 8px; font-size: var(--fs-meta); font-weight: 500; color: var(--muted); }
+.home-three-by-three { margin-top: 14px; }
+.home-three-by-three > h3 { margin: 0; font-size: var(--fs-meta); font-weight: 500; color: var(--muted); }
 .home-decks { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .home-method-deck { --home-deck-height: 96px; --home-deck-expanded-height: 80px; min-width: 0; }
 .home-deck-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 0; margin-bottom: 0; overflow: clip; }
