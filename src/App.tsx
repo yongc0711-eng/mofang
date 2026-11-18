@@ -8,6 +8,7 @@ import { forceReload, RELOAD_WARNING_MESSAGE, versionChecker, watchVersionChecks
 import { CasePage } from './pages/CasePage';
 import { HomePage } from './pages/HomePage';
 import { MePage } from './pages/MePage';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { PracticePage } from './pages/PracticePage';
 import { PlayPage } from './pages/PlayPage';
 import { SetPage } from './pages/SetPage';
@@ -121,6 +122,7 @@ function AnimatedRoutes() {
         <Route path="/search" element={<PlayPage />} />
         <Route path="/practice" element={<PracticePage />} />
         <Route path="/me" element={<MePage />} />
+        <Route path="/me/favorites" element={<FavoritesPage />} />
         <Route path="*" element={<HomePage />} />
       </Routes>
     </div>

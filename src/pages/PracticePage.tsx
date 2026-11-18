@@ -86,6 +86,13 @@ function selectRequestedSet(selection: PracticeSelection, id: SetId): PracticeSe
   return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), sets: [id] } } };
 }
 
+function selectRequestedScope(selection: PracticeSelection, id: SetId | null, favoritesSize: PracticeSize | null): PracticeSelection {
+  if (favoritesSize) {
+    return { size: favoritesSize, scopes: { ...selection.scopes, [favoritesSize]: { ...defaultFilters(), filter: 'favorite' } } };
+  }
+  return id ? selectRequestedSet(selection, id) : selection;
+}
+
 const IDLE: Timer = { phase: 'ready', elapsedMs: 0, runningSince: null };
 interface Question {
   c: AlgCase;
@@ -121,6 +128,8 @@ export function PracticePage() {
   const { key: locationKey } = useLocation();
   const requestedSet = searchParams.get('set');
   const validRequested = requestedSet && isPracticeSet(requestedSet) ? (requestedSet as SetId) : null;
+  const favorites = searchParams.get('favorites');
+  const favoritesSize = favorites === '2' ? 2 : favorites === '3' ? 3 : null;
   const requestKey = `practice:entry:${locationKey}`;
   const user = useUserData();
   const prefs = useDevicePrefs();
@@ -137,14 +146,14 @@ export function PracticePage() {
       };
     }
     const initial = { size, scopes };
-    return validRequested && !getUi(requestKey, false) ? selectRequestedSet(initial, validRequested) : initial;
+    return getUi(requestKey, false) ? initial : selectRequestedScope(initial, validRequested, favoritesSize);
   });
-  // 组页直达只在进入这条历史记录时应用。详情返回时沿用之后的手动选择。
+  // 公式组和收藏直达只应用一次。详情返回时沿用之后的手动选择。
   useLayoutEffect(() => {
-    if (!validRequested || getUi(requestKey, false)) return;
+    if ((!validRequested && !favoritesSize) || getUi(requestKey, false)) return;
     setUi(requestKey, true);
-    setSelection(current => selectRequestedSet(current, validRequested));
-  }, [requestKey, validRequested]);
+    setSelection(current => selectRequestedScope(current, validRequested, favoritesSize));
+  }, [requestKey, validRequested, favoritesSize]);
   const { size, scopes } = selection;
   const { sets, group, filter, picked, showPicker } = scopes[size];
   const [colorPools, setColorPools] = useState(() => initializeColorPools(saved, prefs));
