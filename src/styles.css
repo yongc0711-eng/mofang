@@ -237,7 +237,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .practice[data-size='2'] .practice-case strong { font-size: 1.15rem; }
 .practice[data-size='2'] .practice-pad { gap: 12px; padding: 12px; min-height: 0; }
 .practice[data-size='2'] .practice-time { font-size: 3.5rem; }
-.practice[data-size='2'][data-phase='done'] .practice-pad { touch-action: pan-y; }
+.practice[data-phase='done'] .practice-pad { touch-action: pan-y; }
 .practice[data-size='2'] .diagram[data-view='top2'] { width: 64px; height: 80px; }
 .practice[data-size='2'] .diagram[data-view='both2'] { width: 132px; height: 80px; display: flex; gap: 4px; }
 .practice[data-size='2'] .diagram-face { width: 64px; flex: none; }
@@ -246,6 +246,7 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .practice-time { font-size: 4.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .practice-result { display: flex; flex-direction: column; gap: 6px; align-items: center; max-width: 100%; }
 .practice-result p { display: flex; flex-direction: column; gap: 2px; }
+.practice-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; }
 .practice-hint { font-size: 0.9rem; }
 
 /* —— 视觉优化 —— */

@@ -359,6 +359,7 @@ function Session({
   const lastId = useRef<string | null>(restore?.question.id ?? null);
   const lastColors = useRef<PracticeColors | null>(restore?.question.prepared && restore.question.prepared.version !== 1 ? restore.question.prepared.colors : null);
   const [pressing, setPressing] = useState(false);
+  const padRef = useRef<HTMLDivElement>(null);
   const heldPointer = useRef<{ id: number; phase: Timer['phase']; pad: HTMLDivElement; armed: boolean } | null>(null);
   const heldSpace = useRef<SpaceHold | null>(null);
   const clearPress = useCallback(() => {
@@ -480,6 +481,13 @@ function Session({
     onExit();
   };
 
+  const retryQuestion = () => {
+    setBanner(false);
+    setTimer(IDLE);
+    padRef.current?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
+  };
+
   const advance = useCallback(() => {
     if (!question) return;
     const t = Date.now();
@@ -575,6 +583,7 @@ function Session({
       )}
       <div
         className="practice-pad"
+        ref={padRef}
         role="button"
         tabIndex={0}
         aria-label={padHint}
@@ -639,9 +648,12 @@ function Session({
                 最近 {stats.count} 次：平均 {formatTime(stats.avg)} 秒 · 最快 {formatTime(stats.best)} 秒
               </p>
             )}
-            <Link className="link-btn" to={`/case/${c.id}`}>
-              查看详情
-            </Link>
+            <div className="practice-result-actions">
+              <button type="button" className="link-btn" onClick={retryQuestion}>再练这题</button>
+              <Link className="link-btn" to={`/case/${c.id}`}>
+                查看详情
+              </Link>
+            </div>
           </div>
         )}
         <p className="muted practice-hint">{padHint}</p>
