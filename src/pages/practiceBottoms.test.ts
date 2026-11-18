@@ -40,9 +40,9 @@ it('T60b old scope migrates bottoms to both methods and an existing two-pool sco
   expect(initializeColorPools(migrated,prefs)).toEqual(migrated);
 });
 it('T60b both pools and per-bottom bridge pairs live in uiState without device preferences or storage writes', () => {
-  expect(practiceSource).toContain('interface PracticeScope extends PracticeColorPools');
-  expect(practiceSource).toContain("setUi<PracticeScope>('practice:scope', { size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms })");
-  expect(practiceSource).toContain('[size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms]');
+  expect(practiceSource).toContain('interface PracticeScope extends PracticeColorPools, PracticeSelection');
+  expect(practiceSource).toContain("setUi<PracticeScope>('practice:scope', { size, scopes, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms })");
+  expect(practiceSource).toContain('[size, scopes, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms]');
   expect(practiceSource).not.toMatch(/\b(?:localStorage|setDevicePrefs)\b/);
 });
 it('T60b session snapshots the pools and seeds lastColors only from restored v2/v3 prepared data', () => {

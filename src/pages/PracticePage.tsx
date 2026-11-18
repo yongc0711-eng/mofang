@@ -1,7 +1,7 @@
 import { initializeColorPools, snapshotPools, pickPracticeColors, colorBottom, paletteFor, type PracticeColors, type PracticeColorPools } from '../lib/practiceColors';
 import { type Palette } from '../lib/colorScheme';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { CaseDiagram } from '../components/CaseDiagram';
 import { practiceViewFor } from '../components/CaseCard';
 import { SETS, getCase, getSet } from '../data';
@@ -55,14 +55,34 @@ const FILTERS: { id: StatusFilter; label: string }[] = [
   { id: 'mastered', label: STATUS_LABEL.mastered },
 ];
 
-interface PracticeScope extends PracticeColorPools {
-  size?: 2 | 3;
+type PracticeSize = 2 | 3;
+
+interface PracticeFilters {
   sets: SetId[];
   group: string;
   filter: StatusFilter;
   picked: string[];
   showPicker: boolean;
+}
+
+interface PracticeSelection {
+  size: PracticeSize;
+  scopes: Record<PracticeSize, PracticeFilters>;
+}
+
+interface PracticeScope extends PracticeColorPools, PracticeSelection {
   bottoms?: BottomColor[];
+}
+
+const defaultFilters = (): PracticeFilters => ({ sets: [], group: '全部', filter: 'all', picked: [], showPicker: false });
+
+function selectRequestedSet(selection: PracticeSelection, id: SetId): PracticeSelection {
+  const size = is2x2Set(id) ? 2 : 3;
+  const { sets } = selection.scopes[size];
+  if (sets.length === 1 && sets[0] === id) {
+    return size === selection.size ? selection : { ...selection, size };
+  }
+  return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), sets: [id] } } };
 }
 
 const IDLE: Timer = { phase: 'ready', elapsedMs: 0, runningSince: null };
@@ -97,26 +117,40 @@ export function PracticeQuestionDiagram({ c, set, bottom, prepared, phase, palet
 
 export function PracticePage() {
   const [searchParams] = useSearchParams();
+  const { key: locationKey } = useLocation();
   const requestedSet = searchParams.get('set');
   const validRequested = requestedSet && isPracticeSet(requestedSet) ? (requestedSet as SetId) : null;
+  const requestKey = `practice:entry:${locationKey}`;
   const user = useUserData();
   const prefs = useDevicePrefs();
-  // 范围和筛选放在内存里，从“查看详情”返回时还在
-  const savedScope = getUi<PracticeScope>('practice:scope', { sets: [], group: '全部', filter: 'all', picked: [], showPicker: false, ...initializeColorPools({}, prefs) });
-  const [size, setSize] = useState<2 | 3>(() => validRequested ? (is2x2Set(validRequested) ? 2 : 3) : savedScope.size ?? 3);
-  const savedSets = savedScope.sets.filter(id => isPracticeSet(id) && is2x2Set(id) === (size === 2));
-  const saved = validRequested && !(savedSets.length === 1 && savedSets[0] === validRequested)
-    ? { ...savedScope, sets: savedSets, group: '全部', filter: 'all' as const, picked: [], showPicker: false } : { ...savedScope, sets: savedSets };
-  const [sets, setSets] = useState<SetId[]>(() => validRequested ? [validRequested] : saved.sets);
-  const [group, setGroup] = useState(saved.group);
-  const [filter, setFilter] = useState<StatusFilter>(saved.filter);
-  const [picked, setPicked] = useState<string[]>(saved.picked);
-  const [showPicker, setShowPicker] = useState(saved.showPicker);
+  const saved = getUi<Partial<PracticeScope & PracticeFilters>>('practice:scope', {});
+  const [selection, setSelection] = useState<PracticeSelection>(() => {
+    const size = saved.size ?? 3;
+    const scopes = saved.scopes ?? { 2: defaultFilters(), 3: defaultFilters() };
+    // 兼容此前只记一个阶数的内存快照。
+    if (!saved.scopes) {
+      scopes[size] = {
+        sets: (saved.sets ?? []).filter(id => isPracticeSet(id) && is2x2Set(id) === (size === 2)),
+        group: saved.group ?? '全部', filter: saved.filter ?? 'all',
+        picked: saved.picked ?? [], showPicker: saved.showPicker ?? false,
+      };
+    }
+    const initial = { size, scopes };
+    return validRequested && !getUi(requestKey, false) ? selectRequestedSet(initial, validRequested) : initial;
+  });
+  // 组页直达只在进入这条历史记录时应用。详情返回时沿用之后的手动选择。
+  useLayoutEffect(() => {
+    if (!validRequested || getUi(requestKey, false)) return;
+    setUi(requestKey, true);
+    setSelection(current => selectRequestedSet(current, validRequested));
+  }, [requestKey, validRequested]);
+  const { size, scopes } = selection;
+  const { sets, group, filter, picked, showPicker } = scopes[size];
   const [colorPools, setColorPools] = useState(() => initializeColorPools(saved, prefs));
   const { cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms } = colorPools;
   useEffect(() => {
-    setUi<PracticeScope>('practice:scope', { size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms });
-  }, [size, sets, group, filter, picked, showPicker, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms]);
+    setUi<PracticeScope>('practice:scope', { size, scopes, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms });
+  }, [size, scopes, cfopBottoms, rouxBottoms, rouxPairsByBottom, twoByTwoBottoms]);
   // 有未过期的会话就直接进练习，不先闪设置页。读取时只会清掉无效会话，重复调用是安全的。
   // 同一文档里切路由回来的 running 会话仍在走；重载或冷启动回来的是 paused（见 practiceSession）
   const [restored, setRestored] = useState<PracticeSession | null>(() =>
@@ -145,12 +179,19 @@ export function PracticePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, sets, group, filter, picked, user]);
 
-  const toggleSet = (id: SetId) => {
-    setSets((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
-    setGroup('全部');
-    setPicked([]);
+  const updateScope = (update: (scope: PracticeFilters) => Partial<PracticeFilters>) => {
+    setSelection(current => {
+      const scope = current.scopes[size];
+      return { ...current, scopes: { ...current.scopes, [size]: { ...scope, ...update(scope) } } };
+    });
   };
-  const togglePick = (id: string) => setPicked((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+  const toggleSet = (id: SetId) => updateScope(scope => ({
+    sets: scope.sets.includes(id) ? scope.sets.filter(set => set !== id) : [...scope.sets, id],
+    group: '全部', picked: [],
+  }));
+  const togglePick = (id: string) => updateScope(scope => ({
+    picked: scope.picked.includes(id) ? scope.picked.filter(caseId => caseId !== id) : [...scope.picked, id],
+  }));
 
   if (practicing) {
     const sessionPool = restored ? restored.poolIds.map((id) => getCase(id)!) : pool;
@@ -173,7 +214,7 @@ export function PracticePage() {
       <div className="practice-settings-head">
         <div className="segmented practice-size" role="group" aria-label="魔方阶数">
           {([3, 2] as const).map(n => <button type="button" key={n} className={size === n ? 'seg-on' : ''} aria-pressed={size === n}
-            onClick={() => { if (n === size) return; setSize(n); setSets([]); setGroup('全部'); setPicked([]); setShowPicker(false); }}>
+            onClick={() => setSelection(current => current.size === n ? current : { ...current, size: n })}>
             {n === 2 ? '二阶' : '三阶'}
           </button>)}
         </div>
@@ -197,7 +238,7 @@ export function PracticePage() {
             <h2>分组</h2>
             <div className="chips wrap" role="group" aria-label="按分组筛选">
               {['全部', ...groups].map((g) => (
-                <button key={g} className={`chip ${group === g ? 'chip-on' : ''}`} onClick={() => setGroup(g)}>
+                <button key={g} className={`chip ${group === g ? 'chip-on' : ''}`} aria-pressed={group === g} onClick={() => updateScope(() => ({ group: g }))}>
                   {g}
                 </button>
               ))}
@@ -207,7 +248,7 @@ export function PracticePage() {
         <h2>学习状态</h2>
         <div className="chips" role="group" aria-label="按学习状态筛选">
           {FILTERS.map((f) => (
-            <button key={f.id} className={`chip ${filter === f.id ? 'chip-on' : ''}`} onClick={() => setFilter(f.id)}>
+            <button key={f.id} className={`chip ${filter === f.id ? 'chip-on' : ''}`} aria-pressed={filter === f.id} onClick={() => updateScope(() => ({ filter: f.id }))}>
               {f.label}
             </button>
           ))}
@@ -218,11 +259,11 @@ export function PracticePage() {
         只练选中的情形 {picked.length > 0 && <span className="muted small">已选 {picked.length}，会忽略上面的筛选</span>}
       </h2>
       <div className="button-row">
-        <button className="btn" onClick={() => setShowPicker((v) => !v)}>
+        <button className="btn" aria-expanded={showPicker} onClick={() => updateScope(scope => ({ showPicker: !scope.showPicker }))}>
           {showPicker ? '收起列表' : '选择情形'}
         </button>
         {picked.length > 0 && (
-          <button className="btn" onClick={() => setPicked([])}>
+          <button className="btn" onClick={() => updateScope(() => ({ picked: [] }))}>
             清空选择
           </button>
         )}
