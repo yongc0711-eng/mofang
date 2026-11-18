@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ALL_CASES } from '../data';
 import { is2x2Set } from '../lib/cases2';
+import { matchesMyCase, MY_CASE_FILTERS } from '../lib/myCaseFilters';
 import { clearReloadWarning, CURRENT_BUILD_ID, forceReload, hasReloadWarning, RELOAD_WARNING_MESSAGE, versionChecker } from '../lib/version';
 import { setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
-import { exportUserData, importUserData, statusOf, useUserData } from '../store/userStore';
+import { exportUserData, importUserData, useUserData } from '../store/userStore';
 
 /** 本地日期 YYYY-MM-DD（toISOString 是 UTC，东八区凌晨会差一天） */
 function localDate(d = new Date()) {
@@ -43,10 +44,6 @@ export function MePage() {
     }
   };
 
-  const count = (s: 'learning' | 'mastered') => ALL_CASES.filter((c) => statusOf(c, user) === s).length;
-  const favorites = ALL_CASES.filter((c) => user.cases[c.id]?.favorite);
-  const favoritesSize = favorites.length > 0 && favorites.every(c => is2x2Set(c.set)) ? 2 : 3;
-
   const download = () => {
     const url = URL.createObjectURL(new Blob([exportUserData()], { type: 'application/json' }));
     const a = document.createElement('a');
@@ -71,9 +68,13 @@ export function MePage() {
     <div className="page">
       <h1 className="page-title">我的</h1>
       <div className="stats">
-        <div><strong>{count('mastered')}</strong><span className="muted small">已掌握</span></div>
-        <div><strong>{count('learning')}</strong><span className="muted small">学习中</span></div>
-        <Link to={`/me/favorites?size=${favoritesSize}`} state={{ fromMe: true }}><strong>{favorites.length}</strong><span className="small">收藏 <span aria-hidden="true">›</span></span></Link>
+        {MY_CASE_FILTERS.map(({ filter, label, path }) => {
+          const cases = ALL_CASES.filter(c => matchesMyCase(c, user, filter));
+          const size = cases.length > 0 && cases.every(c => is2x2Set(c.set)) ? 2 : 3;
+          return <Link key={path} to={`/me/${path}?size=${size}`} state={{ fromMe: true }}>
+            <strong>{cases.length}</strong><span className="small">{label} <span aria-hidden="true">›</span></span>
+          </Link>;
+        })}
       </div>
       <h2>魔方表面</h2>
       <div className="segmented" role="group" aria-label="魔方表面">

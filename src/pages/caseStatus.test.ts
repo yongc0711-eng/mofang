@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import casePageSource from './CasePage.tsx?raw';
+import meSource from './MePage.tsx?raw';
+import myCasesSource from './MyCasesPage.tsx?raw';
 import practiceSource from './PracticePage.tsx?raw';
 import { ALL_CASES } from '../data';
 
@@ -81,8 +83,18 @@ describe('T45 状态标签、点击持久化、筛选与统计', () => {
     expect(user.cases[b.id].favorite).toBe(true);
   });
 
-  it('筛选和统计仍按 statusOf：练习页的筛选项、「我的」的统计没动', () => {
-    expect(practiceSource).toContain('statusOf(c, user) === filter');
+  it('练习筛选、「我的」统计和列表按同一学习状态匹配', async () => {
+    await load();
+    const { matchesMyCase } = await import('../lib/myCaseFilters');
+    for (const source of [practiceSource, meSource, myCasesSource]) {
+      expect(source).toContain('matchesMyCase(c, user, filter)');
+    }
+    const [unlearned, learning, mastered] = ALL_CASES;
+    const user = { version: 1, cases: { [learning.id]: { status: 'learning' }, [mastered.id]: { status: 'mastered' } } } as const;
+    const cases = [unlearned, learning, mastered];
+    expect(cases.filter(c => matchesMyCase(c, user, 'none'))).toEqual([unlearned]);
+    expect(cases.filter(c => matchesMyCase(c, user, 'learning'))).toEqual([learning]);
+    expect(cases.filter(c => matchesMyCase(c, user, 'mastered'))).toEqual([mastered]);
     expect(practiceSource).toMatch(/\{ id: 'none', label: STATUS_LABEL\.none \}/);
     expect(practiceSource).toMatch(/\{ id: 'learning', label: STATUS_LABEL\.learning \}/);
     expect(practiceSource).toMatch(/\{ id: 'mastered', label: STATUS_LABEL\.mastered \}/);

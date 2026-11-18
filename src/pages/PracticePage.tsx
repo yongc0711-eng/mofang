@@ -12,6 +12,7 @@ import { sampleTarget2 } from '../lib/practice2';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { Recognition2 } from '../components/Recognition2';
 import { getUi, setUi } from '../lib/uiState';
+import { matchesMyCase, type MyCaseFilter } from '../lib/myCaseFilters';
 import { pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
 import {
@@ -41,7 +42,6 @@ import {
   addTime,
   formatTime,
   primaryAlgOf,
-  statusOf,
   timeStats,
   useUserData,
 } from '../store/userStore';
@@ -86,9 +86,9 @@ function selectRequestedSet(selection: PracticeSelection, id: SetId): PracticeSe
   return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), sets: [id] } } };
 }
 
-function selectRequestedScope(selection: PracticeSelection, id: SetId | null, favoritesSize: PracticeSize | null): PracticeSelection {
-  if (favoritesSize) {
-    return { size: favoritesSize, scopes: { ...selection.scopes, [favoritesSize]: { ...defaultFilters(), filter: 'favorite' } } };
+function selectRequestedScope(selection: PracticeSelection, id: SetId | null, filter: MyCaseFilter | null, size: PracticeSize): PracticeSelection {
+  if (filter) {
+    return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), filter } } };
   }
   return id ? selectRequestedSet(selection, id) : selection;
 }
@@ -129,7 +129,12 @@ export function PracticePage() {
   const requestedSet = searchParams.get('set');
   const validRequested = requestedSet && isPracticeSet(requestedSet) ? (requestedSet as SetId) : null;
   const favorites = searchParams.get('favorites');
-  const favoritesSize = favorites === '2' ? 2 : favorites === '3' ? 3 : null;
+  const status = searchParams.get('status');
+  const sizeParam = searchParams.get('size');
+  const requestsFavorites = favorites === '2' || favorites === '3';
+  const directFilter = requestsFavorites ? 'favorite'
+    : (sizeParam === '2' || sizeParam === '3') && (status === 'mastered' || status === 'learning') ? status : null;
+  const directSize = (requestsFavorites ? favorites : sizeParam) === '2' ? 2 : 3;
   const requestKey = `practice:entry:${locationKey}`;
   const user = useUserData();
   const prefs = useDevicePrefs();
@@ -146,14 +151,14 @@ export function PracticePage() {
       };
     }
     const initial = { size, scopes };
-    return getUi(requestKey, false) ? initial : selectRequestedScope(initial, validRequested, favoritesSize);
+    return getUi(requestKey, false) ? initial : selectRequestedScope(initial, validRequested, directFilter, directSize);
   });
-  // 公式组和收藏直达只应用一次。详情返回时沿用之后的手动选择。
+  // 公式组和「我的」直达只应用一次。详情返回时沿用之后的手动选择。
   useLayoutEffect(() => {
-    if ((!validRequested && !favoritesSize) || getUi(requestKey, false)) return;
+    if ((!validRequested && !directFilter) || getUi(requestKey, false)) return;
     setUi(requestKey, true);
-    setSelection(current => selectRequestedScope(current, validRequested, favoritesSize));
-  }, [requestKey, validRequested, favoritesSize]);
+    setSelection(current => selectRequestedScope(current, validRequested, directFilter, directSize));
+  }, [requestKey, validRequested, directFilter, directSize]);
   const { size, scopes } = selection;
   const { sets, group, filter, picked, showPicker } = scopes[size];
   const [colorPools, setColorPools] = useState(() => initializeColorPools(saved, prefs));
@@ -183,8 +188,7 @@ export function PracticePage() {
     return candidates.filter((c) => {
       if (group !== '全部' && c.group !== group) return false;
       if (filter === 'all') return true;
-      if (filter === 'favorite') return !!user.cases[c.id]?.favorite;
-      return statusOf(c, user) === filter;
+      return matchesMyCase(c, user, filter);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [size, sets, group, filter, picked, user]);
