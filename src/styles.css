@@ -671,6 +671,8 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 
 /* 首页搜索结果横跨宽屏两列，窄屏仍收在正文内。 */
 .home-results { grid-column: 1 / -1; min-width: 0; margin-bottom: 16px; }
+.home-results-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.home-search-filters { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* 试转页：舞台、键盘、次要操作分层；只影响 sandbox，不改变详情播放器预算。 */
 .play-head { margin-bottom: 16px; }

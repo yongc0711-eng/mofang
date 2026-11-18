@@ -6,7 +6,7 @@ import { CaseDiagram } from '../components/CaseDiagram';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
 import { CaseCard, viewForPrimary } from '../components/CaseCard';
 import { ALL_CASES, METHODS, SETS, getCase } from '../data';
-import { diagramColors2 } from '../lib/cases2';
+import { diagramColors2, is2x2Set } from '../lib/cases2';
 import { useDevicePrefs } from '../store/devicePrefs';
 import { primaryAlgOf, statusOf, useUserData } from '../store/userStore';
 import { matches } from '../lib/search';
@@ -14,6 +14,11 @@ import { type SetId } from '../types';
 
 const TWO_BY_TWO_METHODS = METHODS.filter(({ id }) => id === '2x2');
 const THREE_BY_THREE_METHODS = METHODS.filter(({ id }) => id !== '2x2');
+const SEARCH_SIZES = [
+  { id: 'all', label: '全部' },
+  { id: '2x2', label: '二阶' },
+  { id: '3x3', label: '三阶' },
+] as const;
 
 /** 每组用一个有代表性的情形做缩略图 */
 const COVER: Record<SetId, string> = {
@@ -39,9 +44,15 @@ const TWO_BY_TWO_SUMMARY: Partial<Record<SetId, string>> = {
 
 export function HomePage() {
   const [q, setQ] = useState('');
+  const [searchSize, setSearchSize] = useState<(typeof SEARCH_SIZES)[number]['id']>('all');
   const user = useUserData();
   const query = q.trim();
-  const results = useMemo(() => query ? ALL_CASES.filter((c) => matches(c, query, user)) : [], [query, user]);
+  const matchesQuery = useMemo(() => query ? ALL_CASES.filter(c => matches(c, query, user)) : [], [query, user]);
+  const results = searchSize === 'all' ? matchesQuery : matchesQuery.filter(c => is2x2Set(c.set) === (searchSize === '2x2'));
+  const changeQuery = (value: string) => {
+    setQ(value);
+    if (!value.trim()) setSearchSize('all');
+  };
   const prefs = useDevicePrefs();
   const mastered = ALL_CASES.filter((c) => statusOf(c, user) === 'mastered').length;
   const renderDeck = (method: (typeof METHODS)[number]) => {
@@ -71,7 +82,7 @@ export function HomePage() {
             className="search-input"
             type="search"
             value={q}
-            onChange={(e) => setQ(e.target.value)}
+            onChange={(e) => changeQuery(e.target.value)}
             placeholder="搜索公式、别名或片段"
             aria-label="搜索公式"
             autoCapitalize="off"
@@ -83,7 +94,15 @@ export function HomePage() {
       </header>
       {query && (
         <section className="home-results" aria-label="搜索结果">
-          <p className="muted small" role="status">找到 {results.length} 条</p>
+          <div className="home-results-toolbar">
+            <div className="home-search-filters" role="group" aria-label="搜索阶数">
+              {SEARCH_SIZES.map(({ id, label }) => (
+                <button key={id} type="button" className={`chip${searchSize === id ? ' chip-on' : ''}`}
+                  aria-pressed={searchSize === id} onClick={() => setSearchSize(id)}>{label}</button>
+              ))}
+            </div>
+            <p className="muted small" role="status">找到 {results.length} 条</p>
+          </div>
           {!results.length && <p className="empty">没有匹配的公式</p>}
           <div className="case-grid">
             {results.map((c) => <CaseCard key={c.id} c={c} />)}
