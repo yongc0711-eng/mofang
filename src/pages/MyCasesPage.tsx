@@ -39,7 +39,15 @@ export function MyCasesPage({ list }: { list: MyCaseList }) {
       </div>
       {visible.length > 0 ? visible.map(({ set, cases }) => (
         <section className="my-cases-group" key={set.id} aria-labelledby={`my-cases-${set.id}`}>
-          <h2 id={`my-cases-${set.id}`}>{set.name}</h2>
+          <div className="my-cases-group-head">
+            <h2 id={`my-cases-${set.id}`}>{set.name}</h2>
+            {filter === 'learning' && (
+              <>
+                <span className="muted small">{cases.length} 个学习中</span>
+                <Link className="chip" to={`${practiceTo}&set=${set.id}`} aria-label={`练习本组：${set.name}`}>练习本组</Link>
+              </>
+            )}
+          </div>
           <div className="case-grid">{cases.map(c => <CaseCard key={c.id} c={c} />)}</div>
         </section>
       )) : <p className="empty" role="status">{isFavorites

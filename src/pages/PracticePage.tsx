@@ -88,7 +88,8 @@ function selectRequestedSet(selection: PracticeSelection, id: SetId): PracticeSe
 
 function selectRequestedScope(selection: PracticeSelection, id: SetId | null, filter: MyCaseFilter | null, size: PracticeSize): PracticeSelection {
   if (filter) {
-    return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), filter } } };
+    const sets = id && is2x2Set(id) === (size === 2) ? [id] : [];
+    return { size, scopes: { ...selection.scopes, [size]: { ...defaultFilters(), sets, filter } } };
   }
   return id ? selectRequestedSet(selection, id) : selection;
 }
