@@ -3,6 +3,7 @@ import { browsePalette, FACE_COLOR } from '../lib/colorScheme';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { diagramMask, playerMask, setDevicePrefs, useDevicePrefs } from '../store/devicePrefs';
 import { recognitionFor } from '../lib/recognition';
+import { cmllRecognition } from '../lib/cmllRecognition';
 import { setUi } from '../lib/uiState';
 import { readCaseSelection, rememberCaseSelection } from '../lib/caseSelection';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -101,6 +102,7 @@ export function CasePage() {
     () => (!c ? c : is2x2Set(c.set) ? viewCaseFor2(c, playing) : viewCaseFor(c, playing)),
     [c, playing],
   );
+  const cmllHint = useMemo(() => viewCase?.set === 'cmll' ? cmllRecognition(viewCase, palette) : null, [viewCase, palette]);
 
   if (!c || !viewCase) {
     return (
@@ -199,7 +201,7 @@ export function CasePage() {
   );
 
   return (
-    <div className="page case-page" data-size={is2x2 ? 2 : undefined}>
+    <div className="page case-page" data-size={is2x2 ? 2 : undefined} data-set={c.set}>
       <button className="back" onClick={() => navigate(-1)}>
         ‹ 返回
       </button>
@@ -260,11 +262,21 @@ export function CasePage() {
               sideRef.current?.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
             }}
           >
-            <span aria-hidden="true">↓</span> {is2x2 || c.recognition ? '识别与公式' : '公式'}
+            <span aria-hidden="true">↓</span> {is2x2 || cmllHint || c.recognition ? '识别与公式' : '公式'}
           </button>
         </div>
         <div className="case-side" ref={sideRef}>
           {is2x2 && <Recognition2 c={viewCase} palette={palette} />}
+          {cmllHint && (
+            <section className="recognition cmll-recognition" aria-label="CMLL 识别提示">
+              <h2>识别提示</h2>
+              <p><strong>先看顶色</strong>{cmllHint.shape}</p>
+              {cmllHint.cues.length > 0 && (
+                <div><strong>区分相似情形</strong><ul>{cmllHint.cues.map(cue => <li key={cue}>{cue}</li>)}</ul></div>
+              )}
+              <p className="muted small recognition-guide">按图持方，顶视图的前侧在下。观察顶层四角。</p>
+            </section>
+          )}
           {c.set === 'eolr' && <p className="recognition"><strong>{c.targetTier === 'tier1' ? '化归中间态' : c.targetTier === 'tier2' ? '标准 EOLR · 底层双槽' : '严格 EOLRb · LR 与顶角归位'}</strong>{c.continuationAlg && <> · 接续 <code>{c.continuationAlg}</code></>}<br />接续从当前情形的同一起手播放。<Link to="/set/lse">基础 LSE</Link></p>}
           {c.recognition && (
             <p className="recognition">

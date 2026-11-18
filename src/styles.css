@@ -821,6 +821,10 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 /* 窄屏时把 LSE 收藏放到返回行右侧，让长名称用满剩余宽度。 */
 .case-page .case-head:has(> .diagram svg + svg) { position: relative; }
 .case-page .case-head:has(> .diagram svg + svg) .fav-btn { position: absolute; top: -44px; right: 0; }
+@media (max-width: 360px) {
+  .case-page[data-set="cmll"] .case-head { position: relative; }
+  .case-page[data-set="cmll"] .fav-btn { position: absolute; top: -44px; right: 0; }
+}
 .case-identity { flex: 1; min-width: 0; }
 .case-title-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .case-title-row .page-title { min-width: 0; overflow-wrap: anywhere; font-size: 1.75rem; font-weight: 600; line-height: 1.25; }
@@ -839,11 +843,11 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .case-page .recognition { margin-top: 0; font-size: 0.875rem; line-height: 1.75; }
 .case-page .recognition + .recognition { margin-top: 16px; }
 .case-page .recognition > strong { display: block; margin-bottom: 4px; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
-.recognition-2 h2 { margin: 0 0 16px; }
-.recognition-2 p, .recognition-2 > div { margin: 0 0 12px; }
-.recognition-2 strong { display: block; margin-bottom: 4px; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
-.recognition-2 ul { margin: 0; padding-left: 1.25em; }
-.recognition-2 .recognition-guide { margin-bottom: 16px; }
+:is(.recognition-2, .cmll-recognition) h2 { margin: 0 0 16px; }
+:is(.recognition-2, .cmll-recognition) p, :is(.recognition-2, .cmll-recognition) > div { margin: 0 0 12px; }
+:is(.recognition-2, .cmll-recognition) strong { display: block; margin-bottom: 4px; color: var(--muted); font-size: 0.75rem; font-weight: 500; }
+:is(.recognition-2, .cmll-recognition) ul { margin: 0; padding-left: 1.25em; }
+:is(.recognition-2, .cmll-recognition) .recognition-guide { margin-bottom: 16px; }
 .case-page .case-side > h2 { margin: 24px 0 12px; font-size: 1rem; font-weight: 600; }
 .case-page .alg-list { gap: 12px; }
 .case-page .alg-row { padding: 14px 16px; border-radius: var(--radius-card); }

@@ -32,7 +32,7 @@ describe('T48 详情页首屏：提示条与浮层按钮（CasePage）', () => {
     expect(casePageSource).toMatch(/<div className="case-side" ref=\{sideRef\}>/);
     expect(player).toMatch(/sideRef\.current\?\.scrollIntoView\(\{ block: 'start', behavior: reduceMotion \? 'auto' : 'smooth' \}\)/);
     expect(player).toContain('prefers-reduced-motion: reduce');
-    expect(player).toContain("{is2x2 || c.recognition ? '识别与公式' : '公式'}");
+    expect(player).toContain("{is2x2 || cmllHint || c.recognition ? '识别与公式' : '公式'}");
     expect(casePageSource).toContain('{is2x2 && <Recognition2 c={viewCase} palette={palette} />}');
   });
   it('“只看相关的块”仍在 .case-player 里、播放器之外（不在 3D 拖拽区里），逻辑不变', () => {
