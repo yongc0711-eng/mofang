@@ -7,6 +7,10 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
+  // CI 的 2 vCPU 上，three.js chunk 下载与 SwiftShader 的 WebGL 初始化经常超过 5 秒，
+  // 详情页的「播放」按钮要等场景就绪才可用。断言本身不动，只把等待上限放宽到 15 秒；
+  // 本地仍用 5 秒，变慢时能立刻发现。
+  expect: { timeout: process.env.CI ? 15_000 : 5_000 },
   use: {
     baseURL: 'http://127.0.0.1:4173',
     serviceWorkers: 'block',
