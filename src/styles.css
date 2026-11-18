@@ -245,7 +245,10 @@ main { padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px); 
 .practice-scramble { display: flex; flex-direction: column; gap: 2px; max-width: 100%; }
 .practice-time { font-size: 4.5rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .practice-result { display: flex; flex-direction: column; gap: 6px; align-items: center; max-width: 100%; }
-.practice-result p { display: flex; flex-direction: column; gap: 2px; }
+.practice-result > p { display: flex; flex-direction: column; gap: 2px; }
+.practice-recognition { width: 100%; margin-block: 4px; text-align: left; border-block: 1px solid var(--border); }
+.practice-recognition summary { min-height: 36px; padding: 8px 4px; cursor: pointer; color: var(--accent); font-size: .875rem; }
+.practice-recognition .recognition { margin-top: 4px; padding-inline: 4px; font-size: .875rem; }
 .practice-result-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 12px; }
 .practice-hint { font-size: 0.9rem; }
 

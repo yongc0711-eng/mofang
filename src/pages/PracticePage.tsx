@@ -10,6 +10,7 @@ import { compatiblePracticeSession } from '../lib/practiceRestore';
 import { STICKERS2 } from '../lib/cube2';
 import { sampleTarget2 } from '../lib/practice2';
 import { CaseDiagram2 } from '../components/CaseDiagram2';
+import { Recognition2 } from '../components/Recognition2';
 import { getUi, setUi } from '../lib/uiState';
 import { pickCase } from '../lib/practice';
 import { invalidateSpace, spaceDown, spaceUp, watchPressCancellation, type SpaceHold } from '../lib/practiceKeys';
@@ -512,7 +513,7 @@ function Session({
     const isSpace = (e: KeyboardEvent) => e.code === 'Space' || e.key === ' ';
     const context = (e: KeyboardEvent) => ({
       phase,
-      blocked: !!(e.target as Element | null)?.closest?.('a,button'),
+      blocked: !!(e.target as Element | null)?.closest?.('a,button,.practice-recognition'),
       pointerHeld: heldPointer.current !== null,
       enabled: question !== null && document.visibilityState === 'visible',
       repeat: e.repeat,
@@ -591,7 +592,7 @@ function Session({
         onContextMenu={(e) => e.preventDefault()}
         onPointerDown={(e) => {
           if (e.button !== 0 || !e.isPrimary || heldPointer.current || heldSpace.current) return;
-          if ((e.target as Element).closest('a,button')) return;
+          if ((e.target as Element).closest('a,button,.practice-recognition')) return;
           heldPointer.current = { id: e.pointerId, phase, pad: e.currentTarget, armed: phase !== 'running' };
           e.currentTarget.setPointerCapture(e.pointerId);
           if (phase === 'running') {
@@ -647,6 +648,12 @@ function Session({
               <p className="muted small">
                 最近 {stats.count} 次：平均 {formatTime(stats.avg)} 秒 · 最快 {formatTime(stats.best)} 秒
               </p>
+            )}
+            {prepared?.version === 3 && palette && (
+              <details className="practice-recognition">
+                <summary>识别提示</summary>
+                <Recognition2 c={c} palette={palette} showHeading={false} />
+              </details>
             )}
             <div className="practice-result-actions">
               <button type="button" className="link-btn" onClick={retryQuestion}>再练这题</button>
